@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Metas do Mês</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .meta-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .meta-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .meta-header h1 { font-size:18px; font-weight:700; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    /* Month nav */
+    .month-nav {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;
+    }
+    .month-btn {
+      width:36px; height:36px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:16px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-family:inherit; transition:all .2s;
+    }
+    .month-btn:hover { border-color:var(--borda-hover); }
+    .month-label { font-size:14px; font-weight:700; text-align:center; }
+    .month-sub { font-size:11px; color:var(--texto-muted); text-align:center; margin-top:2px; }
+
+    /* Big ring */
+    .ring-wrapper {
+      display:flex; flex-direction:column; align-items:center; margin-bottom:24px;
+    }
+    .ring-container {
+      position:relative; width:180px; height:180px;
+    }
+    .ring-svg { width:180px; height:180px; transform:rotate(-90deg); }
+    .ring-bg { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:12; }
+    .ring-fill {
+      fill:none; stroke-width:12; stroke-linecap:round;
+      transition:stroke-dashoffset 1s ease, stroke .3s;
+    }
+    .ring-center {
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+    .ring-pct { font-size:28px; font-weight:800; }
+    .ring-values { font-size:11px; color:var(--texto-muted); margin-top:2px; }
+
+    /* Motivational */
+    .motiv-msg {
+      text-align:center; font-size:13px; font-weight:600; margin-bottom:20px;
+      padding:10px 16px; border-radius:10px; animation:fadeIn .5s;
+    }
+    .motiv-great { background:rgba(212,168,83,0.15); color:#d4a853; }
+    .motiv-good { background:rgba(212,168,83,0.1); color:#d4a853; }
+    .motiv-ok { background:rgba(255,255,255,0.05); color:var(--texto-secundario); }
+    .motiv-low { background:rgba(231,76,60,0.1); color:#e74c3c; }
+    .motiv-celebration {
+      background:linear-gradient(135deg, rgba(212,168,83,0.2), rgba(212,168,83,0.05));
+      color:#d4a853; font-size:14px; font-weight:800; border:1px solid rgba(212,168,83,0.3);
+    }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Goal cards */
+    .goal-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:16px; margin-bottom:12px; transition:all .2s;
+    }
+    .goal-top {
+      display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;
+    }
+    .goal-icon { font-size:20px; margin-right:8px; }
+    .goal-title { font-size:13px; font-weight:700; letter-spacing:0.5px; }
+    .goal-pct {
+      font-size:13px; font-weight:800; padding:4px 10px; border-radius:20px;
+      background:rgba(255,255,255,0.06);
+    }
+    .goal-numbers {
+      display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;
+    }
+    .goal-current { font-size:22px; font-weight:800; }
+    .goal-target {
+      font-size:12px; color:var(--texto-muted); cursor:pointer; padding:4px 8px;
+      border-radius:6px; border:1px solid transparent; transition:all .2s;
+    }
+    .goal-target:hover { border-color:var(--borda); background:rgba(255,255,255,0.03); }
+    .goal-bar {
+      height:8px; background:rgba(255,255,255,0.06); border-radius:4px;
+      overflow:hidden; margin-bottom:10px;
+    }
+    .goal-bar-fill {
+      height:100%; border-radius:4px; transition:width 1s ease;
+      min-width:2px;
+    }
+    .goal-detail {
+      font-size:11px; color:var(--texto-muted); line-height:1.5;
+    }
+    .goal-detail strong { color:var(--texto-secundario); }
+
+    /* Inline edit */
+    .goal-edit-input {
+      width:80px; background:var(--cinza-medio); border:1px solid var(--borda);
+      border-radius:6px; color:var(--texto-principal); font-size:13px;
+      font-family:inherit; font-weight:700; padding:4px 8px; text-align:right;
+    }
+    .goal-edit-input:focus { border-color:var(--accent); outline:none; }
+
+    /* Section titles */
+    .section-title {
+      font-size:11px; color:var(--texto-muted); font-weight:700;
+      letter-spacing:1.5px; margin:24px 0 10px;
+    }
+
+    /* Barber breakdown */
+    .barber-row {
+      display:flex; align-items:center; gap:10px; padding:10px 0;
+      border-bottom:1px solid var(--borda);
+    }
+    .barber-row:last-child { border:none; }
+    .barber-avatar-sm {
+      width:32px; height:32px; border-radius:50%; background:var(--accent);
+      color:#000; font-weight:800; font-size:13px;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .barber-info-sm { flex:1; min-width:0; }
+    .barber-name-sm { font-size:12px; font-weight:600; }
+    .barber-val-sm { font-size:11px; color:var(--texto-muted); margin-top:2px; }
+    .barber-bar-sm {
+      height:6px; background:rgba(255,255,255,0.06); border-radius:3px;
+      overflow:hidden; margin-top:4px;
+    }
+    .barber-bar-fill-sm {
+      height:100%; background:var(--accent); border-radius:3px;
+      transition:width 1s ease;
+    }
+    .barber-share {
+      font-size:12px; font-weight:700; color:var(--texto-secundario);
+      white-space:nowrap; min-width:50px; text-align:right;
+    }
+
+    /* History */
+    .hist-item {
+      display:flex; align-items:center; gap:12px; padding:10px 0;
+      border-bottom:1px solid var(--borda);
+    }
+    .hist-item:last-child { border:none; }
+    .hist-month { font-size:12px; font-weight:600; flex:1; }
+    .hist-values { text-align:right; }
+    .hist-achieved { font-size:13px; font-weight:700; }
+    .hist-goal { font-size:10px; color:var(--texto-muted); }
+    .hist-arrow { font-size:16px; margin-left:4px; }
+    .arrow-up { color:#27ae60; }
+    .arrow-down { color:#e74c3c; }
+    .arrow-neutral { color:var(--texto-muted); }
+
+    /* Loading */
+    .loading-block {
+      text-align:center; padding:60px 0; font-size:12px; color:var(--texto-muted);
+    }
+
+    /* Empty */
+    .empty-state {
+      text-align:center; padding:40px 20px; color:var(--texto-muted);
+    }
+    .empty-icon { font-size:40px; margin-bottom:12px; }
+    .empty-text { font-size:13px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+  </style>
+</head>
+<body>
+
+<div class="meta-container">
+
+  <div class="meta-header">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button>
+      <h1>Metas do M&#xEA;s</h1>
+    </div>
+    <span id="month-year-label" style="font-size:12px;color:var(--texto-muted);font-weight:600;"></span>
+  </div>
+
+  <!-- Month navigation -->
+  <div class="month-nav">
+    <button class="month-btn" onclick="changeMonth(-1)">&#x2039;</button>
+    <div>
+      <div class="month-label" id="month-label"></div>
+      <div class="month-sub" id="month-sub"></div>
+    </div>
+    <button class="month-btn" onclick="changeMonth(1)">&#x203A;</button>
+  </div>
+
+  <div id="main-content">
+    <div class="loading-block">Carregando...</div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servi&#xE7;os</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relat&#xF3;rio</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comiss&#xE3;o</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comiss&#xF5;es</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configura&#xE7;&#xF5;es</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+// ── Estado ────────────────────────────────────────────────────
+let shop = null;
+let barbersList = [];
+let currentMonth = new Date();
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { alert('Sua sessão expirou. Entre de novo.'); window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = isAdminViewing ? 'admin.html' : 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Admin banner
+  if (isAdminViewing) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;';
+    banner.innerHTML = `<span style="font-size:11px;color:#e74c3c;font-weight:700;">ADMIN \u00b7 ${esc(shop.name)}</span>
+      <button onclick="sessionStorage.removeItem('admin_viewing_shop');location.href='admin.html'" style="background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">VOLTAR</button>`;
+    document.querySelector('.meta-container').insertBefore(banner, document.querySelector('.meta-header'));
+  }
+
+  const { data: barbRes } = await db.from('barbers').select('*').eq('barbershop_id', shop.id);
+  barbersList = barbRes || [];
+
+  updateMonthLabel();
+  renderAll();
+});
+
+// ── Month navigation ──────────────────────────────────────────
+function changeMonth(dir) {
+  currentMonth.setMonth(currentMonth.getMonth() + dir);
+  updateMonthLabel();
+  renderAll();
+}
+
+function updateMonthLabel() {
+  const m = currentMonth.getMonth();
+  const y = currentMonth.getFullYear();
+  document.getElementById('month-label').textContent = MESES[m] + ' ' + y;
+  document.getElementById('month-year-label').textContent = MESES[m].substring(0, 3).toUpperCase() + '/' + y;
+
+  const now = new Date();
+  const isCurrentMonth = m === now.getMonth() && y === now.getFullYear();
+  document.getElementById('month-sub').textContent = isCurrentMonth ? 'M\u00eas atual' : '';
+}
+
+// ── Get goals ────────────────────────────────────────────────
+function getGoals() {
+  const settings = shop.settings || {};
+  const goals = settings.goals || {};
+  return {
+    revenue: goals.revenue || 5000,
+    appointments: goals.appointments || 100,
+    new_clients: goals.new_clients || 10
+  };
+}
+
+// ── Save goals ───────────────────────────────────────────────
+async function saveGoals(goals) {
+  const settings = shop.settings || {};
+  settings.goals = goals;
+  await db.from('barbershops').update({ settings }).eq('id', shop.id);
+  shop.settings = settings;
+}
+
+// ── Get month range ──────────────────────────────────────────
+function getMonthRange() {
+  const y = currentMonth.getFullYear();
+  const m = currentMonth.getMonth();
+  const start = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+  const lastDay = new Date(y, m + 1, 0).getDate();
+  const end = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+  return { start, end, totalDays: lastDay };
+}
+
+function getDaysElapsed() {
+  const now = new Date();
+  const y = currentMonth.getFullYear();
+  const m = currentMonth.getMonth();
+  if (now.getFullYear() === y && now.getMonth() === m) {
+    return now.getDate();
+  }
+  if (new Date(y, m + 1, 0) < now) {
+    return new Date(y, m + 1, 0).getDate(); // past month, all days
+  }
+  return 0; // future month
+}
+
+// ── Render all ───────────────────────────────────────────────
+async function renderAll() {
+  const container = document.getElementById('main-content');
+  container.innerHTML = '<div class="loading-block">Carregando...</div>';
+
+  const { start, end, totalDays } = getMonthRange();
+  const goals = getGoals();
+  const elapsed = getDaysElapsed();
+
+  // Fetch appointments for the month
+  const { data: appts } = await db.from('appointments')
+    .select('*')
+    .eq('barbershop_id', shop.id)
+    .gte('scheduled_at', start + 'T00:00:00')
+    .lte('scheduled_at', end + 'T23:59:59')
+    .in('status', ['done', 'confirmed', 'pending']);
+
+  const doneAppts = (appts || []).filter(a => a.status === 'done');
+  const revenue = doneAppts.reduce((s, a) => s + (Number(a.price_paid) || 0), 0);
+  const totalAppts = doneAppts.length;
+
+  // New clients: distinct phones with first-ever appointment this month
+  const phonesThisMonth = [...new Set(doneAppts.map(a => a.client_phone).filter(Boolean))];
+  let newClients = 0;
+  if (phonesThisMonth.length > 0) {
+    // For each phone, check if their earliest appointment is this month
+    const { data: earliestAppts } = await db.from('appointments')
+      .select('client_phone, scheduled_at')
+      .eq('barbershop_id', shop.id)
+      .eq('status', 'done')
+      .in('client_phone', phonesThisMonth)
+      .order('scheduled_at', { ascending: true });
+
+    const firstVisit = {};
+    (earliestAppts || []).forEach(a => {
+      const d = a.scheduled_at ? a.scheduled_at.split('T')[0] : '';
+      if (!firstVisit[a.client_phone]) firstVisit[a.client_phone] = d;
+    });
+
+    phonesThisMonth.forEach(phone => {
+      if (firstVisit[phone] && firstVisit[phone] >= start && firstVisit[phone] <= end) {
+        newClients++;
+      }
+    });
+  }
+
+  // Per-barber breakdown
+  const barberRevenue = {};
+  const barberAppts = {};
+  doneAppts.forEach(a => {
+    const bid = a.barber_id;
+    barberRevenue[bid] = (barberRevenue[bid] || 0) + (Number(a.price_paid) || 0);
+    barberAppts[bid] = (barberAppts[bid] || 0) + 1;
+  });
+
+  // Projections
+  const remaining = totalDays - elapsed;
+  const dailyAvg = elapsed > 0 ? revenue / elapsed : 0;
+  const projection = elapsed > 0 ? Math.round(dailyAvg * totalDays) : 0;
+  const dailyNeeded = remaining > 0 ? Math.max(0, (goals.revenue - revenue) / remaining) : 0;
+
+  const apptDailyAvg = elapsed > 0 ? totalAppts / elapsed : 0;
+  const apptDailyNeeded = remaining > 0 ? Math.max(0, (goals.appointments - totalAppts) / remaining) : 0;
+
+  // Percentages
+  const revPct = goals.revenue > 0 ? Math.min(Math.round((revenue / goals.revenue) * 100), 999) : 0;
+  const apptPct = goals.appointments > 0 ? Math.min(Math.round((totalAppts / goals.appointments) * 100), 999) : 0;
+  const clientPct = goals.new_clients > 0 ? Math.min(Math.round((newClients / goals.new_clients) * 100), 999) : 0;
+
+  // Ring color
+  function ringColor(pct) {
+    if (pct >= 100) return '#d4a853';
+    if (pct >= 75) return '#27ae60';
+    if (pct >= 50) return '#d4a853';
+    return '#e74c3c';
+  }
+
+  // Bar color
+  function barColor(pct) {
+    if (pct >= 100) return '#d4a853';
+    if (pct >= 75) return '#27ae60';
+    if (pct >= 50) return '#d4a853';
+    return '#e74c3c';
+  }
+
+  // Motivational message
+  function motivMsg(pct) {
+    if (pct >= 100) return { text: 'META BATIDA! Parab\u00e9ns!', cls: 'motiv-celebration' };
+    if (pct >= 90) return { text: 'Quase l\u00e1! Falta pouco pra bater a meta!', cls: 'motiv-great' };
+    if (pct >= 50) return { text: 'Bom ritmo! Continue assim.', cls: 'motiv-good' };
+    if (pct >= 25) return { text: 'Ainda d\u00e1 tempo! Foca em divulga\u00e7\u00e3o e promo\u00e7\u00f5es.', cls: 'motiv-ok' };
+    return { text: 'Ainda d\u00e1 tempo! Foca em divulga\u00e7\u00e3o e promo\u00e7\u00f5es.', cls: 'motiv-low' };
+  }
+
+  const circ = 2 * Math.PI * 72; // r=72
+  const dashOffset = circ - (circ * Math.min(revPct, 100) / 100);
+  const rColor = ringColor(revPct);
+  const motiv = motivMsg(revPct);
+
+  let html = '';
+
+  // Big ring
+  html += `
+  <div class="ring-wrapper">
+    <div class="ring-container">
+      <svg class="ring-svg" viewBox="0 0 180 180">
+        <circle class="ring-bg" cx="90" cy="90" r="72"/>
+        <circle class="ring-fill" cx="90" cy="90" r="72"
+          stroke="${rColor}"
+          stroke-dasharray="${circ}"
+          stroke-dashoffset="${dashOffset}"
+          style="stroke-dashoffset:${circ};"
+          id="ring-anim"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct" style="color:${rColor};">${revPct}%</div>
+        <div class="ring-values">${formatMoney(revenue)} / ${formatMoney(goals.revenue)}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Motivational
+  html += `<div class="motiv-msg ${motiv.cls}">${motiv.text}</div>`;
+
+  // Goal 1: Faturamento
+  html += `
+  <div class="goal-card">
+    <div class="goal-top">
+      <div style="display:flex;align-items:center;">
+        <span class="goal-icon">&#x1F4B0;</span>
+        <span class="goal-title">FATURAMENTO</span>
+      </div>
+      <span class="goal-pct" style="color:${barColor(revPct)};">${revPct}%</span>
+    </div>
+    <div class="goal-numbers">
+      <span class="goal-current" style="color:var(--verde-acao);">${formatMoney(revenue)}</span>
+      <span class="goal-target" onclick="editGoal('revenue', this)" title="Clique para editar">
+        Meta: ${formatMoney(goals.revenue)}
+      </span>
+    </div>
+    <div class="goal-bar">
+      <div class="goal-bar-fill" style="width:${Math.min(revPct, 100)}%;background:${barColor(revPct)};"></div>
+    </div>
+    <div class="goal-detail">
+      ${elapsed > 0 ? `<div>Proje\u00e7\u00e3o: <strong>No ritmo atual, voc\u00ea fecha em ${formatMoney(projection)}</strong></div>` : ''}
+      ${remaining > 0 && revenue < goals.revenue ? `<div>Precisa faturar <strong>${formatMoney(dailyNeeded)}/dia</strong> nos pr\u00f3ximos ${remaining} dias</div>` : ''}
+    </div>
+  </div>`;
+
+  // Goal 2: Atendimentos
+  html += `
+  <div class="goal-card">
+    <div class="goal-top">
+      <div style="display:flex;align-items:center;">
+        <span class="goal-icon">&#x2702;&#xFE0F;</span>
+        <span class="goal-title">ATENDIMENTOS</span>
+      </div>
+      <span class="goal-pct" style="color:${barColor(apptPct)};">${apptPct}%</span>
+    </div>
+    <div class="goal-numbers">
+      <span class="goal-current" style="color:var(--verde-acao);">${totalAppts}</span>
+      <span class="goal-target" onclick="editGoal('appointments', this)" title="Clique para editar">
+        Meta: ${goals.appointments}
+      </span>
+    </div>
+    <div class="goal-bar">
+      <div class="goal-bar-fill" style="width:${Math.min(apptPct, 100)}%;background:${barColor(apptPct)};"></div>
+    </div>
+    <div class="goal-detail">
+      ${elapsed > 0 ? `<div>M\u00e9dia de <strong>${apptDailyAvg.toFixed(1)}/dia</strong>${remaining > 0 && totalAppts < goals.appointments ? ` \u2014 precisa <strong>${apptDailyNeeded.toFixed(1)}/dia</strong>` : ''}</div>` : ''}
+    </div>
+  </div>`;
+
+  // Goal 3: Novos Clientes
+  html += `
+  <div class="goal-card">
+    <div class="goal-top">
+      <div style="display:flex;align-items:center;">
+        <span class="goal-icon">&#x1F464;</span>
+        <span class="goal-title">NOVOS CLIENTES</span>
+      </div>
+      <span class="goal-pct" style="color:${barColor(clientPct)};">${clientPct}%</span>
+    </div>
+    <div class="goal-numbers">
+      <span class="goal-current" style="color:var(--verde-acao);">${newClients}</span>
+      <span class="goal-target" onclick="editGoal('new_clients', this)" title="Clique para editar">
+        Meta: ${goals.new_clients}
+      </span>
+    </div>
+    <div class="goal-bar">
+      <div class="goal-bar-fill" style="width:${Math.min(clientPct, 100)}%;background:${barColor(clientPct)};"></div>
+    </div>
+    <div class="goal-detail">
+      <div>Clientes que vieram pela <strong>primeira vez</strong> este m\u00eas</div>
+    </div>
+  </div>`;
+
+  // Per-barber breakdown
+  if (barbersList.length > 0) {
+    html += `<div class="section-title">CONTRIBUI\u00c7\u00c3O POR PERSONAL</div>`;
+    const sortedBarbers = [...barbersList].sort((a, b) => (barberRevenue[b.id] || 0) - (barberRevenue[a.id] || 0));
+    const maxRev = Math.max(...sortedBarbers.map(b => barberRevenue[b.id] || 0), 1);
+
+    sortedBarbers.forEach(barber => {
+      const bRev = barberRevenue[barber.id] || 0;
+      const bAppts = barberAppts[barber.id] || 0;
+      const share = revenue > 0 ? Math.round((bRev / revenue) * 100) : 0;
+      const barW = maxRev > 0 ? Math.round((bRev / maxRev) * 100) : 0;
+      const initial = (barber.name || '?')[0].toUpperCase();
+
+      html += `
+      <div class="barber-row">
+        <div class="barber-avatar-sm">${esc(initial)}</div>
+        <div class="barber-info-sm">
+          <div class="barber-name-sm">${esc(barber.name)}</div>
+          <div class="barber-val-sm">${formatMoney(bRev)} \u00b7 ${bAppts} atend.</div>
+          <div class="barber-bar-sm"><div class="barber-bar-fill-sm" style="width:${barW}%;"></div></div>
+        </div>
+        <div class="barber-share">${share}%</div>
+      </div>`;
+    });
+  }
+
+  // Historical comparison (last 3 months)
+  html += `<div class="section-title">HIST\u00d3RICO</div>`;
+  html += `<div id="history-list"><div class="loading-block" style="padding:20px 0;">Carregando...</div></div>`;
+
+  container.innerHTML = html;
+
+  // Animate ring
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const ring = document.getElementById('ring-anim');
+      if (ring) ring.style.strokeDashoffset = dashOffset;
+    }, 100);
+  });
+
+  // Load history async
+  loadHistory();
+}
+
+// ── History ──────────────────────────────────────────────────
+async function loadHistory() {
+  const histEl = document.getElementById('history-list');
+  if (!histEl) return;
+
+  const months = [];
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const start = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const end = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    months.push({ label: MESES[m] + ' ' + y, start, end });
+  }
+
+  const goals = getGoals();
+  const results = [];
+
+  for (const mo of months) {
+    const { data } = await db.from('appointments')
+      .select('price_paid')
+      .eq('barbershop_id', shop.id)
+      .eq('status', 'done')
+      .gte('scheduled_at', mo.start + 'T00:00:00')
+      .lte('scheduled_at', mo.end + 'T23:59:59');
+
+    const rev = (data || []).reduce((s, a) => s + (Number(a.price_paid) || 0), 0);
+    results.push({ label: mo.label, revenue: rev });
+  }
+
+  if (results.length === 0) {
+    histEl.innerHTML = '<div class="empty-state"><div class="empty-text">Sem dados anteriores</div></div>';
+    return;
+  }
+
+  let histHtml = '';
+  results.forEach((r, idx) => {
+    const prev = results[idx + 1];
+    let arrowCls = 'arrow-neutral';
+    let arrowChar = '\u2014';
+    if (prev) {
+      if (r.revenue > prev.revenue) { arrowCls = 'arrow-up'; arrowChar = '\u2191'; }
+      else if (r.revenue < prev.revenue) { arrowCls = 'arrow-down'; arrowChar = '\u2193'; }
+    }
+
+    histHtml += `
+    <div class="hist-item">
+      <div class="hist-month">${esc(r.label)}</div>
+      <div class="hist-values">
+        <div class="hist-achieved">${formatMoney(r.revenue)}</div>
+        <div class="hist-goal">Meta: ${formatMoney(goals.revenue)}</div>
+      </div>
+      <span class="hist-arrow ${arrowCls}">${arrowChar}</span>
+    </div>`;
+  });
+
+  histEl.innerHTML = histHtml;
+}
+
+// ── Edit goal inline ─────────────────────────────────────────
+function editGoal(key, el) {
+  const goals = getGoals();
+  const current = goals[key];
+  const isMoney = key === 'revenue';
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'goal-edit-input';
+  input.value = current;
+  input.min = 0;
+  if (isMoney) input.step = '100';
+  else input.step = '1';
+
+  el.innerHTML = '';
+  el.style.border = 'none';
+  el.style.padding = '0';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+
+  const save = async () => {
+    const val = parseFloat(input.value);
+    if (isNaN(val) || val <= 0) {
+      // Revert
+      el.style.border = '';
+      el.style.padding = '';
+      el.textContent = 'Meta: ' + (isMoney ? formatMoney(current) : current);
+      el.onclick = () => editGoal(key, el);
+      return;
+    }
+
+    goals[key] = isMoney ? Math.round(val * 100) / 100 : Math.round(val);
+    await saveGoals(goals);
+    renderAll();
+  };
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') {
+      el.style.border = '';
+      el.style.padding = '';
+      el.textContent = 'Meta: ' + (isMoney ? formatMoney(current) : current);
+      el.onclick = () => editGoal(key, el);
+    }
+  });
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

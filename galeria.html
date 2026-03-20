@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Galeria</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .gal-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .gal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .gal-header h1 { font-size:18px; font-weight:700; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    /* Stats */
+    .gal-stats {
+      display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;
+    }
+    .gal-stat {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      padding:10px; text-align:center;
+    }
+    .gal-stat .num { font-size:18px; font-weight:800; }
+    .gal-stat .lbl { font-size:8px; color:var(--texto-muted); font-weight:700; letter-spacing:0.5px; margin-top:2px; }
+
+    /* Chips */
+    .gal-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .gal-chip {
+      padding:5px 12px; border-radius:16px; font-size:10px; font-weight:700;
+      border:1px solid var(--borda); background:transparent; color:var(--texto-muted);
+      cursor:pointer; font-family:inherit; transition:all .2s;
+    }
+    .gal-chip.active { border-color:var(--verde-acao); background:rgba(212,168,83,0.1); color:var(--verde-acao); }
+
+    /* Masonry grid */
+    .gal-grid {
+      column-count:2; column-gap:8px;
+    }
+    .gal-item {
+      break-inside:avoid; margin-bottom:8px; border-radius:10px; overflow:hidden;
+      background:var(--cinza-escuro); border:1px solid var(--borda); cursor:pointer;
+      transition:all .2s; position:relative;
+    }
+    .gal-item:hover { border-color:var(--borda-hover); transform:translateY(-2px); }
+    .gal-item img {
+      width:100%; display:block; object-fit:cover; min-height:120px; max-height:300px;
+      background:var(--cinza-medio);
+    }
+    .gal-item-info {
+      padding:8px 10px;
+    }
+    .gal-item-barber {
+      font-size:10px; font-weight:700; color:var(--verde-acao);
+      display:inline-block; padding:2px 6px; border-radius:6px;
+      background:rgba(212,168,83,0.1);
+    }
+    .gal-item-cat {
+      font-size:8px; font-weight:700; color:var(--texto-muted);
+      display:inline-block; padding:2px 6px; border-radius:6px;
+      background:rgba(255,255,255,0.06); margin-left:4px;
+    }
+    .gal-item-desc {
+      font-size:11px; color:var(--texto-secundario); margin-top:4px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .gal-item-date {
+      font-size:9px; color:var(--texto-muted); margin-top:2px;
+    }
+    .gal-item-delete {
+      position:absolute; top:6px; right:6px; width:26px; height:26px;
+      border-radius:50%; background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.15);
+      color:#ef4444; font-size:14px; cursor:pointer; display:none;
+      align-items:center; justify-content:center; font-family:inherit; line-height:1;
+      transition:all .2s;
+    }
+    .gal-item:hover .gal-item-delete { display:flex; }
+    .gal-item-delete:hover { background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.4); }
+
+    /* Empty state */
+    .empty-gal {
+      text-align:center; padding:48px 20px; color:var(--texto-muted); font-size:13px;
+    }
+
+    /* Lightbox */
+    .lightbox-overlay {
+      position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000;
+      background:rgba(0,0,0,0.95); display:none; flex-direction:column;
+      align-items:center; justify-content:center; padding:0;
+      touch-action:pan-y; user-select:none;
+    }
+    .lightbox-overlay.show { display:flex; }
+    .lightbox-close {
+      position:absolute; top:12px; right:16px; z-index:2001;
+      background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:22px;
+      cursor:pointer; width:40px; height:40px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .lightbox-close:hover { background:rgba(255,255,255,0.2); }
+    .lightbox-img-wrap {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      width:100%; overflow:hidden; position:relative;
+    }
+    .lightbox-img-wrap img {
+      max-width:100%; max-height:80vh; object-fit:contain; border-radius:8px;
+      transition:transform .3s ease;
+    }
+    .lightbox-info {
+      padding:16px 20px 24px; text-align:center; width:100%; max-width:480px;
+    }
+    .lightbox-barber {
+      font-size:12px; font-weight:700; color:var(--verde-acao);
+    }
+    .lightbox-desc {
+      font-size:13px; color:var(--texto-secundario); margin-top:4px;
+    }
+    .lightbox-date {
+      font-size:10px; color:var(--texto-muted); margin-top:4px;
+    }
+    .lightbox-nav {
+      position:absolute; top:50%; transform:translateY(-50%); z-index:2001;
+      background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:24px;
+      cursor:pointer; width:44px; height:44px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .lightbox-nav:hover { background:rgba(255,255,255,0.2); }
+    .lightbox-prev { left:10px; }
+    .lightbox-next { right:10px; }
+    .lightbox-counter {
+      position:absolute; top:16px; left:50%; transform:translateX(-50%);
+      font-size:11px; color:var(--texto-muted); font-weight:600;
+    }
+
+    /* Upload modal */
+    .modal-overlay {
+      position:fixed; top:0; left:0; right:0; bottom:0; z-index:1000;
+      background:rgba(0,0,0,0.7); display:none; align-items:center;
+      justify-content:center; padding:16px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:12px; width:100%; max-width:400px; max-height:90vh;
+      overflow-y:auto; padding:24px 20px; animation:fadeUp 0.3s ease;
+    }
+    .modal-title {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:20px;
+    }
+    .modal-title h2 { font-size:16px; }
+    .modal-close {
+      background:none; border:none; color:var(--texto-muted); font-size:18px;
+      cursor:pointer; padding:4px 8px;
+    }
+
+    /* Preview */
+    .upload-preview {
+      width:100%; max-height:200px; object-fit:contain; border-radius:8px;
+      background:var(--cinza-medio); margin-bottom:12px; display:none;
+    }
+    .upload-dropzone {
+      border:2px dashed var(--borda); border-radius:10px; padding:32px 16px;
+      text-align:center; cursor:pointer; transition:all .2s; margin-bottom:12px;
+    }
+    .upload-dropzone:hover, .upload-dropzone.drag-over {
+      border-color:var(--verde-acao); background:rgba(212,168,83,0.05);
+    }
+    .upload-dropzone .icon { font-size:32px; margin-bottom:8px; }
+    .upload-dropzone .text { font-size:12px; color:var(--texto-muted); }
+    .upload-dropzone .text strong { color:var(--verde-acao); }
+
+    /* URL fallback */
+    .url-fallback {
+      margin-top:8px; padding:10px; background:rgba(212,168,83,0.05);
+      border:1px solid rgba(212,168,83,0.15); border-radius:8px;
+    }
+    .url-fallback summary {
+      font-size:11px; font-weight:700; color:var(--verde-acao); cursor:pointer;
+    }
+    .url-fallback input {
+      margin-top:6px;
+    }
+
+    /* Public mode header */
+    .pub-header {
+      text-align:center; padding:20px 0 16px;
+    }
+    .pub-header h1 { font-size:22px; font-weight:800; margin-bottom:4px; }
+    .pub-header .sub { font-size:12px; color:var(--texto-muted); }
+
+    /* Public CTA */
+    .pub-cta {
+      position:fixed; bottom:0; left:0; right:0; z-index:900;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      padding:12px 16px; padding-bottom:max(12px, env(safe-area-inset-bottom));
+      display:flex; justify-content:center;
+    }
+    .pub-cta a {
+      display:block; width:100%; max-width:360px; text-align:center;
+      padding:14px; border-radius:10px; font-size:14px; font-weight:800;
+      font-family:inherit; text-decoration:none;
+      background:var(--verde-acao); color:#000; transition:all .2s;
+    }
+    .pub-cta a:hover { opacity:0.9; transform:translateY(-1px); }
+
+    /* Bottom nav admin */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+
+    /* Loading skeleton */
+    .skeleton {
+      background:linear-gradient(90deg, var(--cinza-medio) 25%, var(--cinza-escuro) 50%, var(--cinza-medio) 75%);
+      background-size:200% 100%;
+      animation:shimmer 1.5s infinite;
+      border-radius:8px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Touch feedback on mobile delete */
+    @media(max-width:480px) {
+      .gal-item-delete { display:flex !important; opacity:0.7; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="gal-container">
+
+  <!-- Public mode header (hidden by default) -->
+  <div id="pub-header" class="pub-header" style="display:none;">
+    <h1 id="pub-shop-name"></h1>
+    <div class="sub">Galeria de trabalhos</div>
+  </div>
+
+  <!-- Admin header (hidden in public mode) -->
+  <div id="admin-header" class="gal-header" style="display:none;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button>
+      <h1>Galeria</h1>
+    </div>
+    <button class="btn btn-primary" onclick="abrirUpload()" style="width:auto;padding:8px 16px;font-size:12px;">+ FOTO</button>
+  </div>
+
+  <!-- Stats (admin only) -->
+  <div id="gal-stats" class="gal-stats" style="display:none;"></div>
+
+  <!-- Filters -->
+  <div id="gal-filters" class="gal-filters"></div>
+
+  <!-- Gallery grid -->
+  <div id="gal-grid" class="gal-grid"></div>
+
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="modal-upload">
+  <div class="modal">
+    <div class="modal-title">
+      <h2>Adicionar foto</h2>
+      <button class="modal-close" onclick="fecharUpload()">&#x2715;</button>
+    </div>
+    <div id="upload-msg" class="msg"></div>
+
+    <img id="upload-preview" class="upload-preview" alt="Preview">
+
+    <div id="upload-dropzone" class="upload-dropzone" onclick="document.getElementById('file-input').click()">
+      <div class="icon">&#x1F4F7;</div>
+      <div class="text">Toque pra <strong>escolher foto</strong> ou arraste aqui</div>
+    </div>
+    <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFile(this.files[0])">
+
+    <details class="url-fallback">
+      <summary>Ou colar URL da imagem</summary>
+      <input type="url" id="upload-url" class="field-input" placeholder="https://..." style="width:100%;box-sizing:border-box;">
+    </details>
+
+    <div class="field" style="margin-top:12px;">
+      <label>PERSONAL *</label>
+      <select id="upload-barber" class="field-input" style="width:100%;box-sizing:border-box;">
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>CATEGORIA *</label>
+      <select id="upload-category" class="field-input" style="width:100%;box-sizing:border-box;">
+        <option value="cabelo">Cabelo</option>
+        <option value="barba">Barba</option>
+        <option value="cabelo_barba">Cabelo + Barba</option>
+        <option value="antes_depois">Antes / Depois</option>
+        <option value="ambiente">Ambiente</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>DESCRICAO (opcional)</label>
+      <input type="text" id="upload-desc" class="field-input" placeholder="Ex: Degradê navalhado" style="width:100%;box-sizing:border-box;" maxlength="200">
+    </div>
+
+    <button class="btn btn-primary" onclick="salvarFoto()" id="btn-upload-save" style="margin-top:8px;">
+      <span class="btn-label">SALVAR</span>
+      <div class="spinner" style="display:none;"></div>
+    </button>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="fecharLightbox(event)">
+  <button class="lightbox-close" onclick="fecharLightbox(event)">&#x2715;</button>
+  <span class="lightbox-counter" id="lightbox-counter"></span>
+  <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation();navLightbox(-1)">&#x2039;</button>
+  <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation();navLightbox(1)">&#x203A;</button>
+  <div class="lightbox-img-wrap" id="lightbox-img-wrap">
+    <img id="lightbox-img" src="" alt="Foto">
+  </div>
+  <div class="lightbox-info">
+    <div class="lightbox-barber" id="lightbox-barber"></div>
+    <div class="lightbox-desc" id="lightbox-desc"></div>
+    <div class="lightbox-date" id="lightbox-date"></div>
+  </div>
+</div>
+
+<!-- Admin bottom nav (hidden in public mode) -->
+<div id="admin-nav" style="display:none;">
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servicos</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatorio</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;color:var(--verde-acao);">&#x1F5BC; Galeria</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retencao</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfacao</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configuracoes</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissoes</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promocoes</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+</div>
+
+<!-- Public CTA (hidden in admin mode) -->
+<div id="pub-cta" class="pub-cta" style="display:none;">
+  <a id="pub-cta-link" href="#">AGENDAR HORARIO</a>
+</div>
+
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){var mm=document.getElementById('more-menu');if(mm&&!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){mm.style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+console.log('Galeria v1 carregado');
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+// Public mode via slug
+const publicSlug = _params.get('slug');
+const isPublicMode = !!publicSlug;
+
+const CAT_LABELS = {
+  cabelo: 'Cabelo',
+  barba: 'Barba',
+  cabelo_barba: 'Cabelo + Barba',
+  antes_depois: 'Antes / Depois',
+  ambiente: 'Ambiente'
+};
+
+let shop = null;
+let barbers = [];
+let fotos = [];
+let filteredFotos = [];
+let filterBarber = 'all';
+let filterCat = 'all';
+let lightboxIdx = 0;
+let uploadFile = null;
+
+// Drag & drop
+const dropzone = document.getElementById('upload-dropzone');
+if (dropzone) {
+  ['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag-over'); }));
+  dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+}
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  if (isPublicMode) {
+    await initPublic();
+  } else {
+    await initAdmin();
+  }
+});
+
+// ── Public init ──────────────────────────────────────────────
+async function initPublic() {
+  document.getElementById('pub-header').style.display = '';
+  document.body.style.paddingBottom = '70px';
+
+  const { data, error } = await db.from('barbershops').select('*').eq('slug', publicSlug).maybeSingle();
+  if (error || !data) {
+    document.getElementById('gal-grid').innerHTML = '<div class="empty-gal"><div style="font-size:40px;margin-bottom:12px;">&#x1F50D;</div><div>Academia nao encontrada.</div></div>';
+    return;
+  }
+  shop = data;
+  document.getElementById('pub-shop-name').textContent = esc(shop.name);
+  document.title = shop.name + ' — Galeria';
+
+  // CTA
+  document.getElementById('pub-cta').style.display = '';
+  document.getElementById('pub-cta-link').href = 'agendar.html?slug=' + shop.slug;
+
+  // Load barbers + photos
+  const [barbRes] = await Promise.all([
+    db.from('barbers').select('id,name').eq('barbershop_id', shop.id).eq('active', true)
+  ]);
+  barbers = barbRes.data || [];
+
+  await loadFotos();
+  renderFilters();
+  renderGrid();
+}
+
+// ── Admin init ───────────────────────────────────────────────
+async function initAdmin() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { alert('Sua sessao expirou. Entre de novo.'); window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = isAdminViewing ? 'admin.html' : 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Show admin UI
+  document.getElementById('admin-header').style.display = '';
+  document.getElementById('gal-stats').style.display = '';
+  document.getElementById('admin-nav').style.display = '';
+
+  // Admin banner
+  if (isAdminViewing) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;';
+    banner.innerHTML = '<span style="font-size:11px;color:#e74c3c;font-weight:700;">ADMIN \u00B7 ' + esc(shop.name) + '</span>'
+      + '<button onclick="sessionStorage.removeItem(\'admin_viewing_shop\');location.href=\'admin.html\'" style="background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">VOLTAR</button>';
+    document.querySelector('.gal-container').insertBefore(banner, document.getElementById('admin-header'));
+  }
+
+  // Load barbers
+  const { data: barbData } = await db.from('barbers').select('id,name').eq('barbershop_id', shop.id).order('name');
+  barbers = barbData || [];
+
+  // Populate upload select
+  const sel = document.getElementById('upload-barber');
+  barbers.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.id;
+    opt.textContent = b.name;
+    sel.appendChild(opt);
+  });
+
+  await loadFotos();
+  renderStats();
+  renderFilters();
+  renderGrid();
+}
+
+// ── Load fotos ───────────────────────────────────────────────
+async function loadFotos() {
+  try {
+    const { data, error } = await db.from('galeria')
+      .select('*')
+      .eq('barbershop_id', shop.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      // Table might not exist
+      console.warn('Tabela galeria nao encontrada ou erro:', error.message);
+      fotos = [];
+    } else {
+      fotos = data || [];
+    }
+  } catch (e) {
+    console.warn('Erro ao carregar galeria:', e);
+    fotos = [];
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  filteredFotos = fotos.filter(f => {
+    if (filterBarber !== 'all' && f.barber_id !== filterBarber) return false;
+    if (filterCat !== 'all' && f.category !== filterCat) return false;
+    return true;
+  });
+}
+
+// ── Stats (admin) ────────────────────────────────────────────
+function renderStats() {
+  const el = document.getElementById('gal-stats');
+  if (!el) return;
+
+  const perBarber = {};
+  fotos.forEach(f => {
+    const bName = barbers.find(b => b.id === f.barber_id)?.name || 'Outros';
+    perBarber[bName] = (perBarber[bName] || 0) + 1;
+  });
+  const topBarber = Object.entries(perBarber).sort((a,b) => b[1] - a[1])[0];
+
+  el.innerHTML = '<div class="gal-stat"><div class="num">' + fotos.length + '</div><div class="lbl">TOTAL FOTOS</div></div>'
+    + '<div class="gal-stat"><div class="num">' + (topBarber ? esc(topBarber[0].split(' ')[0]) : '-') + '</div><div class="lbl">' + (topBarber ? topBarber[1] + ' FOTOS' : 'NENHUMA') + '</div></div>';
+}
+
+// ── Filters ──────────────────────────────────────────────────
+function renderFilters() {
+  const el = document.getElementById('gal-filters');
+  let html = '<button class="gal-chip ' + (filterBarber === 'all' && filterCat === 'all' ? 'active' : '') + '" onclick="setFilter(\'all\',\'all\')">Todos</button>';
+
+  barbers.forEach(b => {
+    const count = fotos.filter(f => f.barber_id === b.id).length;
+    html += '<button class="gal-chip ' + (filterBarber === b.id ? 'active' : '') + '" onclick="setFilter(\'' + b.id + '\',\'all\')">' + esc(b.name) + (count ? ' (' + count + ')' : '') + '</button>';
+  });
+
+  // Category chips
+  Object.entries(CAT_LABELS).forEach(([key, label]) => {
+    const count = fotos.filter(f => f.category === key).length;
+    if (count > 0) {
+      html += '<button class="gal-chip ' + (filterCat === key ? 'active' : '') + '" onclick="setFilter(\'all\',\'' + key + '\')">' + label + ' (' + count + ')</button>';
+    }
+  });
+
+  el.innerHTML = html;
+}
+
+function setFilter(barber, cat) {
+  filterBarber = barber;
+  filterCat = cat;
+  applyFilters();
+  renderFilters();
+  renderGrid();
+}
+
+// ── Grid ─────────────────────────────────────────────────────
+function renderGrid() {
+  const el = document.getElementById('gal-grid');
+
+  if (!filteredFotos.length) {
+    const emptyMsg = fotos.length === 0
+      ? (isPublicMode ? 'Nenhuma foto ainda.' : 'Nenhuma foto na galeria.<br><span style="font-size:11px;color:var(--texto-muted);">Clique em "+ FOTO" pra adicionar.</span>')
+      : 'Nenhuma foto com esse filtro.';
+    el.innerHTML = '<div class="empty-gal"><div style="font-size:40px;margin-bottom:12px;">&#x1F5BC;</div><div>' + emptyMsg + '</div></div>';
+    return;
+  }
+
+  el.innerHTML = filteredFotos.map((f, i) => {
+    const barber = barbers.find(b => b.id === f.barber_id);
+    const bName = barber ? esc(barber.name) : '';
+    const catLabel = CAT_LABELS[f.category] || '';
+    const desc = f.description ? '<div class="gal-item-desc">' + esc(f.description) + '</div>' : '';
+    const dateStr = f.created_at ? formatDateShort(f.created_at) : '';
+    const deleteBtn = !isPublicMode ? '<button class="gal-item-delete" onclick="event.stopPropagation();deletarFoto(\'' + f.id + '\')" title="Excluir">&#x2715;</button>' : '';
+
+    return '<div class="gal-item" onclick="abrirLightbox(' + i + ')">'
+      + deleteBtn
+      + '<img src="' + esc(f.image_url) + '" alt="' + esc(f.description || 'Foto') + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22200%22/><text fill=%22%23666%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>Imagem indisponível</text></svg>\'">'
+      + '<div class="gal-item-info">'
+        + (bName ? '<span class="gal-item-barber">' + bName + '</span>' : '')
+        + (catLabel ? '<span class="gal-item-cat">' + catLabel + '</span>' : '')
+        + desc
+        + (dateStr ? '<div class="gal-item-date">' + dateStr + '</div>' : '')
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function formatDateShort(d) {
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+  } catch { return ''; }
+}
+
+// ── Lightbox ─────────────────────────────────────────────────
+function abrirLightbox(idx) {
+  lightboxIdx = idx;
+  renderLightbox();
+  document.getElementById('lightbox').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharLightbox(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function navLightbox(dir) {
+  lightboxIdx = (lightboxIdx + dir + filteredFotos.length) % filteredFotos.length;
+  renderLightbox();
+}
+
+function renderLightbox() {
+  const f = filteredFotos[lightboxIdx];
+  if (!f) return;
+  const barber = barbers.find(b => b.id === f.barber_id);
+  document.getElementById('lightbox-img').src = f.image_url;
+  document.getElementById('lightbox-barber').textContent = barber ? barber.name : '';
+  document.getElementById('lightbox-desc').textContent = f.description || '';
+  document.getElementById('lightbox-date').textContent = f.created_at ? formatDateShort(f.created_at) : '';
+  document.getElementById('lightbox-counter').textContent = (lightboxIdx + 1) + ' / ' + filteredFotos.length;
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('show')) return;
+  if (e.key === 'ArrowLeft') navLightbox(-1);
+  else if (e.key === 'ArrowRight') navLightbox(1);
+  else if (e.key === 'Escape') { document.getElementById('lightbox').classList.remove('show'); document.body.style.overflow = ''; }
+});
+
+// Touch/swipe support
+(function() {
+  let startX = 0, startY = 0, swiping = false;
+  const wrap = document.getElementById('lightbox-img-wrap');
+  if (!wrap) return;
+
+  wrap.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    swiping = true;
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', e => {
+    // Let it scroll naturally
+  }, { passive: true });
+
+  wrap.addEventListener('touchend', e => {
+    if (!swiping) return;
+    swiping = false;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX < 0) navLightbox(1);
+      else navLightbox(-1);
+    }
+  }, { passive: true });
+})();
+
+// ── Upload ───────────────────────────────────────────────────
+function abrirUpload() {
+  uploadFile = null;
+  document.getElementById('file-input').value = '';
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('upload-dropzone').style.display = '';
+  document.getElementById('upload-url').value = '';
+  document.getElementById('upload-desc').value = '';
+  document.getElementById('upload-barber').value = '';
+  document.getElementById('upload-category').value = 'cabelo';
+  document.getElementById('upload-msg').className = 'msg';
+  document.getElementById('modal-upload').classList.add('show');
+}
+
+function fecharUpload() {
+  document.getElementById('modal-upload').classList.remove('show');
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showUploadMsg('Selecione um arquivo de imagem.', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showUploadMsg('Imagem muito grande. Máximo 10MB.', 'error');
+    return;
+  }
+  uploadFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('upload-preview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('upload-dropzone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function showUploadMsg(text, type) {
+  const el = document.getElementById('upload-msg');
+  el.textContent = text;
+  el.className = 'msg msg-' + type + ' show';
+}
+
+async function salvarFoto() {
+  const barberId = document.getElementById('upload-barber').value;
+  const category = document.getElementById('upload-category').value;
+  const desc = document.getElementById('upload-desc').value.trim();
+  const urlManual = document.getElementById('upload-url').value.trim();
+
+  if (!barberId) { showUploadMsg('Selecione o profissional.', 'error'); return; }
+  if (!uploadFile && !urlManual) { showUploadMsg('Escolha uma foto ou cole a URL.', 'error'); return; }
+
+  const btn = document.getElementById('btn-upload-save');
+  btn.disabled = true;
+  btn.querySelector('.btn-label').style.display = 'none';
+  btn.querySelector('.spinner').style.display = 'inline-block';
+
+  let imageUrl = urlManual;
+
+  // Try Supabase Storage upload if file selected
+  if (uploadFile) {
+    try {
+      const ext = uploadFile.name.split('.').pop().toLowerCase();
+      const fileName = shop.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+
+      const { data: upData, error: upError } = await sb.storage
+        .from('galeria')
+        .upload(fileName, uploadFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (upError) {
+        console.warn('Storage upload falhou:', upError.message);
+        // Fallback: try converting to base64 URL or show error
+        if (upError.message.includes('bucket') || upError.message.includes('not found') || upError.message.includes('Bucket')) {
+          showUploadMsg('Upload não disponível. Cole a URL da imagem no campo abaixo.', 'error');
+          btn.disabled = false;
+          btn.querySelector('.btn-label').style.display = 'inline';
+          btn.querySelector('.spinner').style.display = 'none';
+          return;
+        }
+        showUploadMsg('Erro no upload: ' + upError.message, 'error');
+        btn.disabled = false;
+        btn.querySelector('.btn-label').style.display = 'inline';
+        btn.querySelector('.spinner').style.display = 'none';
+        return;
+      }
+
+      const { data: urlData } = sb.storage.from('galeria').getPublicUrl(fileName);
+      imageUrl = urlData.publicUrl;
+    } catch (e) {
+      console.error('Upload error:', e);
+      showUploadMsg('Erro ao fazer upload. Tente colar a URL da imagem.', 'error');
+      btn.disabled = false;
+      btn.querySelector('.btn-label').style.display = 'inline';
+      btn.querySelector('.spinner').style.display = 'none';
+      return;
+    }
+  }
+
+  // Save to galeria table
+  try {
+    const { error } = await db.from('galeria').insert({
+      barbershop_id: shop.id,
+      barber_id: barberId,
+      image_url: imageUrl,
+      description: desc || null,
+      category: category
+    });
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        showUploadMsg('Galeria não está configurada. Entre em contato com o suporte.', 'error');
+      } else {
+        showUploadMsg('Erro ao salvar: ' + error.message, 'error');
+      }
+      btn.disabled = false;
+      btn.querySelector('.btn-label').style.display = 'inline';
+      btn.querySelector('.spinner').style.display = 'none';
+      return;
+    }
+
+    fecharUpload();
+    await loadFotos();
+    renderStats();
+    renderFilters();
+    renderGrid();
+
+  } catch (e) {
+    console.error(e);
+    showUploadMsg('Erro ao salvar.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.querySelector('.btn-label').style.display = 'inline';
+  btn.querySelector('.spinner').style.display = 'none';
+}
+
+// ── Delete ───────────────────────────────────────────────────
+async function deletarFoto(id) {
+  if (!confirm('Excluir esta foto?')) return;
+
+  const foto = fotos.find(f => f.id === id);
+  if (!foto) return;
+
+  // Try to delete from storage if it's a supabase URL
+  if (foto.image_url && foto.image_url.includes('galeria/')) {
+    try {
+      const path = foto.image_url.split('/galeria/')[1];
+      if (path) {
+        await sb.storage.from('galeria').remove([decodeURIComponent(path)]);
+      }
+    } catch (e) {
+      console.warn('Nao conseguiu deletar do storage:', e);
+    }
+  }
+
+  const { error } = await db.from('galeria').delete().eq('id', id);
+  if (error) {
+    alert('Erro ao excluir: ' + error.message);
+    return;
+  }
+
+  await loadFotos();
+  renderStats();
+  renderFilters();
+  renderGrid();
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

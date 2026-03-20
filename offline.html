@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Sem conexão</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #000; color: #fafafa; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 24px;
+    }
+    .offline-icon { font-size: 64px; margin-bottom: 16px; }
+    h1 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    p { font-size: 14px; color: #737373; margin-bottom: 24px; line-height: 1.6; }
+    .btn-retry {
+      padding: 14px 32px; border-radius: 10px; border: none;
+      background: #d4a853; color: #000; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+    }
+    .btn-retry:hover { filter: brightness(1.1); }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="offline-icon">📡</div>
+    <h1>Sem conexão</h1>
+    <p>Verifique sua internet e tente novamente.<br>Seus dados estão seguros.</p>
+    <button class="btn-retry" onclick="window.location.reload()">TENTAR NOVAMENTE</button>
+  </div>
+</body>
+</html>

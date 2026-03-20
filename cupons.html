@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Cupons</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .cup-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .cup-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .cup-header h1 { font-size:18px; font-weight:700; }
+
+    .cup-stats {
+      display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;
+    }
+    .cup-stat {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      padding:10px; text-align:center;
+    }
+    .cup-stat .num { font-size:18px; font-weight:800; }
+    .cup-stat .lbl { font-size:8px; color:var(--texto-muted); font-weight:700; letter-spacing:0.5px; margin-top:2px; }
+
+    .cup-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:14px; margin-bottom:10px; transition:all .2s; cursor:pointer;
+    }
+    .cup-card:hover { border-color:var(--borda-hover); }
+    .cup-card.inactive { opacity:0.5; }
+
+    .cup-card-top { display:flex; justify-content:space-between; align-items:flex-start; }
+    .cup-code {
+      font-size:18px; font-weight:800; letter-spacing:1px; color:var(--verde-acao);
+      font-family:'Courier New', monospace;
+    }
+    .cup-badge {
+      font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px;
+      display:inline-block;
+    }
+    .cup-badge.ativo { background:rgba(34,197,94,0.15); color:#22c55e; }
+    .cup-badge.expirado { background:rgba(239,68,68,0.15); color:#ef4444; }
+    .cup-badge.esgotado { background:rgba(245,158,11,0.15); color:#f59e0b; }
+
+    .cup-desc { font-size:12px; color:var(--texto-muted); margin-top:4px; }
+
+    .cup-discount {
+      font-size:14px; font-weight:700; margin-top:8px;
+    }
+
+    .cup-usage { margin-top:8px; }
+    .cup-usage-text { font-size:11px; color:var(--texto-muted); margin-bottom:4px; }
+    .cup-bar {
+      height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;
+    }
+    .cup-bar-fill { height:100%; border-radius:3px; transition:width .3s; background:var(--verde-acao); }
+
+    .cup-validity { font-size:10px; color:var(--texto-muted); margin-top:6px; }
+
+    .cup-actions { display:flex; gap:6px; margin-top:10px; }
+    .cup-btn {
+      flex:1; padding:8px 0; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:10px;
+      font-weight:700; font-family:inherit; cursor:pointer; transition:all .2s;
+      text-align:center;
+    }
+    .cup-btn:hover { border-color:var(--borda-hover); }
+    .cup-btn.share { border-color:rgba(34,197,94,0.3); color:#22c55e; }
+    .cup-btn.danger:hover { border-color:#ef4444; color:#ef4444; }
+
+    /* Toggle switch */
+    .toggle-wrap { display:flex; align-items:center; gap:6px; }
+    .toggle-label { font-size:10px; color:var(--texto-muted); font-weight:600; }
+    .toggle-switch {
+      width:36px; height:20px; border-radius:10px; background:rgba(255,255,255,0.1);
+      position:relative; cursor:pointer; transition:all .2s; border:none; padding:0;
+    }
+    .toggle-switch.on { background:var(--verde-acao); }
+    .toggle-switch::after {
+      content:''; position:absolute; top:2px; left:2px;
+      width:16px; height:16px; border-radius:50%; background:#fff;
+      transition:all .2s;
+    }
+    .toggle-switch.on::after { left:18px; }
+
+    /* Modal */
+    .modal-overlay {
+      position:fixed; top:0; left:0; right:0; bottom:0; z-index:1000;
+      background:rgba(0,0,0,0.7); display:none; align-items:center;
+      justify-content:center; padding:16px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:12px; width:100%; max-width:400px;
+      padding:24px 20px; animation:fadeUp 0.3s ease;
+      max-height:85vh; overflow-y:auto;
+    }
+    .modal-title {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:20px;
+    }
+    .modal-title h2 { font-size:16px; }
+    .modal-close {
+      background:none; border:none; color:var(--texto-muted); font-size:18px;
+      cursor:pointer; padding:4px 8px;
+    }
+
+    /* Discount type toggle */
+    .type-toggle {
+      display:flex; background:var(--cinza-medio); border-radius:8px; padding:3px; margin-bottom:12px;
+    }
+    .type-tab {
+      flex:1; padding:8px 0; text-align:center; font-size:11px; font-weight:600;
+      color:var(--texto-muted); border-radius:6px; cursor:pointer; border:none;
+      background:transparent; font-family:inherit; transition:all .2s;
+    }
+    .type-tab.active { background:var(--verde-acao); color:#000; font-weight:700; }
+
+    /* Uso row */
+    .uso-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 0; border-bottom:1px solid var(--borda); font-size:12px;
+    }
+    .uso-row:last-child { border-bottom:none; }
+    .uso-name { font-weight:600; }
+    .uso-date { color:var(--texto-muted); font-size:11px; }
+    .uso-value { font-weight:700; color:var(--verde-acao); white-space:nowrap; }
+
+    .uso-total {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 0; margin-top:8px; border-top:2px solid var(--borda);
+      font-size:14px; font-weight:700;
+    }
+    .uso-total .uso-value { font-size:16px; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit;
+    }
+
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    .empty-state { text-align:center; padding:40px 20px; color:var(--texto-muted); }
+
+    .share-menu {
+      position:absolute; right:0; top:100%; background:var(--cinza-escuro);
+      border:1px solid var(--borda); border-radius:10px; padding:6px; z-index:50;
+      min-width:180px; display:none;
+    }
+    .share-menu.show { display:block; }
+    .share-option {
+      display:flex; align-items:center; gap:8px; padding:8px 10px;
+      color:var(--texto-secundario); font-size:11px; font-weight:600;
+      border-radius:6px; cursor:pointer; border:none; background:none;
+      width:100%; font-family:inherit; transition:all .2s; text-align:left;
+    }
+    .share-option:hover { background:rgba(255,255,255,0.05); }
+
+    body { padding-bottom:70px; }
+  </style>
+</head>
+<body>
+
+<div class="cup-container">
+  <div id="loading" style="text-align:center;padding:60px 0;">
+    <div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando cupons...</div>
+  </div>
+
+  <div id="content" style="display:none;">
+    <div class="cup-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-back" onclick="history.back()">&#x2190;</button>
+        <h1>Cupons</h1>
+      </div>
+      <button style="padding:6px 14px;border-radius:8px;border:none;background:var(--verde-acao);color:#000;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;" onclick="abrirModal()">+ NOVO CUPOM</button>
+    </div>
+
+    <div class="cup-stats">
+      <div class="cup-stat">
+        <div class="num" id="stat-total">0</div>
+        <div class="lbl">CUPONS ATIVOS</div>
+      </div>
+      <div class="cup-stat">
+        <div class="num" id="stat-usos" style="color:var(--verde-acao);">0</div>
+        <div class="lbl">USOS TOTAL</div>
+      </div>
+      <div class="cup-stat">
+        <div class="num" id="stat-desconto" style="color:#f59e0b;">0</div>
+        <div class="lbl">DESCONTO DADO</div>
+      </div>
+    </div>
+
+    <div id="cup-list"></div>
+  </div>
+</div>
+
+<!-- Modal Novo/Editar Cupom -->
+<div class="modal-overlay" id="modal-cupom">
+  <div class="modal">
+    <div class="modal-title">
+      <h2 id="modal-cupom-title">Novo Cupom</h2>
+      <button class="modal-close" onclick="fecharModal()">&#x2715;</button>
+    </div>
+    <div id="modal-cupom-msg" class="msg"></div>
+    <input type="hidden" id="cupom-edit-id">
+
+    <div class="field">
+      <label>CODIGO DO CUPOM *</label>
+      <input type="text" id="cupom-code" placeholder="Ex: PROMO10, BEMVINDO" style="text-transform:uppercase;" maxlength="20">
+    </div>
+
+    <div class="field">
+      <label>DESCRICAO (opcional)</label>
+      <input type="text" id="cupom-desc" placeholder="Ex: Desconto de boas-vindas">
+    </div>
+
+    <div class="field">
+      <label>TIPO DE DESCONTO</label>
+      <div class="type-toggle" id="type-toggle">
+        <button class="type-tab active" data-type="percentual" onclick="setDiscountType('percentual')">PERCENTUAL (%)</button>
+        <button class="type-tab" data-type="fixo" onclick="setDiscountType('fixo')">VALOR FIXO (R$)</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label id="lbl-valor">DESCONTO (%)</label>
+      <input type="number" id="cupom-valor" min="0" step="0.01" placeholder="10">
+    </div>
+
+    <div class="field">
+      <label>MAXIMO DE USOS (vazio = ilimitado)</label>
+      <input type="number" id="cupom-max" min="0" step="1" placeholder="Ilimitado">
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field">
+        <label>VALIDO A PARTIR DE</label>
+        <input type="date" id="cupom-from">
+      </div>
+      <div class="field">
+        <label>VALIDO ATE (opcional)</label>
+        <input type="date" id="cupom-until">
+      </div>
+    </div>
+
+    <button id="btn-cupom-save" onclick="salvarCupom()" style="width:100%;padding:14px;border-radius:10px;border:none;background:var(--verde-acao);color:#000;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:8px;">
+      <span class="btn-label">CRIAR CUPOM</span>
+      <span class="spinner" style="display:none;width:16px;height:16px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Modal Historico de Uso -->
+<div class="modal-overlay" id="modal-historico">
+  <div class="modal">
+    <div class="modal-title">
+      <h2 id="modal-hist-title">Historico de Uso</h2>
+      <button class="modal-close" onclick="fecharHistorico()">&#x2715;</button>
+    </div>
+    <div id="hist-code" style="font-size:20px;font-weight:800;color:var(--verde-acao);font-family:'Courier New',monospace;letter-spacing:1px;text-align:center;margin-bottom:16px;"></div>
+    <div id="hist-list"></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item active" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servicos</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatorio</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retenção</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfação</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+let shop = null;
+let cupons = [];
+let cupomUsos = {};
+let discountType = 'percentual';
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html'; return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Set default date
+  document.getElementById('cupom-from').value = new Date().toISOString().split('T')[0];
+
+  await loadCupons();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+});
+
+async function loadCupons() {
+  const { data } = await sb.from('cupons').select('*').eq('barbershop_id', shop.id).order('created_at', { ascending: false });
+  cupons = data || [];
+
+  // Load all usos
+  if (cupons.length) {
+    const ids = cupons.map(c => c.id);
+    const { data: usos } = await sb.from('cupom_usos').select('*').in('cupom_id', ids).order('used_at', { ascending: false });
+    cupomUsos = {};
+    (usos || []).forEach(u => {
+      if (!cupomUsos[u.cupom_id]) cupomUsos[u.cupom_id] = [];
+      cupomUsos[u.cupom_id].push(u);
+    });
+  }
+
+  renderStats();
+  renderCupons();
+}
+
+function getStatus(c) {
+  if (!c.active) return 'expirado';
+  if (c.valid_until && new Date(c.valid_until + 'T23:59:59') < new Date()) return 'expirado';
+  if (c.max_uses && c.uses_count >= c.max_uses) return 'esgotado';
+  return 'ativo';
+}
+
+function getStatusLabel(status) {
+  if (status === 'ativo') return 'ATIVO';
+  if (status === 'expirado') return 'EXPIRADO';
+  return 'ESGOTADO';
+}
+
+function renderStats() {
+  const ativos = cupons.filter(c => getStatus(c) === 'ativo').length;
+  const totalUsos = cupons.reduce((s, c) => s + (c.uses_count || 0), 0);
+  let totalDesconto = 0;
+  Object.values(cupomUsos).forEach(arr => {
+    arr.forEach(u => { totalDesconto += (u.discount_applied || 0); });
+  });
+
+  document.getElementById('stat-total').textContent = ativos;
+  document.getElementById('stat-usos').textContent = totalUsos;
+  document.getElementById('stat-desconto').textContent = totalDesconto > 0 ? formatMoney(totalDesconto).replace('R$ ', '') : '0';
+}
+
+function renderCupons() {
+  const el = document.getElementById('cup-list');
+
+  if (!cupons.length) {
+    el.innerHTML = '<div class="empty-state"><div style="font-size:40px;margin-bottom:12px;">&#x1F3AB;</div><div>Nenhum cupom criado.</div><div style="font-size:12px;margin-top:4px;">Crie cupons de desconto para atrair clientes!</div></div>';
+    return;
+  }
+
+  el.innerHTML = cupons.map(c => {
+    const status = getStatus(c);
+    const isActive = status === 'ativo';
+    const usoPct = c.max_uses ? Math.min((c.uses_count / c.max_uses) * 100, 100) : 0;
+    const usoText = c.max_uses
+      ? (c.uses_count || 0) + '/' + c.max_uses + ' usados'
+      : (c.uses_count || 0) + ' usados (ilimitado)';
+
+    const discountText = c.discount_type === 'percentual'
+      ? c.discount_value + '%'
+      : formatMoney(c.discount_value);
+
+    let validText = '';
+    if (c.valid_from && c.valid_until) {
+      validText = formatDate(c.valid_from) + ' a ' + formatDate(c.valid_until);
+    } else if (c.valid_from) {
+      validText = 'A partir de ' + formatDate(c.valid_from);
+    } else {
+      validText = 'Sem validade';
+    }
+
+    return '<div class="cup-card ' + (isActive ? '' : 'inactive') + '" onclick="abrirHistorico(\'' + c.id + '\')">'
+      + '<div class="cup-card-top">'
+        + '<div class="cup-code">' + esc(c.code) + '</div>'
+        + '<span class="cup-badge ' + status + '">' + getStatusLabel(status) + '</span>'
+      + '</div>'
+      + (c.description ? '<div class="cup-desc">' + esc(c.description) + '</div>' : '')
+      + '<div class="cup-discount">' + (c.discount_type === 'percentual' ? 'Desconto: ' : 'Desconto: ') + discountText + '</div>'
+      + '<div class="cup-usage">'
+        + '<div class="cup-usage-text">' + usoText + '</div>'
+        + (c.max_uses ? '<div class="cup-bar"><div class="cup-bar-fill" style="width:' + usoPct + '%;"></div></div>' : '')
+      + '</div>'
+      + '<div class="cup-validity">' + validText + '</div>'
+      + '<div class="cup-actions" onclick="event.stopPropagation();">'
+        + '<div style="position:relative;flex:1;">'
+          + '<button class="cup-btn share" onclick="toggleShare(\'' + c.id + '\',event)" style="width:100%;">COMPARTILHAR</button>'
+          + '<div class="share-menu" id="share-' + c.id + '">'
+            + '<button class="share-option" onclick="shareWhatsApp(\'' + c.id + '\')">&#x1F4F2; Enviar por WhatsApp</button>'
+            + '<button class="share-option" onclick="copiarCodigo(\'' + c.id + '\')">&#x1F4CB; Copiar código</button>'
+          + '</div>'
+        + '</div>'
+        + '<button class="cup-btn" onclick="toggleAtivo(\'' + c.id + '\',' + (c.active ? 'false' : 'true') + ')">' + (c.active ? 'DESATIVAR' : 'ATIVAR') + '</button>'
+        + '<button class="cup-btn danger" onclick="excluirCupom(\'' + c.id + '\',this)">EXCLUIR</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+// ── Modal Novo/Editar Cupom ──────────────────────────────
+function abrirModal() {
+  document.getElementById('modal-cupom-title').textContent = 'Novo Cupom';
+  document.getElementById('cupom-edit-id').value = '';
+  document.getElementById('cupom-code').value = '';
+  document.getElementById('cupom-desc').value = '';
+  document.getElementById('cupom-valor').value = '';
+  document.getElementById('cupom-max').value = '';
+  document.getElementById('cupom-from').value = new Date().toISOString().split('T')[0];
+  document.getElementById('cupom-until').value = '';
+  document.getElementById('modal-cupom-msg').className = 'msg';
+  setDiscountType('percentual');
+  document.getElementById('btn-cupom-save').querySelector('.btn-label').textContent = 'CRIAR CUPOM';
+  document.getElementById('modal-cupom').classList.add('show');
+}
+
+function fecharModal() { document.getElementById('modal-cupom').classList.remove('show'); }
+
+function setDiscountType(type) {
+  discountType = type;
+  document.querySelectorAll('#type-toggle .type-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.type === type);
+  });
+  document.getElementById('lbl-valor').textContent = type === 'percentual' ? 'DESCONTO (%)' : 'DESCONTO (R$)';
+  document.getElementById('cupom-valor').placeholder = type === 'percentual' ? '10' : '15.00';
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('modal-cupom-msg');
+  el.textContent = text;
+  el.className = 'msg msg-' + type + ' show';
+}
+
+async function salvarCupom() {
+  const btn = document.getElementById('btn-cupom-save');
+  const editId = document.getElementById('cupom-edit-id').value;
+  const code = document.getElementById('cupom-code').value.trim().toUpperCase();
+  const desc = document.getElementById('cupom-desc').value.trim();
+  const valor = parseFloat(document.getElementById('cupom-valor').value);
+  const maxUses = parseInt(document.getElementById('cupom-max').value) || null;
+  const validFrom = document.getElementById('cupom-from').value || null;
+  const validUntil = document.getElementById('cupom-until').value || null;
+
+  if (!code) { showMsg('Digite o código do cupom.', 'error'); return; }
+  if (!code.match(/^[A-Z0-9_-]+$/)) { showMsg('Código só pode ter letras, números, - e _', 'error'); return; }
+  if (!valor || valor <= 0) { showMsg('Digite o valor do desconto.', 'error'); return; }
+  if (discountType === 'percentual' && valor > 100) { showMsg('Percentual máximo é 100%.', 'error'); return; }
+
+  const payload = {
+    code,
+    description: desc || null,
+    discount_type: discountType,
+    discount_value: valor,
+    max_uses: maxUses,
+    valid_from: validFrom,
+    valid_until: validUntil
+  };
+
+  btn.disabled = true;
+  btn.querySelector('.btn-label').style.display = 'none';
+  btn.querySelector('.spinner').style.display = 'inline-block';
+
+  try {
+    if (editId) {
+      const { error } = await sb.from('cupons').update(payload).eq('id', editId);
+      if (error) throw error;
+    } else {
+      payload.barbershop_id = shop.id;
+      payload.uses_count = 0;
+      payload.active = true;
+      const { error } = await sb.from('cupons').insert(payload);
+      if (error) {
+        if (error.message && error.message.includes('unique')) {
+          showMsg('Já existe um cupom com esse código.', 'error');
+        } else {
+          showMsg('Erro ao salvar: ' + error.message, 'error');
+        }
+        btn.disabled = false;
+        btn.querySelector('.btn-label').style.display = 'inline';
+        btn.querySelector('.spinner').style.display = 'none';
+        return;
+      }
+    }
+    fecharModal();
+    await loadCupons();
+  } catch (e) {
+    if (e.message && e.message.includes('unique')) {
+      showMsg('Já existe um cupom com esse código.', 'error');
+    } else {
+      showMsg('Erro ao salvar.', 'error');
+    }
+  }
+
+  btn.disabled = false;
+  btn.querySelector('.btn-label').style.display = 'inline';
+  btn.querySelector('.spinner').style.display = 'none';
+}
+
+// ── Toggle Ativo ──────────────────────────────────
+async function toggleAtivo(id, newState) {
+  await sb.from('cupons').update({ active: newState }).eq('id', id);
+  await loadCupons();
+}
+
+// ── Excluir ──────────────────────────────────
+async function excluirCupom(id, btn) {
+  if (!btn.dataset.confirming) {
+    btn.textContent = 'Certeza?';
+    btn.style.color = '#ef4444';
+    btn.dataset.confirming = 'true';
+    setTimeout(() => { btn.textContent = 'EXCLUIR'; btn.style.color = ''; delete btn.dataset.confirming; }, 3000);
+    return;
+  }
+  btn.textContent = '...';
+  btn.disabled = true;
+  // Delete usos first
+  await sb.from('cupom_usos').delete().eq('cupom_id', id);
+  await sb.from('cupons').delete().eq('id', id);
+  await loadCupons();
+}
+
+// ── Compartilhar ──────────────────────────────────
+function toggleShare(id, e) {
+  e.stopPropagation();
+  // Close all other menus
+  document.querySelectorAll('.share-menu').forEach(m => {
+    if (m.id !== 'share-' + id) m.classList.remove('show');
+  });
+  document.getElementById('share-' + id).classList.toggle('show');
+}
+
+// Close share menus on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.share-menu') && !e.target.closest('.cup-btn.share')) {
+    document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+  }
+});
+
+function shareWhatsApp(id) {
+  const c = cupons.find(x => x.id === id);
+  if (!c) return;
+  const discountText = c.discount_type === 'percentual'
+    ? c.discount_value + '% de desconto'
+    : formatMoney(c.discount_value) + ' de desconto';
+  const shopName = shop.name || 'nossa academia';
+  const msg = 'Use o cupom *' + c.code + '* na ' + shopName + ' e ganhe ' + discountText + '! Agende agora.';
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+}
+
+function copiarCodigo(id) {
+  const c = cupons.find(x => x.id === id);
+  if (!c) return;
+  navigator.clipboard.writeText(c.code).then(() => {
+    // Flash feedback
+    const btn = document.querySelector('#share-' + id).closest('.cup-actions').querySelector('.cup-btn.share');
+    const orig = btn.textContent;
+    btn.textContent = 'COPIADO!';
+    btn.style.color = '#22c55e';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  });
+  document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+}
+
+// ── Historico de Uso ──────────────────────────────────
+function abrirHistorico(id) {
+  const c = cupons.find(x => x.id === id);
+  if (!c) return;
+  const usos = cupomUsos[id] || [];
+
+  document.getElementById('hist-code').textContent = c.code;
+  document.getElementById('modal-hist-title').textContent = 'Historico de Uso';
+
+  const el = document.getElementById('hist-list');
+
+  if (!usos.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--texto-muted);font-size:13px;">Nenhum uso registrado.</div>';
+    document.getElementById('modal-historico').classList.add('show');
+    return;
+  }
+
+  let totalDesconto = 0;
+  let html = usos.map(u => {
+    totalDesconto += (u.discount_applied || 0);
+    return '<div class="uso-row">'
+      + '<div>'
+        + '<div class="uso-name">' + esc(u.client_name || 'Cliente') + '</div>'
+        + '<div class="uso-date">' + formatDate(u.used_at ? u.used_at.split('T')[0] : '') + '</div>'
+      + '</div>'
+      + '<div class="uso-value">-' + formatMoney(u.discount_applied || 0) + '</div>'
+    + '</div>';
+  }).join('');
+
+  html += '<div class="uso-total">'
+    + '<div>Total descontos</div>'
+    + '<div class="uso-value">-' + formatMoney(totalDesconto) + '</div>'
+  + '</div>';
+
+  el.innerHTML = html;
+  document.getElementById('modal-historico').classList.add('show');
+}
+
+function fecharHistorico() { document.getElementById('modal-historico').classList.remove('show'); }
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', function(e) {
+    if (e.target === ov) {
+      ov.classList.remove('show');
+    }
+  });
+});
+
+// Auto-uppercase code input
+document.getElementById('cupom-code').addEventListener('input', function() {
+  this.value = this.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+});
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

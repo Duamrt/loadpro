@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Minha Conta</title>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Minha Conta — NaLinha">
+  <meta property="og:description" content="Veja seus agendamentos, pacotes e cupons.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    /* ── Entry Screen ─────────────────────────── */
+    .entry-container {
+      max-width:400px; width:100%; margin:0 auto; padding:24px 16px;
+      min-height:100dvh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+    }
+    .entry-logo { font-size:12px; font-weight:800; color:var(--texto-muted); letter-spacing:3px; margin-bottom:8px; }
+    .entry-shop-name { font-size:22px; font-weight:800; margin-bottom:4px; text-align:center; }
+    .entry-heading {
+      font-size:15px; font-weight:600; color:var(--texto-secundario);
+      margin-bottom:32px; text-align:center;
+    }
+    .entry-field {
+      width:100%; margin-bottom:16px;
+    }
+    .entry-field label {
+      display:block; font-size:11px; font-weight:700; color:var(--texto-muted);
+      letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;
+    }
+    .entry-field input {
+      width:100%; padding:14px 16px; background:var(--cinza-escuro);
+      border:1px solid var(--borda); border-radius:12px; color:var(--texto-principal);
+      font-size:16px; font-family:inherit; outline:none; transition:all .2s;
+      text-align:center; letter-spacing:1px;
+    }
+    .entry-field input::placeholder { color:var(--texto-muted); }
+    .entry-field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(212,168,83,0.15); }
+    .entry-btn {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      background:linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color:#000; font-size:14px; font-weight:700; font-family:inherit;
+      cursor:pointer; transition:all .2s; letter-spacing:0.5px;
+    }
+    .entry-btn:hover { background:linear-gradient(135deg, var(--accent-hover), #b08a38); transform:translateY(-1px); }
+    .entry-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .entry-error {
+      margin-top:12px; font-size:12px; color:var(--vermelho); text-align:center;
+      min-height:18px;
+    }
+
+    /* ── Dashboard ────────────────────────────── */
+    .dash-container {
+      max-width:480px; width:100%; margin:0 auto; padding:16px;
+      padding-bottom:32px; min-height:100dvh;
+      animation:fadeUp .4s ease;
+    }
+
+    /* Header */
+    .dash-header {
+      text-align:center; padding:20px 0 16px;
+      border-bottom:1px solid var(--borda); margin-bottom:20px;
+    }
+    .dash-avatar {
+      width:56px; height:56px; border-radius:50%;
+      background:linear-gradient(135deg, var(--accent), var(--accent-hover));
+      display:flex; align-items:center; justify-content:center;
+      font-size:22px; font-weight:800; color:#000;
+      margin:0 auto 12px;
+    }
+    .dash-name { font-size:18px; font-weight:700; margin-bottom:2px; }
+    .dash-shop { font-size:13px; color:var(--accent); font-weight:600; }
+    .dash-since { font-size:11px; color:var(--texto-muted); margin-top:4px; }
+
+    /* Quick actions */
+    .quick-actions {
+      display:flex; gap:10px; margin-bottom:24px;
+    }
+    .quick-btn {
+      flex:1; padding:12px 8px; border-radius:10px; border:none;
+      font-size:12px; font-weight:700; font-family:inherit;
+      cursor:pointer; transition:all .2s; text-decoration:none;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .quick-btn:hover { transform:translateY(-1px); }
+    .quick-btn.primary {
+      background:linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color:#000;
+    }
+    .quick-btn.secondary {
+      background:var(--cinza-escuro); color:var(--texto-secundario);
+      border:1px solid var(--borda);
+    }
+    .quick-btn.secondary:hover { border-color:var(--borda-hover); }
+
+    /* Sections */
+    .section { margin-bottom:24px; }
+    .section-title {
+      font-size:11px; font-weight:700; color:var(--texto-muted);
+      letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .section-title .count {
+      background:var(--cinza-medio); border-radius:10px; padding:2px 8px;
+      font-size:10px; color:var(--texto-secundario);
+    }
+
+    /* Appointment cards */
+    .appt-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:12px; padding:14px; margin-bottom:8px;
+      transition:all .2s;
+    }
+    .appt-card:hover { border-color:var(--borda-hover); }
+    .appt-top {
+      display:flex; justify-content:space-between; align-items:flex-start;
+      margin-bottom:8px;
+    }
+    .appt-date { font-size:14px; font-weight:700; }
+    .appt-time { font-size:13px; color:var(--accent); font-weight:600; }
+    .appt-badge {
+      font-size:9px; font-weight:700; letter-spacing:0.5px; padding:3px 8px;
+      border-radius:6px; text-transform:uppercase;
+    }
+    .badge-confirmed { background:rgba(34,197,94,0.12); color:#22c55e; }
+    .badge-pending { background:rgba(245,158,11,0.12); color:#f59e0b; }
+    .badge-done { background:rgba(212,168,83,0.12); color:var(--accent); }
+    .badge-cancelled { background:rgba(239,68,68,0.12); color:#ef4444; }
+    .appt-detail {
+      font-size:12px; color:var(--texto-secundario); margin-bottom:2px;
+    }
+    .appt-price {
+      font-size:13px; font-weight:700; color:var(--accent); margin-top:4px;
+    }
+    .appt-actions {
+      display:flex; gap:8px; margin-top:10px;
+    }
+    .appt-action-btn {
+      flex:1; padding:8px; border-radius:8px; font-size:11px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s; text-align:center;
+    }
+    .btn-cancel {
+      background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2);
+      color:#ef4444;
+    }
+    .btn-cancel:hover { background:rgba(239,68,68,0.15); }
+    .btn-reschedule {
+      background:rgba(212,168,83,0.08); border:1px solid rgba(212,168,83,0.2);
+      color:var(--accent);
+    }
+    .btn-reschedule:hover { background:rgba(212,168,83,0.15); }
+
+    /* History cards */
+    .hist-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:10px; padding:12px 14px; margin-bottom:6px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .hist-left {}
+    .hist-date { font-size:12px; color:var(--texto-muted); }
+    .hist-service { font-size:13px; font-weight:600; margin-top:2px; }
+    .hist-barber { font-size:11px; color:var(--texto-secundario); margin-top:1px; }
+    .hist-price { font-size:14px; font-weight:700; color:var(--accent); }
+
+    /* Package cards */
+    .pkg-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:12px; padding:14px; margin-bottom:8px;
+    }
+    .pkg-name { font-size:14px; font-weight:700; margin-bottom:6px; }
+    .pkg-uses { font-size:12px; color:var(--texto-secundario); margin-bottom:8px; }
+    .pkg-bar-bg {
+      width:100%; height:6px; background:var(--cinza-medio);
+      border-radius:3px; overflow:hidden;
+    }
+    .pkg-bar {
+      height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius:3px; transition:width .4s ease;
+    }
+
+    /* Subscription card */
+    .sub-card {
+      background:var(--cinza-escuro); border:1px solid rgba(212,168,83,0.15);
+      border-radius:12px; padding:14px; margin-bottom:8px;
+    }
+    .sub-plan { font-size:14px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+    .sub-detail { font-size:12px; color:var(--texto-secundario); margin-bottom:2px; }
+
+    /* Coupon cards */
+    .coupon-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:10px; padding:12px 14px; margin-bottom:6px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .coupon-code {
+      font-size:14px; font-weight:800; letter-spacing:1px; font-family:monospace;
+      color:var(--accent);
+    }
+    .coupon-desc { font-size:11px; color:var(--texto-secundario); margin-top:2px; }
+    .coupon-copy-btn {
+      padding:6px 12px; border-radius:6px; font-size:10px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s;
+      background:rgba(212,168,83,0.1); border:1px solid rgba(212,168,83,0.2);
+      color:var(--accent); white-space:nowrap;
+    }
+    .coupon-copy-btn:hover { background:rgba(212,168,83,0.2); }
+
+    /* Empty states */
+    .empty-section {
+      text-align:center; padding:20px 16px;
+      font-size:12px; color:var(--texto-muted);
+    }
+
+    /* Unavailable section */
+    .unavailable {
+      text-align:center; padding:16px;
+      font-size:12px; color:var(--texto-muted); font-style:italic;
+    }
+
+    /* Loading */
+    .loading-state {
+      text-align:center; padding:40px 20px; color:var(--texto-muted);
+    }
+    .loading-state .spin {
+      width:24px; height:24px; border:3px solid var(--cinza-claro);
+      border-top-color:var(--accent); border-radius:50%;
+      animation:spin .6s linear infinite; margin:0 auto 12px;
+    }
+
+    /* Powered by */
+    .powered-by {
+      text-align:center; padding:20px 0 8px;
+      font-size:10px; color:var(--texto-muted); letter-spacing:1px;
+    }
+    .powered-by a { color:var(--accent); text-decoration:none; font-weight:600; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ==================== ENTRY SCREEN ==================== -->
+<div id="entry-view" style="display:none;">
+<div class="entry-container">
+  <div class="entry-logo">NAREGUA</div>
+  <div class="entry-shop-name" id="entry-shop-name"></div>
+  <div class="entry-heading">Minha Conta</div>
+
+  <div class="entry-field">
+    <label>Seu telefone</label>
+    <input type="tel" id="entry-phone" placeholder="(00) 0 0000-0000"
+           inputmode="tel" autocomplete="tel" maxlength="16">
+  </div>
+
+  <button class="entry-btn" id="entry-btn" onclick="lookupPhone()">VER MEUS DADOS</button>
+  <div class="entry-error" id="entry-error"></div>
+</div>
+</div>
+
+<!-- ==================== LOADING ==================== -->
+<div id="loading-view" style="display:none;">
+<div class="loading-state" style="min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+  <div class="spin"></div>
+  <div>Carregando seus dados...</div>
+</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="dash-view" style="display:none;">
+<div class="dash-container">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-avatar" id="dash-avatar"></div>
+    <div class="dash-name" id="dash-name"></div>
+    <div class="dash-shop" id="dash-shop"></div>
+    <div class="dash-since" id="dash-since"></div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="quick-actions">
+    <a class="quick-btn primary" id="btn-agendar" href="#">&#x1F4C5; AGENDAR</a>
+    <a class="quick-btn secondary" id="btn-avaliar" href="#">&#x2B50; AVALIAR</a>
+  </div>
+
+  <!-- Proximos agendamentos -->
+  <div class="section" id="sec-upcoming">
+    <div class="section-title">&#x1F4C5; Proximos agendamentos <span class="count" id="count-upcoming">0</span></div>
+    <div id="list-upcoming"></div>
+  </div>
+
+  <!-- Historico -->
+  <div class="section" id="sec-history">
+    <div class="section-title">&#x1F4CB; Historico <span class="count" id="count-history">0</span></div>
+    <div id="list-history"></div>
+  </div>
+
+  <!-- Pacotes -->
+  <div class="section" id="sec-packages" style="display:none;">
+    <div class="section-title">&#x1F4E6; Meus pacotes</div>
+    <div id="list-packages"></div>
+  </div>
+
+  <!-- Assinatura -->
+  <div class="section" id="sec-subscription" style="display:none;">
+    <div class="section-title">&#x1F451; Minha assinatura</div>
+    <div id="list-subscription"></div>
+  </div>
+
+  <!-- Cupons -->
+  <div class="section" id="sec-coupons" style="display:none;">
+    <div class="section-title">&#x1F3AB; Cupons disponiveis</div>
+    <div id="list-coupons"></div>
+  </div>
+
+  <!-- Powered by -->
+  <div class="powered-by">
+    Powered by <a href="https://usenalinha.com.br" target="_blank">NaLinha</a>
+  </div>
+
+</div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+console.log('MinhaConta v1 carregado');
+
+const params = new URLSearchParams(window.location.search);
+const shopParam = params.get('shop');
+const phoneParam = params.get('phone');
+
+let shop = null;
+let services = [];
+let barbers = [];
+let clientPhone = '';
+let clientName = '';
+
+// ── Phone mask ──────────────────────────────────────────────
+function phoneMask(v) {
+  v = v.replace(/\D/g, '');
+  if (v.length > 11) v = v.substring(0, 11);
+  if (v.length > 7) return '(' + v.substring(0,2) + ') ' + v.substring(2,3) + ' ' + v.substring(3,7) + '-' + v.substring(7);
+  if (v.length > 2) return '(' + v.substring(0,2) + ') ' + v.substring(2);
+  if (v.length > 0) return '(' + v;
+  return '';
+}
+
+function phoneClean(v) {
+  return v.replace(/\D/g, '');
+}
+
+// ── Init ────────────────────────────────────────────────────
+(async function init() {
+  if (!shopParam) {
+    document.getElementById('entry-view').style.display = 'block';
+    document.getElementById('entry-shop-name').textContent = 'Academia';
+    document.getElementById('entry-error').textContent = 'Link incompleto. Peca o link correto da academia.';
+    document.getElementById('entry-btn').disabled = true;
+    return;
+  }
+
+  // Load shop by slug
+  try {
+    const { data, error } = await sb
+      .from('barbershops')
+      .select('*')
+      .eq('slug', shopParam)
+      .maybeSingle();
+
+    if (error || !data) {
+      // Try by ID as fallback
+      const { data: d2 } = await sb.from('barbershops').select('*').eq('id', shopParam).maybeSingle();
+      if (d2) {
+        shop = d2;
+      } else {
+        document.getElementById('entry-view').style.display = 'block';
+        document.getElementById('entry-shop-name').textContent = 'Academia';
+        document.getElementById('entry-error').textContent = 'Estabelecimento não encontrado.';
+        document.getElementById('entry-btn').disabled = true;
+        return;
+      }
+    } else {
+      shop = data;
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('entry-view').style.display = 'block';
+    document.getElementById('entry-error').textContent = 'Erro ao carregar academia.';
+    return;
+  }
+
+  document.title = 'NaLinha — Minha Conta | ' + shop.name;
+
+  // Load services + barbers
+  try {
+    const [svcRes, barbRes] = await Promise.all([
+      sb.from('services').select('id,name,price,duration').eq('barbershop_id', shop.id).eq('active', true),
+      sb.from('barbers').select('id,name').eq('barbershop_id', shop.id).eq('active', true)
+    ]);
+    services = svcRes.data || [];
+    barbers = barbRes.data || [];
+  } catch (e) { console.error(e); }
+
+  // If phone in URL, go directly to dashboard
+  if (phoneParam) {
+    const clean = phoneClean(phoneParam);
+    if (clean.length >= 10) {
+      clientPhone = clean;
+      showLoading();
+      await loadDashboard();
+      return;
+    }
+  }
+
+  // Show entry screen
+  showEntry();
+})();
+
+function showEntry() {
+  document.getElementById('entry-view').style.display = 'block';
+  document.getElementById('loading-view').style.display = 'none';
+  document.getElementById('dash-view').style.display = 'none';
+  document.getElementById('entry-shop-name').textContent = shop ? shop.name : 'Academia';
+
+  const phoneInput = document.getElementById('entry-phone');
+  phoneInput.addEventListener('input', function() {
+    this.value = phoneMask(this.value);
+  });
+  phoneInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') lookupPhone();
+  });
+  phoneInput.focus();
+}
+
+function showLoading() {
+  document.getElementById('entry-view').style.display = 'none';
+  document.getElementById('loading-view').style.display = 'block';
+  document.getElementById('dash-view').style.display = 'none';
+}
+
+function showDash() {
+  document.getElementById('entry-view').style.display = 'none';
+  document.getElementById('loading-view').style.display = 'none';
+  document.getElementById('dash-view').style.display = 'block';
+}
+
+// ── Phone Lookup ────────────────────────────────────────────
+async function lookupPhone() {
+  const input = document.getElementById('entry-phone');
+  const errEl = document.getElementById('entry-error');
+  const btn = document.getElementById('entry-btn');
+  const phone = phoneClean(input.value);
+
+  errEl.textContent = '';
+
+  if (phone.length < 10) {
+    errEl.textContent = 'Digite um telefone válido.';
+    input.focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'BUSCANDO...';
+
+  try {
+    // Check if phone has appointments in this shop
+    const { data, error } = await sb
+      .from('appointments')
+      .select('id')
+      .eq('barbershop_id', shop.id)
+      .eq('client_phone', phone)
+      .limit(1);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      errEl.textContent = 'Nenhum agendamento encontrado com esse telefone.';
+      btn.disabled = false;
+      btn.textContent = 'VER MEUS DADOS';
+      return;
+    }
+
+    clientPhone = phone;
+    showLoading();
+    await loadDashboard();
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = 'Erro ao buscar dados. Tente novamente.';
+    btn.disabled = false;
+    btn.textContent = 'VER MEUS DADOS';
+  }
+}
+
+// ── Load Dashboard ──────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    // Load all appointments for this client+shop
+    const { data: allAppts, error } = await sb
+      .from('appointments')
+      .select('*')
+      .eq('barbershop_id', shop.id)
+      .eq('client_phone', clientPhone)
+      .order('scheduled_at', { ascending: false });
+
+    if (error) throw error;
+
+    const appointments = allAppts || [];
+
+    // Get client name from most recent appointment
+    if (appointments.length > 0) {
+      clientName = appointments[0].client_name || 'Cliente';
+    } else {
+      clientName = 'Cliente';
+    }
+
+    // Client since date
+    const oldest = appointments.length > 0
+      ? appointments[appointments.length - 1]
+      : null;
+    const sinceDate = oldest ? new Date(oldest.scheduled_at) : null;
+
+    // ── Render header ──
+    const initials = clientName.split(' ').map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
+    document.getElementById('dash-avatar').textContent = initials;
+    document.getElementById('dash-name').textContent = esc(clientName);
+    document.getElementById('dash-shop').textContent = esc(shop.name);
+    document.getElementById('dash-since').textContent = sinceDate
+      ? 'Cliente desde ' + sinceDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      : '';
+
+    // ── Quick actions ──
+    const slug = shop.slug || shop.id;
+    const encodedName = encodeURIComponent(clientName);
+    document.getElementById('btn-agendar').href =
+      'agendar.html?slug=' + slug + '&phone=' + clientPhone + '&nome=' + encodedName;
+    document.getElementById('btn-avaliar').href =
+      'satisfacao.html?shop=' + shop.id;
+
+    // ── Upcoming appointments ──
+    const now = new Date().toISOString();
+    const upcoming = appointments.filter(a =>
+      (a.status === 'confirmed' || a.status === 'pending') &&
+      a.scheduled_at > now
+    ).sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
+
+    document.getElementById('count-upcoming').textContent = upcoming.length;
+    renderUpcoming(upcoming);
+
+    // ── History ──
+    const history = appointments.filter(a => a.status === 'done')
+      .slice(0, 10);
+    document.getElementById('count-history').textContent = history.length;
+    renderHistory(history);
+
+    // ── Packages (try/catch) ──
+    await loadPackages();
+
+    // ── Subscriptions (try/catch) ──
+    await loadSubscriptions();
+
+    // ── Coupons (try/catch) ──
+    await loadCoupons();
+
+    showDash();
+
+    // Update URL with phone for sharing/bookmarking
+    const newUrl = window.location.pathname + '?shop=' + shopParam + '&phone=' + clientPhone;
+    history.replaceState(null, '', newUrl);
+
+  } catch (e) {
+    console.error('Erro ao carregar dashboard:', e);
+    showEntry();
+    document.getElementById('entry-error').textContent = 'Erro ao carregar dados. Tente novamente.';
+    document.getElementById('entry-btn').disabled = false;
+    document.getElementById('entry-btn').textContent = 'VER MEUS DADOS';
+  }
+}
+
+// ── Render Upcoming ─────────────────────────────────────────
+function renderUpcoming(appts) {
+  const el = document.getElementById('list-upcoming');
+
+  if (!appts.length) {
+    el.innerHTML = '<div class="empty-section">Nenhum agendamento futuro.</div>';
+    return;
+  }
+
+  el.innerHTML = appts.map(a => {
+    const dt = new Date(a.scheduled_at);
+    const dateStr = dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+    const timeStr = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const svc = services.find(s => s.id === a.service_id);
+    const barber = barbers.find(b => b.id === a.barber_id);
+    const statusClass = a.status === 'confirmed' ? 'badge-confirmed' : 'badge-pending';
+    const statusText = a.status === 'confirmed' ? 'CONFIRMADO' : 'PENDENTE';
+
+    const slug = shop.slug || shop.id;
+    const rescheduleUrl = 'agendar.html?slug=' + slug +
+      '&phone=' + clientPhone +
+      '&nome=' + encodeURIComponent(clientName);
+
+    return '<div class="appt-card">'
+      + '<div class="appt-top">'
+        + '<div>'
+          + '<div class="appt-date">' + esc(dateStr) + '</div>'
+          + '<div class="appt-time">' + timeStr + '</div>'
+        + '</div>'
+        + '<span class="appt-badge ' + statusClass + '">' + statusText + '</span>'
+      + '</div>'
+      + '<div class="appt-detail">' + (svc ? esc(svc.name) : 'Servico') + '</div>'
+      + (barber ? '<div class="appt-detail" style="color:var(--texto-muted);">Com ' + esc(barber.name) + '</div>' : '')
+      + '<div class="appt-actions">'
+        + '<button class="appt-action-btn btn-cancel" onclick="cancelAppt(\'' + a.id + '\', this)">CANCELAR</button>'
+        + '<a class="appt-action-btn btn-reschedule" href="' + rescheduleUrl + '">REAGENDAR</a>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+// ── Cancel Appointment ──────────────────────────────────────
+async function cancelAppt(id, btn) {
+  if (!btn.dataset.confirming) {
+    btn.textContent = 'TEM CERTEZA?';
+    btn.dataset.confirming = 'true';
+    setTimeout(() => {
+      if (btn.dataset.confirming) {
+        btn.textContent = 'CANCELAR';
+        delete btn.dataset.confirming;
+      }
+    }, 3000);
+    return;
+  }
+
+  btn.textContent = 'CANCELANDO...';
+  btn.disabled = true;
+
+  try {
+    const { error } = await sb
+      .from('appointments')
+      .update({ status: 'cancelled' })
+      .eq('id', id)
+      .eq('client_phone', clientPhone);
+
+    if (error) throw error;
+
+    // Reload
+    showLoading();
+    await loadDashboard();
+  } catch (e) {
+    console.error(e);
+    btn.textContent = 'ERRO';
+    btn.disabled = false;
+    setTimeout(() => { btn.textContent = 'CANCELAR'; delete btn.dataset.confirming; }, 2000);
+  }
+}
+
+// ── Render History ──────────────────────────────────────────
+function renderHistory(appts) {
+  const el = document.getElementById('list-history');
+
+  if (!appts.length) {
+    el.innerHTML = '<div class="empty-section">Nenhum atendimento concluido ainda.</div>';
+    return;
+  }
+
+  el.innerHTML = appts.map(a => {
+    const dt = new Date(a.scheduled_at);
+    const dateStr = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    const svc = services.find(s => s.id === a.service_id);
+    const barber = barbers.find(b => b.id === a.barber_id);
+    const price = a.price || (svc ? svc.price : null);
+
+    return '<div class="hist-card">'
+      + '<div class="hist-left">'
+        + '<div class="hist-date">' + dateStr + '</div>'
+        + '<div class="hist-service">' + (svc ? esc(svc.name) : 'Servico') + '</div>'
+        + (barber ? '<div class="hist-barber">Com ' + esc(barber.name) + '</div>' : '')
+      + '</div>'
+      + (price ? '<div class="hist-price">' + formatMoney(price) + '</div>' : '')
+    + '</div>';
+  }).join('');
+}
+
+// ── Packages ────────────────────────────────────────────────
+async function loadPackages() {
+  try {
+    const { data, error } = await sb
+      .from('pacote_vendas')
+      .select('*, pacotes(name, quantity, price)')
+      .eq('barbershop_id', shop.id)
+      .eq('client_phone', clientPhone)
+      .eq('status', 'ativo')
+      .order('sold_at', { ascending: false });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return;
+
+    document.getElementById('sec-packages').style.display = 'block';
+    const el = document.getElementById('list-packages');
+
+    el.innerHTML = data.map(v => {
+      const pName = v.pacotes ? v.pacotes.name : 'Pacote';
+      const total = v.uses_total || (v.pacotes ? v.pacotes.quantity : 0);
+      const remaining = v.uses_remaining || 0;
+      const used = total - remaining;
+      const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+
+      return '<div class="pkg-card">'
+        + '<div class="pkg-name">' + esc(pName) + '</div>'
+        + '<div class="pkg-uses">' + remaining + ' uso' + (remaining !== 1 ? 's' : '') + ' restante' + (remaining !== 1 ? 's' : '') + ' de ' + total + '</div>'
+        + '<div class="pkg-bar-bg"><div class="pkg-bar" style="width:' + pct + '%"></div></div>'
+      + '</div>';
+    }).join('');
+  } catch (e) {
+    console.error('Pacotes indisponiveis:', e);
+  }
+}
+
+// ── Subscriptions ───────────────────────────────────────────
+async function loadSubscriptions() {
+  try {
+    const { data, error } = await sb
+      .from('assinatura_clientes')
+      .select('*, assinaturas:assinatura_id(name, max_uses, price)')
+      .eq('barbershop_id', shop.id)
+      .eq('client_phone', clientPhone)
+      .eq('status', 'ativa')
+      .order('started_at', { ascending: false });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return;
+
+    document.getElementById('sec-subscription').style.display = 'block';
+    const el = document.getElementById('list-subscription');
+
+    el.innerHTML = data.map(s => {
+      const plan = s.assinaturas || {};
+      const planName = plan.name || 'Assinatura';
+      const maxUses = plan.max_uses || 0;
+      const usesMonth = s.uses_this_month || 0;
+      const nextPay = s.next_payment ? new Date(s.next_payment + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+
+      return '<div class="sub-card">'
+        + '<div class="sub-plan">' + esc(planName) + '</div>'
+        + (maxUses > 0
+            ? '<div class="sub-detail">Usos este mes: ' + usesMonth + '/' + maxUses + '</div>'
+            : '<div class="sub-detail">Usos este mes: ' + usesMonth + ' (ilimitado)</div>')
+        + '<div class="sub-detail">Proximo pagamento: ' + nextPay + '</div>'
+      + '</div>';
+    }).join('');
+  } catch (e) {
+    console.error('Assinaturas indisponiveis:', e);
+  }
+}
+
+// ── Coupons ─────────────────────────────────────────────────
+async function loadCoupons() {
+  try {
+    const { data, error } = await sb
+      .from('cupons')
+      .select('*')
+      .eq('barbershop_id', shop.id)
+      .eq('active', true);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return;
+
+    // Filter: not expired, not maxed out
+    const now = new Date();
+    const valid = data.filter(c => {
+      if (c.valid_until && new Date(c.valid_until + 'T23:59:59') < now) return false;
+      if (c.max_uses && c.uses_count >= c.max_uses) return false;
+      return true;
+    });
+
+    if (valid.length === 0) return;
+
+    document.getElementById('sec-coupons').style.display = 'block';
+    const el = document.getElementById('list-coupons');
+
+    el.innerHTML = valid.map(c => {
+      const discountText = c.discount_type === 'percentual'
+        ? c.discount_value + '% de desconto'
+        : formatMoney(c.discount_value) + ' de desconto';
+
+      let validText = '';
+      if (c.valid_until) {
+        validText = ' &middot; Ate ' + new Date(c.valid_until + 'T12:00:00').toLocaleDateString('pt-BR');
+      }
+
+      return '<div class="coupon-card">'
+        + '<div>'
+          + '<div class="coupon-code">' + esc(c.code) + '</div>'
+          + '<div class="coupon-desc">' + discountText + validText + '</div>'
+        + '</div>'
+        + '<button class="coupon-copy-btn" onclick="copyCoupon(\'' + esc(c.code) + '\', this)">COPIAR</button>'
+      + '</div>';
+    }).join('');
+  } catch (e) {
+    console.error('Cupons indisponiveis:', e);
+  }
+}
+
+// ── Copy coupon code ────────────────────────────────────────
+function copyCoupon(code, btn) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'COPIADO!';
+    setTimeout(() => { btn.textContent = 'COPIAR'; }, 2000);
+  }).catch(() => {
+    prompt('Copie o codigo:', code);
+  });
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+</body>
+</html>

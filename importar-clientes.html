@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Importar Clientes</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .imp-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .imp-header {
+      display:flex; align-items:center; gap:8px;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .imp-header h1 { font-size:18px; font-weight:700; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    body { padding-bottom:70px; }
+
+    /* Steps */
+    .step { display:none; }
+    .step.active { display:block; }
+
+    .step-indicator {
+      display:flex; gap:8px; margin-bottom:20px;
+    }
+    .step-dot {
+      flex:1; height:4px; border-radius:2px; background:var(--borda);
+      transition:background .3s;
+    }
+    .step-dot.done { background:var(--verde-acao); }
+
+    /* Drop zone */
+    .drop-zone {
+      border:2px dashed var(--borda); border-radius:12px; padding:40px 20px;
+      text-align:center; cursor:pointer; transition:all .3s; margin-bottom:16px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color:var(--verde-acao); background:rgba(212,168,83,0.05);
+    }
+    .drop-zone-icon { font-size:40px; margin-bottom:8px; }
+    .drop-zone-text { font-size:14px; color:var(--texto-secundario); margin-bottom:4px; }
+    .drop-zone-hint { font-size:11px; color:var(--texto-muted); }
+    .drop-zone input[type="file"] { display:none; }
+
+    .or-divider {
+      display:flex; align-items:center; gap:12px; margin:20px 0;
+      font-size:11px; color:var(--texto-muted); font-weight:600;
+    }
+    .or-divider::before, .or-divider::after {
+      content:''; flex:1; height:1px; background:var(--borda);
+    }
+
+    .paste-area {
+      width:100%; min-height:100px; padding:12px; background:var(--cinza-escuro);
+      border:1px solid var(--borda); border-radius:10px; color:var(--texto-principal);
+      font-size:13px; font-family:'Inter',sans-serif; resize:vertical; box-sizing:border-box;
+    }
+    .paste-area:focus { border-color:var(--verde-acao); outline:none; }
+    .paste-area::placeholder { color:var(--texto-muted); }
+
+    .btn-primary {
+      width:100%; padding:14px; background:var(--verde-acao); color:#000;
+      border:none; border-radius:10px; font-size:14px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s; margin-top:12px;
+    }
+    .btn-primary:hover { opacity:.9; }
+    .btn-primary:disabled { opacity:.4; cursor:not-allowed; }
+
+    .btn-secondary {
+      width:100%; padding:12px; background:transparent; color:var(--verde-acao);
+      border:1px solid var(--verde-acao); border-radius:10px; font-size:13px;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
+    }
+    .btn-secondary:hover { background:rgba(212,168,83,0.1); }
+
+    .btn-outline {
+      padding:10px 16px; background:transparent; color:var(--texto-secundario);
+      border:1px solid var(--borda); border-radius:8px; font-size:12px;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
+    }
+    .btn-outline:hover { border-color:var(--verde-acao); color:var(--verde-acao); }
+
+    .instructions {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      padding:14px; margin-bottom:16px; font-size:12px; color:var(--texto-secundario); line-height:1.6;
+    }
+    .instructions strong { color:var(--texto-principal); }
+
+    /* Preview table */
+    .preview-stats {
+      display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
+    }
+    .stat-badge {
+      padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600;
+    }
+    .stat-badge.novo { background:rgba(76,175,80,0.15); color:#4caf50; }
+    .stat-badge.existente { background:rgba(255,193,7,0.15); color:#ffc107; }
+    .stat-badge.invalido { background:rgba(244,67,54,0.15); color:#f44336; }
+
+    .preview-scroll {
+      overflow-x:auto; margin-bottom:12px; border:1px solid var(--borda); border-radius:10px;
+    }
+    .preview-table {
+      width:100%; border-collapse:collapse; font-size:12px; min-width:400px;
+    }
+    .preview-table th {
+      background:var(--cinza-escuro); padding:10px 8px; text-align:left;
+      font-weight:600; color:var(--texto-muted); font-size:11px; text-transform:uppercase;
+      border-bottom:1px solid var(--borda); white-space:nowrap;
+    }
+    .preview-table td {
+      padding:8px; border-bottom:1px solid rgba(255,255,255,0.04);
+      color:var(--texto-secundario); cursor:text;
+    }
+    .preview-table tr:last-child td { border-bottom:none; }
+    .preview-table td[contenteditable]:focus {
+      outline:1px solid var(--verde-acao); border-radius:4px; background:rgba(212,168,83,0.05);
+    }
+
+    .status-novo { color:#4caf50; font-weight:600; }
+    .status-existente { color:#ffc107; font-weight:600; }
+    .status-invalido { color:#f44336; font-weight:600; }
+
+    .select-all-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .select-all-row label { font-size:12px; color:var(--texto-muted); cursor:pointer; }
+
+    input[type="checkbox"] {
+      accent-color:var(--verde-acao); width:16px; height:16px; cursor:pointer;
+    }
+
+    .preview-actions {
+      display:flex; gap:8px; margin-top:12px;
+    }
+    .preview-actions button { flex:1; }
+
+    /* Progress */
+    .progress-bar-wrap {
+      width:100%; height:8px; background:var(--cinza-escuro); border-radius:4px;
+      overflow:hidden; margin:16px 0;
+    }
+    .progress-bar-fill {
+      height:100%; background:var(--verde-acao); border-radius:4px;
+      transition:width .3s; width:0%;
+    }
+    .progress-text {
+      font-size:13px; color:var(--texto-secundario); text-align:center; margin-bottom:16px;
+    }
+
+    /* Results */
+    .results-box {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:20px; text-align:center;
+    }
+    .results-icon { font-size:48px; margin-bottom:12px; }
+    .results-title { font-size:16px; font-weight:700; margin-bottom:12px; }
+    .results-detail { font-size:13px; color:var(--texto-secundario); line-height:1.6; margin-bottom:16px; }
+    .results-detail strong { color:var(--verde-acao); }
+
+    /* Manual add */
+    .manual-section {
+      margin-top:24px; padding-top:20px; border-top:1px solid var(--borda);
+    }
+    .manual-title { font-size:14px; font-weight:700; margin-bottom:12px; }
+    .form-row { margin-bottom:10px; }
+    .form-row label { display:block; font-size:11px; color:var(--texto-muted); font-weight:600; margin-bottom:4px; text-transform:uppercase; }
+    .form-row input {
+      width:100%; padding:11px 12px; background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:8px; color:var(--texto-principal); font-size:14px; font-family:inherit;
+      box-sizing:border-box;
+    }
+    .form-row input:focus { border-color:var(--verde-acao); outline:none; }
+    .form-row input::placeholder { color:var(--texto-muted); }
+
+    .toast {
+      position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px);
+      background:#4caf50; color:#fff; padding:12px 20px; border-radius:10px;
+      font-size:13px; font-weight:600; z-index:9999; transition:transform .3s;
+      white-space:nowrap; font-family:'Inter',sans-serif;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.error { background:#f44336; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+  </style>
+</head>
+<body>
+
+<div class="imp-container">
+
+  <div id="loading" style="text-align:center;padding:60px 0;">
+    <div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando...</div>
+  </div>
+
+  <div id="content" style="display:none;">
+
+    <div class="imp-header">
+      <button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button>
+      <h1>Importar Clientes</h1>
+    </div>
+
+    <div class="step-indicator">
+      <div class="step-dot done" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+    </div>
+
+    <!-- STEP 1: Upload -->
+    <div class="step active" id="step-1">
+
+      <div class="instructions">
+        <strong>Prepare sua lista de clientes</strong><br>
+        Nome, telefone e aniversario (opcional). Salve como CSV ou copie direto da planilha.
+      </div>
+
+      <button class="btn-secondary" onclick="baixarModelo()" style="margin-bottom:16px;">
+        &#x2B07;&#xFE0F; BAIXAR MODELO CSV
+      </button>
+
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="drop-zone-icon">&#x1F4C4;</div>
+        <div class="drop-zone-text">Arraste o arquivo aqui ou clique para selecionar</div>
+        <div class="drop-zone-hint">Aceita .csv e .txt</div>
+        <input type="file" id="file-input" accept=".csv,.txt">
+      </div>
+
+      <div class="or-divider">OU COLE DA PLANILHA</div>
+
+      <textarea class="paste-area" id="paste-area" placeholder="Cole aqui os dados copiados do Excel ou Google Sheets...&#10;&#10;Exemplo:&#10;Joao Silva&#9;87999991111&#9;1990-05-15&#10;Maria Santos&#9;87999992222"></textarea>
+
+      <button class="btn-primary" onclick="processarDados()">PROCESSAR DADOS</button>
+    </div>
+
+    <!-- STEP 2: Preview -->
+    <div class="step" id="step-2">
+
+      <div class="preview-stats" id="preview-stats"></div>
+
+      <div class="select-all-row">
+        <input type="checkbox" id="select-all" checked onchange="toggleSelectAll()">
+        <label for="select-all">Selecionar todos</label>
+      </div>
+
+      <div class="preview-scroll">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th style="width:30px;"></th>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Aniversario</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+
+      <div class="preview-actions">
+        <button class="btn-outline" onclick="voltarStep1()">&#x2190; VOLTAR</button>
+        <button class="btn-primary" id="btn-importar" onclick="importar()" style="margin-top:0;">IMPORTAR</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Results -->
+    <div class="step" id="step-3">
+
+      <div class="progress-bar-wrap" id="progress-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-text" id="progress-text">Importando...</div>
+
+      <div class="results-box" id="results-box" style="display:none;">
+        <div class="results-icon">&#x2705;</div>
+        <div class="results-title">Importacao concluida!</div>
+        <div class="results-detail" id="results-detail"></div>
+        <a href="clientes.html" class="btn-primary" style="display:inline-block;text-decoration:none;text-align:center;">VER CLIENTES</a>
+        <button class="btn-outline" onclick="novaImportacao()" style="width:100%;margin-top:10px;">NOVA IMPORTACAO</button>
+      </div>
+    </div>
+
+    <!-- Manual add -->
+    <div class="manual-section" id="manual-section">
+      <div class="manual-title">&#x2795; Adicionar manualmente</div>
+      <div class="form-row">
+        <label>Nome *</label>
+        <input type="text" id="m-name" placeholder="Nome do cliente">
+      </div>
+      <div class="form-row">
+        <label>Telefone *</label>
+        <input type="tel" id="m-phone" placeholder="87999991111" inputmode="numeric">
+      </div>
+      <div class="form-row">
+        <label>Aniversario</label>
+        <input type="date" id="m-birthday">
+      </div>
+      <button class="btn-primary" onclick="adicionarManual()">ADICIONAR</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item active" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servicos</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatorio</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retencao</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfacao</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configuracoes</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissoes</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promocoes</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificacoes</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+let shop = null;
+let existingPhones = new Set();
+let parsedRows = [];
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Load existing client phones
+  const { data: clients } = await db.from('clients').select('phone').eq('barbershop_id', shop.id);
+  if (clients) {
+    clients.forEach(c => {
+      existingPhones.add((c.phone || '').replace(/\D/g, ''));
+    });
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  setupDropZone();
+});
+
+// --- Drop zone ---
+function setupDropZone() {
+  const zone = document.getElementById('drop-zone');
+  const input = document.getElementById('file-input');
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) lerArquivo(file);
+  });
+  input.addEventListener('change', () => {
+    if (input.files[0]) lerArquivo(input.files[0]);
+  });
+}
+
+function lerArquivo(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('paste-area').value = e.target.result;
+    toast('Arquivo carregado: ' + esc(file.name));
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// --- CSV model download ---
+function baixarModelo() {
+  const csv = 'nome,telefone,aniversario\nJoao Silva,87999991111,1990-05-15\nMaria Santos,87999992222,\n';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'modelo-clientes-nalinha.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// --- Parse data ---
+function processarDados() {
+  const raw = document.getElementById('paste-area').value.trim();
+  if (!raw) { toast('Cole ou carregue dados primeiro.', true); return; }
+
+  const lines = raw.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length === 0) { toast('Nenhum dado encontrado.', true); return; }
+
+  // Detect separator: tab, semicolon, or comma
+  const firstLine = lines[0];
+  let sep = ',';
+  if (firstLine.includes('\t')) sep = '\t';
+  else if (firstLine.includes(';')) sep = ';';
+
+  // Check if first line is header
+  let startIdx = 0;
+  const firstCols = firstLine.split(sep).map(c => c.trim().toLowerCase());
+  if (firstCols.some(c => ['nome','name','telefone','phone','tel','aniversario','birthday','nascimento'].includes(c))) {
+    startIdx = 1;
+  }
+
+  // Detect column order from header
+  let colName = 0, colPhone = 1, colBday = 2;
+  if (startIdx === 1) {
+    firstCols.forEach((c, i) => {
+      if (['nome','name','cliente'].includes(c)) colName = i;
+      if (['telefone','phone','tel','celular','whatsapp','fone'].includes(c)) colPhone = i;
+      if (['aniversario','birthday','nascimento','data_nascimento','birth_date','data'].includes(c)) colBday = i;
+    });
+  }
+
+  const seenPhones = new Set();
+  parsedRows = [];
+
+  for (let i = startIdx; i < lines.length; i++) {
+    const cols = lines[i].split(sep).map(c => c.trim().replace(/^["']|["']$/g, ''));
+
+    const name = (cols[colName] || '').trim();
+    const rawPhone = (cols[colPhone] || '').trim();
+    const rawBday = (cols[colBday] || '').trim();
+
+    if (!name && !rawPhone) continue;
+
+    // Clean phone
+    const phoneClean = rawPhone.replace(/\D/g, '');
+
+    // Parse birthday
+    let birthday = '';
+    if (rawBday) {
+      // Try dd/mm/yyyy
+      const brMatch = rawBday.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (brMatch) {
+        birthday = brMatch[3] + '-' + brMatch[2].padStart(2, '0') + '-' + brMatch[1].padStart(2, '0');
+      }
+      // Try yyyy-mm-dd
+      const isoMatch = rawBday.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (isoMatch) {
+        birthday = rawBday;
+      }
+    }
+
+    // Validate phone
+    let status = 'novo';
+    if (!phoneClean || phoneClean.length < 10 || phoneClean.length > 11) {
+      status = 'invalido';
+    } else if (seenPhones.has(phoneClean)) {
+      continue; // deduplicate
+    } else if (existingPhones.has(phoneClean)) {
+      status = 'existente';
+    }
+
+    if (phoneClean) seenPhones.add(phoneClean);
+
+    parsedRows.push({
+      name: name,
+      phone: phoneClean,
+      phoneRaw: rawPhone,
+      birthday: birthday,
+      status: status,
+      selected: true
+    });
+  }
+
+  if (parsedRows.length === 0) {
+    toast('Nenhum cliente encontrado nos dados.', true);
+    return;
+  }
+
+  goToStep(2);
+  renderPreview();
+}
+
+function renderPreview() {
+  const body = document.getElementById('preview-body');
+  const novos = parsedRows.filter(r => r.status === 'novo').length;
+  const existentes = parsedRows.filter(r => r.status === 'existente').length;
+  const invalidos = parsedRows.filter(r => r.status === 'invalido').length;
+
+  document.getElementById('preview-stats').innerHTML =
+    '<span class="stat-badge novo">' + novos + ' novo' + (novos !== 1 ? 's' : '') + '</span>' +
+    '<span class="stat-badge existente">' + existentes + ' existente' + (existentes !== 1 ? 's' : '') + '</span>' +
+    '<span class="stat-badge invalido">' + invalidos + ' invalido' + (invalidos !== 1 ? 's' : '') + '</span>';
+
+  body.innerHTML = parsedRows.map((r, i) => {
+    const statusClass = 'status-' + r.status;
+    const statusLabel = r.status === 'novo' ? 'Novo' : r.status === 'existente' ? 'Existente' : 'Invalido';
+    const bdayDisplay = r.birthday ? formatDate(r.birthday + 'T12:00:00') : '';
+
+    return '<tr>' +
+      '<td><input type="checkbox" ' + (r.selected ? 'checked' : '') + ' onchange="toggleRow(' + i + ',this.checked)"></td>' +
+      '<td contenteditable="true" data-row="' + i + '" data-field="name" onblur="editCell(this,' + i + ',\'name\')">' + esc(r.name) + '</td>' +
+      '<td contenteditable="true" data-row="' + i + '" data-field="phone" onblur="editCell(this,' + i + ',\'phone\')">' + esc(r.phone) + '</td>' +
+      '<td contenteditable="true" data-row="' + i + '" data-field="birthday" onblur="editCell(this,' + i + ',\'birthday\')">' + esc(bdayDisplay || r.birthday) + '</td>' +
+      '<td class="' + statusClass + '">' + statusLabel + '</td>' +
+    '</tr>';
+  }).join('');
+
+  updateImportBtn();
+}
+
+function editCell(el, idx, field) {
+  const val = el.textContent.trim();
+  if (field === 'name') {
+    parsedRows[idx].name = val;
+  } else if (field === 'phone') {
+    const clean = val.replace(/\D/g, '');
+    parsedRows[idx].phone = clean;
+    // Revalidate
+    if (!clean || clean.length < 10 || clean.length > 11) {
+      parsedRows[idx].status = 'invalido';
+    } else if (existingPhones.has(clean)) {
+      parsedRows[idx].status = 'existente';
+    } else {
+      parsedRows[idx].status = 'novo';
+    }
+    renderPreview();
+  } else if (field === 'birthday') {
+    // Try to parse edited value
+    const brMatch = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (brMatch) {
+      parsedRows[idx].birthday = brMatch[3] + '-' + brMatch[2].padStart(2, '0') + '-' + brMatch[1].padStart(2, '0');
+    } else if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      parsedRows[idx].birthday = val;
+    } else {
+      parsedRows[idx].birthday = '';
+    }
+  }
+}
+
+function toggleRow(idx, checked) {
+  parsedRows[idx].selected = checked;
+  updateImportBtn();
+}
+
+function toggleSelectAll() {
+  const checked = document.getElementById('select-all').checked;
+  parsedRows.forEach(r => r.selected = checked);
+  renderPreview();
+}
+
+function updateImportBtn() {
+  const selected = parsedRows.filter(r => r.selected && r.status !== 'invalido');
+  document.getElementById('btn-importar').textContent = 'IMPORTAR ' + selected.length + ' CLIENTE' + (selected.length !== 1 ? 'S' : '');
+  document.getElementById('btn-importar').disabled = selected.length === 0;
+}
+
+// --- Step navigation ---
+function goToStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('dot-' + i).classList.toggle('done', i <= n);
+  }
+
+  // Hide manual section during step 2/3
+  document.getElementById('manual-section').style.display = n === 1 ? 'block' : 'none';
+}
+
+function voltarStep1() {
+  goToStep(1);
+}
+
+// --- Import ---
+async function importar() {
+  const toImport = parsedRows.filter(r => r.selected && r.status !== 'invalido');
+  if (toImport.length === 0) return;
+
+  goToStep(3);
+  document.getElementById('results-box').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('progress-text').style.display = 'block';
+
+  let imported = 0, updated = 0, errors = 0;
+  const total = toImport.length;
+  const BATCH = 20;
+
+  for (let i = 0; i < total; i += BATCH) {
+    const batch = toImport.slice(i, i + BATCH);
+    const rows = batch.map(r => {
+      const obj = {
+        barbershop_id: shop.id,
+        name: r.name,
+        phone: r.phone
+      };
+      if (r.birthday) obj.birthday = r.birthday;
+      return obj;
+    });
+
+    const { data, error } = await db.from('clients')
+      .upsert(rows, { onConflict: 'barbershop_id,phone' })
+      .select('id');
+
+    if (error) {
+      errors += batch.length;
+    } else {
+      batch.forEach(r => {
+        if (r.status === 'existente') updated++;
+        else imported++;
+      });
+    }
+
+    const progress = Math.min(100, Math.round(((i + batch.length) / total) * 100));
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('progress-text').textContent = 'Importando... ' + progress + '%';
+  }
+
+  // Show results
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-text').style.display = 'none';
+  document.getElementById('results-box').style.display = 'block';
+
+  const ignorados = parsedRows.filter(r => r.status === 'invalido').length;
+
+  document.getElementById('results-detail').innerHTML =
+    '<strong>' + imported + '</strong> importado' + (imported !== 1 ? 's' : '') + '<br>' +
+    '<strong>' + updated + '</strong> atualizado' + (updated !== 1 ? 's' : '') + '<br>' +
+    (errors > 0 ? '<span style="color:#f44336;">' + errors + ' erro' + (errors !== 1 ? 's' : '') + '</span><br>' : '') +
+    (ignorados > 0 ? ignorados + ' ignorado' + (ignorados !== 1 ? 's' : '') + ' (invalidos)' : '');
+
+  // Refresh existing phones
+  const { data: fresh } = await db.from('clients').select('phone').eq('barbershop_id', shop.id);
+  existingPhones = new Set();
+  if (fresh) fresh.forEach(c => existingPhones.add((c.phone || '').replace(/\D/g, '')));
+}
+
+function novaImportacao() {
+  parsedRows = [];
+  document.getElementById('paste-area').value = '';
+  document.getElementById('file-input').value = '';
+  goToStep(1);
+}
+
+// --- Manual add ---
+async function adicionarManual() {
+  const name = document.getElementById('m-name').value.trim();
+  const phone = document.getElementById('m-phone').value.trim().replace(/\D/g, '');
+  const birthday = document.getElementById('m-birthday').value;
+
+  if (!name) { toast('Informe o nome.', true); return; }
+  if (!phone || phone.length < 10 || phone.length > 11) { toast('Telefone inválido (10-11 dígitos).', true); return; }
+
+  const obj = {
+    barbershop_id: shop.id,
+    name: name,
+    phone: phone
+  };
+  if (birthday) obj.birthday = birthday;
+
+  const { error } = await db.from('clients').upsert(obj, { onConflict: 'barbershop_id,phone' });
+
+  if (error) {
+    toast('Erro ao adicionar: ' + error.message, true);
+    return;
+  }
+
+  existingPhones.add(phone);
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-phone').value = '';
+  document.getElementById('m-birthday').value = '';
+  toast('Cliente adicionado!');
+}
+
+// --- Toast ---
+function toast(msg, isError) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (isError ? ' error' : '');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

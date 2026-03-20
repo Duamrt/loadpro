@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Backup & Exportação</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .bkp-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .bkp-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .bkp-header h1 { font-size:18px; font-weight:700; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    /* Info card */
+    .info-card {
+      background:rgba(212,168,83,0.08); border:1px solid rgba(212,168,83,0.2);
+      border-radius:12px; padding:16px; margin-bottom:20px;
+    }
+    .info-card p { font-size:13px; color:var(--texto-secundario); line-height:1.5; margin:0; }
+    .info-card .last-backup {
+      font-size:11px; color:var(--texto-muted); margin-top:8px;
+      display:flex; align-items:center; gap:6px;
+    }
+
+    /* Section title */
+    .section-title {
+      font-size:11px; color:var(--texto-muted); font-weight:700;
+      letter-spacing:1.5px; margin:20px 0 10px;
+    }
+
+    /* Export card */
+    .export-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:16px; margin-bottom:12px; transition:all .2s;
+    }
+    .export-card:hover { border-color:var(--borda-hover); }
+    .export-card-title {
+      font-size:14px; font-weight:700; margin-bottom:4px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .export-card-desc { font-size:11px; color:var(--texto-muted); line-height:1.4; margin-bottom:12px; }
+
+    /* Period selector */
+    .period-selector {
+      display:flex; gap:6px; margin-bottom:12px;
+    }
+    .period-chip {
+      padding:5px 12px; border-radius:16px; font-size:10px; font-weight:700;
+      border:1px solid var(--borda); background:transparent; color:var(--texto-muted);
+      cursor:pointer; font-family:inherit; transition:all .2s;
+    }
+    .period-chip.active { border-color:var(--verde-acao); background:rgba(212,168,83,0.1); color:var(--verde-acao); }
+
+    /* Buttons */
+    .btn-export {
+      width:100%; padding:10px 16px; border-radius:10px; border:none;
+      background:var(--verde-acao); color:#000; font-size:12px;
+      font-weight:700; font-family:inherit; cursor:pointer; transition:all .2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-export:hover { opacity:0.9; transform:translateY(-1px); }
+    .btn-export:disabled { opacity:0.5; cursor:default; transform:none; }
+    .btn-export.secondary {
+      background:transparent; border:1px solid var(--borda); color:var(--texto-secundario);
+    }
+    .btn-export.secondary:hover { border-color:var(--verde-acao); color:var(--verde-acao); }
+    .btn-export.full-backup {
+      background:linear-gradient(135deg, var(--verde-acao), #c49a3c);
+      padding:14px 16px; font-size:13px;
+    }
+
+    .btn-row { display:flex; gap:8px; }
+    .btn-row .btn-export { flex:1; }
+
+    .spinner-sm {
+      display:none; width:14px; height:14px; border:2px solid rgba(0,0,0,0.2);
+      border-top:2px solid #000; border-radius:50%; animation:spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Stats footer */
+    .stats-footer {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:16px; margin-top:20px; margin-bottom:20px;
+    }
+    .stats-footer .title { font-size:11px; color:var(--texto-muted); font-weight:700; letter-spacing:1px; margin-bottom:10px; }
+    .stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .stat-item { text-align:center; }
+    .stat-num { font-size:20px; font-weight:800; color:var(--verde-acao); }
+    .stat-label { font-size:8px; color:var(--texto-muted); font-weight:700; letter-spacing:0.5px; margin-top:2px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+
+    /* Toast */
+    .toast {
+      position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+      background:#22c55e; color:#000; padding:10px 20px; border-radius:10px;
+      font-size:12px; font-weight:700; font-family:inherit; z-index:9999;
+      opacity:0; transition:opacity .3s; pointer-events:none;
+    }
+    .toast.show { opacity:1; }
+  </style>
+</head>
+<body>
+
+<div class="bkp-container">
+
+  <div class="bkp-header">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button>
+      <h1>Backup & Exportação</h1>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="info-card">
+    <p>Seus dados são seus. Exporte tudo a qualquer momento.</p>
+    <div class="last-backup">
+      <span>&#x1F4BE;</span>
+      <span id="last-backup-date">Nenhum backup realizado ainda</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" style="text-align:center;padding:40px 0;">
+    <div style="width:24px;height:24px;border:2px solid var(--borda);border-top:2px solid var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto;"></div>
+    <div style="font-size:12px;color:var(--texto-muted);margin-top:8px;">Carregando dados...</div>
+  </div>
+
+  <div id="content" style="display:none;">
+
+    <!-- 1. Clientes -->
+    <div class="section-title">EXPORTAR DADOS</div>
+    <div class="export-card">
+      <div class="export-card-title">&#x1F465; Clientes</div>
+      <div class="export-card-desc">Nome, telefone, aniversário, total de visitas, total gasto e última visita.</div>
+      <button class="btn-export" onclick="exportClientes(this)">
+        <div class="spinner-sm"></div>
+        <span>EXPORTAR CLIENTES (CSV)</span>
+      </button>
+    </div>
+
+    <!-- 2. Agendamentos -->
+    <div class="export-card">
+      <div class="export-card-title">&#x1F4C5; Agendamentos</div>
+      <div class="export-card-desc">Data, horário, cliente, serviço, profissional, status, valor e forma de pagamento.</div>
+      <div class="period-selector" id="period-agend">
+        <button class="period-chip active" data-period="mes" onclick="setPeriod('agend','mes',this)">Este mês</button>
+        <button class="period-chip" data-period="3meses" onclick="setPeriod('agend','3meses',this)">Últimos 3 meses</button>
+        <button class="period-chip" data-period="tudo" onclick="setPeriod('agend','tudo',this)">Tudo</button>
+      </div>
+      <button class="btn-export" onclick="exportAgendamentos(this)">
+        <div class="spinner-sm"></div>
+        <span>EXPORTAR AGENDAMENTOS (CSV)</span>
+      </button>
+    </div>
+
+    <!-- 3. Financeiro -->
+    <div class="export-card">
+      <div class="export-card-title">&#x1F4B0; Financeiro</div>
+      <div class="export-card-desc">Entradas (atendimentos concluídos) e saídas (despesas). Data, tipo, descrição, categoria, valor e pagamento.</div>
+      <div class="period-selector" id="period-fin">
+        <button class="period-chip active" data-period="mes" onclick="setPeriod('fin','mes',this)">Este mês</button>
+        <button class="period-chip" data-period="3meses" onclick="setPeriod('fin','3meses',this)">Últimos 3 meses</button>
+        <button class="period-chip" data-period="tudo" onclick="setPeriod('fin','tudo',this)">Tudo</button>
+      </div>
+      <button class="btn-export" onclick="exportFinanceiro(this)">
+        <div class="spinner-sm"></div>
+        <span>EXPORTAR FINANCEIRO (CSV)</span>
+      </button>
+    </div>
+
+    <!-- 4. Serviços e Produtos -->
+    <div class="export-card">
+      <div class="export-card-title">&#x2702;&#xFE0F; Serviços & Produtos</div>
+      <div class="export-card-desc">Serviços: nome, preço, duração, ativo. Produtos: nome, preço, custo, quantidade, estoque mínimo, categoria.</div>
+      <div class="btn-row">
+        <button class="btn-export secondary" onclick="exportServicos(this)">
+          <div class="spinner-sm"></div>
+          <span>EXPORTAR SERVIÇOS</span>
+        </button>
+        <button class="btn-export secondary" onclick="exportProdutos(this)">
+          <div class="spinner-sm"></div>
+          <span>EXPORTAR PRODUTOS</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. Backup Completo -->
+    <div class="section-title">BACKUP COMPLETO</div>
+    <div class="export-card" style="border-color:rgba(212,168,83,0.3);">
+      <div class="export-card-title">&#x1F6E1;&#xFE0F; Backup Completo</div>
+      <div class="export-card-desc">Exporta TODOS os dados da academia em um único arquivo JSON: informações da loja, profissionais, serviços, produtos, clientes, agendamentos e despesas. Ideal para migração ou segurança.</div>
+      <button class="btn-export full-backup" onclick="exportBackupCompleto(this)">
+        <div class="spinner-sm"></div>
+        <span>BACKUP COMPLETO (JSON)</span>
+      </button>
+    </div>
+
+    <!-- Stats footer -->
+    <div class="stats-footer">
+      <div class="title">RESUMO DOS DADOS</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-num" id="stat-clientes">-</div>
+          <div class="stat-label">CLIENTES</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="stat-agend">-</div>
+          <div class="stat-label">AGENDAMENTOS</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="stat-produtos">-</div>
+          <div class="stat-label">PRODUTOS</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Serviços</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatório</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retenção</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfação</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+// ── Estado ────────────────────────────────────────────────────
+let shop = null;
+let allClients = [];
+let allAppointments = [];
+let allServices = [];
+let allBarbers = [];
+let allProducts = [];
+let allExpenses = [];
+
+const periods = { agend: 'mes', fin: 'mes' };
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { alert('Sua sessão expirou. Entre de novo.'); window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await sb.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await sb.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = isAdminViewing ? 'admin.html' : 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Banner admin
+  if (isAdminViewing) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;';
+    banner.innerHTML = `<span style="font-size:11px;color:#e74c3c;font-weight:700;">ADMIN · ${esc(shop.name)}</span>
+      <button onclick="sessionStorage.removeItem('admin_viewing_shop');location.href='admin.html'" style="background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">VOLTAR</button>`;
+    document.querySelector('.bkp-container').insertBefore(banner, document.querySelector('.bkp-header'));
+  }
+
+  // Carregar todos os dados em paralelo
+  const [clientsRes, appointmentsRes, servicesRes, barbersRes, productsRes, expensesRes] = await Promise.all([
+    sb.from('clients').select('*').eq('barbershop_id', shop.id),
+    sb.from('appointments').select('*').eq('barbershop_id', shop.id).order('scheduled_at', { ascending: false }),
+    sb.from('services').select('*').eq('barbershop_id', shop.id),
+    sb.from('barbers').select('*').eq('barbershop_id', shop.id),
+    sb.from('products').select('*').eq('barbershop_id', shop.id),
+    sb.from('expenses').select('*').eq('barbershop_id', shop.id).order('date', { ascending: false })
+  ]);
+
+  allClients = clientsRes.data || [];
+  allAppointments = appointmentsRes.data || [];
+  allServices = servicesRes.data || [];
+  allBarbers = barbersRes.data || [];
+  allProducts = productsRes.data || [];
+  allExpenses = expensesRes.data || [];
+
+  // Stats
+  document.getElementById('stat-clientes').textContent = allClients.length;
+  document.getElementById('stat-agend').textContent = allAppointments.length;
+  document.getElementById('stat-produtos').textContent = allProducts.length;
+
+  // Last backup
+  const lastBackup = localStorage.getItem('nr_last_backup_' + shop.id);
+  if (lastBackup) {
+    document.getElementById('last-backup-date').textContent = 'Último backup: ' + new Date(lastBackup).toLocaleString('pt-BR');
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+});
+
+// ── Period selector ───────────────────────────────────────────
+function setPeriod(section, value, btn) {
+  periods[section] = value;
+  const container = document.getElementById('period-' + section);
+  container.querySelectorAll('.period-chip').forEach(c => c.classList.toggle('active', c === btn));
+}
+
+function getDateRange(section) {
+  const period = periods[section];
+  const now = new Date();
+
+  if (period === 'tudo') return { start: null, end: null };
+
+  if (period === '3meses') {
+    const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    return {
+      start: start.toISOString().split('T')[0],
+      end: now.toISOString().split('T')[0]
+    };
+  }
+
+  // mes (default)
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return {
+    start: start.toISOString().split('T')[0],
+    end: lastDay.toISOString().split('T')[0]
+  };
+}
+
+// ── CSV helpers ───────────────────────────────────────────────
+function csvEscape(val) {
+  if (val == null) return '';
+  const str = String(val);
+  if (str.includes(';') || str.includes('"') || str.includes('\n')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function buildCSV(headers, rows) {
+  const BOM = '\uFEFF';
+  const headerLine = headers.map(csvEscape).join(';');
+  const dataLines = rows.map(row => row.map(csvEscape).join(';'));
+  return BOM + [headerLine, ...dataLines].join('\r\n');
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type: type || 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // Salvar data do último backup
+  localStorage.setItem('nr_last_backup_' + shop.id, new Date().toISOString());
+  document.getElementById('last-backup-date').textContent = 'Último backup: ' + new Date().toLocaleString('pt-BR');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function btnLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.querySelector('.spinner-sm').style.display = loading ? 'inline-block' : 'none';
+}
+
+function fmtDateBR(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function fmtDateTimeBR(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function shopFilename(suffix) {
+  const name = (shop.slug || shop.name || 'nalinha').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  const date = new Date().toISOString().split('T')[0];
+  return `${name}_${suffix}_${date}`;
+}
+
+// ── 1. Exportar Clientes ──────────────────────────────────────
+async function exportClientes(btn) {
+  btnLoading(btn, true);
+  try {
+    const doneAppts = allAppointments.filter(a => a.status === 'done');
+
+    const rows = allClients.map(c => {
+      const clientAppts = doneAppts.filter(a => a.client_id === c.id);
+      const totalVisits = clientAppts.length;
+      const totalSpent = clientAppts.reduce((s, a) => {
+        const svc = allServices.find(sv => sv.id === a.service_id);
+        return s + ((a.price_paid != null ? Number(a.price_paid) : (svc ? Number(svc.price) : 0)));
+      }, 0);
+      const lastVisit = clientAppts.length > 0
+        ? clientAppts.sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at))[0].scheduled_at
+        : null;
+
+      return [
+        c.name || '',
+        c.phone || '',
+        c.birthday ? fmtDateBR(c.birthday) : '',
+        totalVisits,
+        totalSpent.toFixed(2).replace('.', ','),
+        lastVisit ? fmtDateTimeBR(lastVisit) : ''
+      ];
+    });
+
+    const csv = buildCSV(['Nome', 'Telefone', 'Aniversário', 'Total Visitas', 'Total Gasto (R$)', 'Última Visita'], rows);
+    downloadFile(csv, shopFilename('clientes') + '.csv');
+    showToast('Clientes exportados com sucesso!');
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao exportar clientes.');
+  }
+  btnLoading(btn, false);
+}
+
+// ── 2. Exportar Agendamentos ──────────────────────────────────
+async function exportAgendamentos(btn) {
+  btnLoading(btn, true);
+  try {
+    const range = getDateRange('agend');
+    let filtered = allAppointments;
+
+    if (range.start) {
+      filtered = filtered.filter(a => {
+        const d = a.scheduled_at ? a.scheduled_at.split('T')[0] : '';
+        return d >= range.start && d <= range.end;
+      });
+    }
+
+    const statusLabels = { pending: 'Pendente', confirmed: 'Confirmado', done: 'Concluído', cancelled: 'Cancelado', no_show: 'Não compareceu' };
+    const metodoLabels = { pix: 'PIX', dinheiro: 'Dinheiro', debito: 'Débito', credito: 'Crédito', cartao: 'Cartão' };
+
+    const rows = filtered.map(a => {
+      const svc = allServices.find(sv => sv.id === a.service_id);
+      const barber = allBarbers.find(b => b.id === a.barber_id);
+      const dt = a.scheduled_at ? new Date(a.scheduled_at) : null;
+      const valor = (a.price_paid != null ? Number(a.price_paid) : (svc ? Number(svc.price) : 0));
+
+      return [
+        dt ? dt.toLocaleDateString('pt-BR') : '',
+        dt ? dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
+        a.client_name || '',
+        a.client_phone || '',
+        svc ? svc.name : '',
+        barber ? barber.name : '',
+        statusLabels[a.status] || a.status || '',
+        valor.toFixed(2).replace('.', ','),
+        a.payment_method ? (metodoLabels[a.payment_method] || a.payment_method) : ''
+      ];
+    });
+
+    const csv = buildCSV(['Data', 'Horário', 'Cliente', 'Telefone', 'Serviço', 'Personal', 'Status', 'Valor (R$)', 'Pagamento'], rows);
+    downloadFile(csv, shopFilename('agendamentos') + '.csv');
+    showToast(`${filtered.length} agendamentos exportados!`);
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao exportar agendamentos.');
+  }
+  btnLoading(btn, false);
+}
+
+// ── 3. Exportar Financeiro ────────────────────────────────────
+async function exportFinanceiro(btn) {
+  btnLoading(btn, true);
+  try {
+    const range = getDateRange('fin');
+    const metodoLabels = { pix: 'PIX', dinheiro: 'Dinheiro', debito: 'Débito', credito: 'Crédito', cartao: 'Cartão' };
+    const catLabels = {
+      aluguel: 'Aluguel', energia: 'Energia', agua: 'Água', internet: 'Internet',
+      produtos: 'Produtos', manutencao: 'Manutenção', equipamento: 'Equipamento',
+      comissao: 'Comissão', imposto: 'Imposto', outros: 'Outros'
+    };
+
+    // Entradas (atendimentos done)
+    let entradas = allAppointments.filter(a => a.status === 'done');
+    if (range.start) {
+      entradas = entradas.filter(a => {
+        const d = a.scheduled_at ? a.scheduled_at.split('T')[0] : '';
+        return d >= range.start && d <= range.end;
+      });
+    }
+
+    // Saídas (despesas)
+    let saidas = allExpenses;
+    if (range.start) {
+      saidas = saidas.filter(e => {
+        const d = e.date || '';
+        return d >= range.start && d <= range.end;
+      });
+    }
+
+    const rows = [];
+
+    entradas.forEach(a => {
+      const svc = allServices.find(sv => sv.id === a.service_id);
+      const valor = (a.price_paid != null ? Number(a.price_paid) : (svc ? Number(svc.price) : 0));
+      const dt = a.scheduled_at ? new Date(a.scheduled_at) : null;
+      rows.push([
+        dt ? dt.toLocaleDateString('pt-BR') : '',
+        'Entrada',
+        (a.client_name || 'Cliente') + ' - ' + (svc ? svc.name : 'Serviço'),
+        svc ? svc.name : '',
+        valor.toFixed(2).replace('.', ','),
+        a.payment_method ? (metodoLabels[a.payment_method] || a.payment_method) : ''
+      ]);
+    });
+
+    saidas.forEach(e => {
+      rows.push([
+        e.date ? fmtDateBR(e.date) : '',
+        'Saída',
+        e.description || '',
+        catLabels[e.category] || e.category || '',
+        ('-' + Number(e.amount || 0).toFixed(2)).replace('.', ','),
+        ''
+      ]);
+    });
+
+    // Ordenar por data
+    rows.sort((a, b) => {
+      const dA = a[0].split('/').reverse().join('-');
+      const dB = b[0].split('/').reverse().join('-');
+      return dA.localeCompare(dB);
+    });
+
+    const csv = buildCSV(['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor (R$)', 'Pagamento'], rows);
+    downloadFile(csv, shopFilename('financeiro') + '.csv');
+    showToast(`Financeiro exportado: ${entradas.length} entradas, ${saidas.length} saídas`);
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao exportar financeiro.');
+  }
+  btnLoading(btn, false);
+}
+
+// ── 4a. Exportar Serviços ─────────────────────────────────────
+async function exportServicos(btn) {
+  btnLoading(btn, true);
+  try {
+    const rows = allServices.map(s => [
+      s.name || '',
+      Number(s.price || 0).toFixed(2).replace('.', ','),
+      s.duration ? s.duration + ' min' : '',
+      s.active !== false ? 'Sim' : 'Não'
+    ]);
+
+    const csv = buildCSV(['Nome', 'Preço (R$)', 'Duração', 'Ativo'], rows);
+    downloadFile(csv, shopFilename('servicos') + '.csv');
+    showToast(`${allServices.length} serviços exportados!`);
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao exportar serviços.');
+  }
+  btnLoading(btn, false);
+}
+
+// ── 4b. Exportar Produtos ─────────────────────────────────────
+async function exportProdutos(btn) {
+  btnLoading(btn, true);
+  try {
+    const rows = allProducts.map(p => [
+      p.name || '',
+      Number(p.price || 0).toFixed(2).replace('.', ','),
+      Number(p.cost || 0).toFixed(2).replace('.', ','),
+      p.quantity != null ? p.quantity : '',
+      p.min_stock != null ? p.min_stock : '',
+      p.category || ''
+    ]);
+
+    const csv = buildCSV(['Nome', 'Preço (R$)', 'Custo (R$)', 'Quantidade', 'Estoque Mínimo', 'Categoria'], rows);
+    downloadFile(csv, shopFilename('produtos') + '.csv');
+    showToast(`${allProducts.length} produtos exportados!`);
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao exportar produtos.');
+  }
+  btnLoading(btn, false);
+}
+
+// ── 5. Backup Completo (JSON) ─────────────────────────────────
+async function exportBackupCompleto(btn) {
+  btnLoading(btn, true);
+  try {
+    const backup = {
+      _meta: {
+        app: 'NaLinha',
+        version: '1.0',
+        exported_at: new Date().toISOString(),
+        shop_id: shop.id,
+        shop_name: shop.name
+      },
+      barbershop: {
+        name: shop.name,
+        slug: shop.slug,
+        phone: shop.phone,
+        address: shop.address,
+        city: shop.city,
+        state: shop.state,
+        created_at: shop.created_at
+      },
+      barbers: allBarbers.map(b => ({
+        name: b.name, phone: b.phone, commission_pct: b.commission_pct,
+        active: b.active, created_at: b.created_at
+      })),
+      services: allServices.map(s => ({
+        name: s.name, price: s.price, duration: s.duration,
+        active: s.active, created_at: s.created_at
+      })),
+      products: allProducts.map(p => ({
+        name: p.name, price: p.price, cost: p.cost,
+        quantity: p.quantity, min_stock: p.min_stock,
+        category: p.category, created_at: p.created_at
+      })),
+      clients: allClients.map(c => ({
+        name: c.name, phone: c.phone, birthday: c.birthday,
+        notes: c.notes, created_at: c.created_at
+      })),
+      appointments: allAppointments.map(a => {
+        const svc = allServices.find(sv => sv.id === a.service_id);
+        const barber = allBarbers.find(b => b.id === a.barber_id);
+        return {
+          scheduled_at: a.scheduled_at, client_name: a.client_name,
+          client_phone: a.client_phone, service_name: svc ? svc.name : '',
+          barber_name: barber ? barber.name : '', status: a.status,
+          price_paid: a.price_paid, payment_method: a.payment_method,
+          created_at: a.created_at
+        };
+      }),
+      expenses: allExpenses.map(e => ({
+        date: e.date, description: e.description, amount: e.amount,
+        category: e.category, created_at: e.created_at
+      })),
+      _totals: {
+        barbers: allBarbers.length,
+        services: allServices.length,
+        products: allProducts.length,
+        clients: allClients.length,
+        appointments: allAppointments.length,
+        expenses: allExpenses.length
+      }
+    };
+
+    const json = JSON.stringify(backup, null, 2);
+    downloadFile(json, shopFilename('backup-completo') + '.json', 'application/json');
+    showToast('Backup completo exportado com sucesso!');
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao gerar backup.');
+  }
+  btnLoading(btn, false);
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

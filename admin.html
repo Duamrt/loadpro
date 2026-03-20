@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Admin</title>
+    <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .admin-container { max-width:900px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .admin-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:20px;
+    }
+    .admin-header .logo { font-size:20px; }
+    .admin-badge {
+      font-size:9px; font-weight:700; letter-spacing:1px; padding:4px 10px;
+      border-radius:20px; background:rgba(231,76,60,0.15); color:#e74c3c;
+      text-transform:uppercase;
+    }
+
+    /* Stats globais */
+    .global-stats {
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:10px; margin-bottom:24px;
+    }
+    .g-stat {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      padding:14px; text-align:center;
+    }
+    .g-stat-num { font-size:24px; font-weight:800; }
+    .g-stat-label { font-size:9px; color:var(--texto-muted); font-weight:700; letter-spacing:1px; margin-top:4px; }
+
+    /* Cards de academia */
+    .shop-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:16px; margin-bottom:12px; transition:all .2s; cursor:pointer;
+    }
+    .shop-card:hover { border-color:var(--borda-hover); transform:translateY(-1px); }
+    .shop-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+    .shop-title { font-size:16px; font-weight:700; }
+    .shop-slug { font-size:11px; color:var(--verde-acao); margin-top:2px; }
+    .shop-plan {
+      font-size:9px; font-weight:700; letter-spacing:0.5px; padding:4px 10px;
+      border-radius:20px; text-transform:uppercase;
+    }
+    .plan-basico { background:rgba(212,168,83,0.15); color:#d4a853; }
+    .plan-profissional { background:rgba(52,152,219,0.15); color:#3498db; }
+    .plan-premium { background:rgba(243,156,18,0.15); color:#f39c12; }
+
+    .shop-meta { font-size:12px; color:var(--texto-muted); margin-bottom:8px; }
+    .shop-stats { display:flex; gap:16px; font-size:12px; }
+    .shop-stats span { color:var(--texto-muted); }
+    .shop-stats strong { color:var(--texto-principal); }
+
+    .shop-actions { display:flex; gap:8px; margin-top:12px; }
+    .shop-action-btn {
+      padding:7px 14px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:11px;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
+    }
+    .shop-action-btn:hover { border-color:var(--verde-acao); color:var(--verde-acao); }
+    .shop-action-btn.danger:hover { border-color:#e74c3c; color:#e74c3c; }
+
+    /* Modal edição admin */
+    .modal-overlay {
+      position:fixed; top:0; left:0; right:0; bottom:0; z-index:1000;
+      background:rgba(0,0,0,0.7); display:none; align-items:center;
+      justify-content:center; padding:16px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:12px; width:100%; max-width:460px; max-height:90vh;
+      overflow-y:auto; padding:24px 20px; animation:fadeUp 0.3s ease;
+    }
+    .modal-title {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:20px;
+    }
+    .modal-title h2 { font-size:16px; }
+    .modal-close {
+      background:none; border:none; color:var(--texto-muted); font-size:18px;
+      cursor:pointer; padding:4px 8px;
+    }
+    .modal-section {
+      font-size:10px; color:var(--texto-muted); font-weight:700;
+      letter-spacing:1.5px; text-transform:uppercase;
+      margin:20px 0 10px; padding-top:16px; border-top:1px solid var(--borda);
+    }
+    .barber-row {
+      display:flex; align-items:center; gap:8px; padding:8px 0;
+      border-bottom:1px solid var(--borda);
+    }
+    .barber-row input {
+      flex:1; padding:8px 10px; background:var(--cinza-medio); border:1px solid var(--borda);
+      border-radius:6px; color:var(--texto-principal); font-size:13px; font-family:inherit;
+    }
+    .barber-row input:focus { border-color:var(--verde-acao); outline:none; }
+    .svc-row {
+      display:grid; grid-template-columns:1fr 70px 60px 32px; gap:6px;
+      align-items:end; padding:8px 0; border-bottom:1px solid var(--borda);
+    }
+    .svc-row input {
+      padding:8px 10px; background:var(--cinza-medio); border:1px solid var(--borda);
+      border-radius:6px; color:var(--texto-principal); font-size:13px; font-family:inherit;
+      width:100%;
+    }
+    .svc-row input:focus { border-color:var(--verde-acao); outline:none; }
+    .svc-row-label { font-size:8px; color:var(--texto-muted); font-weight:700; margin-bottom:2px; }
+
+    .barber-row-del {
+      background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.2);
+      border-radius:6px; color:#e74c3c; font-size:14px; cursor:pointer;
+      width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    }
+    .pay-toggle {
+      padding:8px 14px; border-radius:8px; font-size:12px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s;
+      border:1px solid var(--borda); background:transparent; color:var(--texto-muted);
+    }
+    .pay-toggle.active { border-color:var(--verde-acao); background:rgba(212,168,83,0.15); color:var(--verde-acao); }
+
+    .days-modal { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+    .day-btn {
+      padding:8px 12px; border-radius:8px; font-size:12px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-muted);
+    }
+    .day-btn.active { border-color:var(--verde-acao); background:rgba(212,168,83,0.15); color:var(--verde-acao); }
+
+    .empty-admin {
+      text-align:center; padding:60px 20px; color:var(--texto-muted);
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div>
+      <img src="img/logo.png" alt="NaLinha" class="logo-img" style="height:76px;filter:brightness(1.8) contrast(1.1);">
+    </div>
+    <div style="text-align:right;">
+      <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+        <span class="admin-badge">ADMIN</span>
+        <button onclick="logout()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--borda);background:transparent;color:var(--texto-secundario);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">SAIR</button>
+      </div>
+      <div id="header-date" style="font-size:11px;color:var(--texto-muted);margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- Stats globais -->
+  <div class="global-stats" id="global-stats"></div>
+
+  <!-- Lista de academias -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h2>Clientes</h2>
+    <button class="btn btn-primary" onclick="abrirNovaShop()" style="width:auto;padding:8px 16px;font-size:12px;">+ NOVA</button>
+  </div>
+  <div id="shops-list"></div>
+
+</div>
+
+<!-- Modal edição -->
+<div class="modal-overlay" id="modal-admin-edit">
+  <div class="modal">
+    <div class="modal-title">
+      <h2 id="modal-admin-title">Editar Cliente</h2>
+      <button class="modal-close" onclick="fecharModalAdmin()">✕</button>
+    </div>
+    <div id="admin-edit-msg" class="msg"></div>
+
+    <input type="hidden" id="adm-edit-id">
+    <div class="modal-section" style="margin-top:0;padding-top:0;border-top:none;">Login do dono</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field">
+        <label>EMAIL DO DONO *</label>
+        <input type="email" id="adm-owner-email" placeholder="email@exemplo.com">
+      </div>
+      <div class="field">
+        <label>SENHA DO DONO *</label>
+        <input type="text" id="adm-owner-password" placeholder="Mínimo 6 caracteres">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>TIPO</label>
+      <select id="adm-type" onchange="onAdmTypeChange()" style="width:100%;padding:10px 12px;background:var(--cinza-medio);border:1px solid var(--borda);border-radius:8px;color:var(--texto-principal);font-size:13px;font-family:inherit;">
+        <option value="academia">Academia</option>
+        <option value="manicure">Manicure</option>
+        <option value="salao">Estúdio</option>
+        <option value="outro">Outro</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>NOME</label>
+      <input type="text" id="adm-name">
+    </div>
+    <div class="field">
+      <label>CIDADE</label>
+      <input type="text" id="adm-city">
+    </div>
+    <div class="field">
+      <label>WHATSAPP</label>
+      <input type="tel" id="adm-phone">
+    </div>
+    <div class="field">
+      <label>ENDEREÇO</label>
+      <input type="text" id="adm-address" placeholder="Rua, número, referência">
+    </div>
+    <div class="field">
+      <label>INSTAGRAM</label>
+      <input type="text" id="adm-instagram" placeholder="@seuperfil">
+    </div>
+    <div class="field">
+      <label>FORMAS DE PAGAMENTO</label>
+      <div id="adm-payments" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field">
+        <label>PLANO</label>
+        <select id="adm-plan" style="width:100%;padding:10px 12px;background:var(--cinza-medio);border:1px solid var(--borda);border-radius:8px;color:var(--texto-principal);font-size:13px;font-family:inherit;">
+          <option value="basico">Básico</option>
+          <option value="profissional">Personal</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>PAGO ATÉ</label>
+        <input type="date" id="adm-paid-until" style="width:100%;padding:10px 12px;background:var(--cinza-medio);border:1px solid var(--borda);border-radius:8px;color:var(--texto-principal);font-size:13px;font-family:inherit;">
+      </div>
+    </div>
+
+    <div class="modal-section">Horários</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field">
+        <label>ABRE</label>
+        <input type="time" id="adm-open">
+      </div>
+      <div class="field">
+        <label>FECHA</label>
+        <input type="time" id="adm-close">
+      </div>
+    </div>
+    <div class="field">
+      <label>DIAS</label>
+      <div class="days-modal" id="adm-days"></div>
+    </div>
+
+    <div class="modal-section">Serviços</div>
+    <div id="adm-services"></div>
+    <button class="btn btn-outline" onclick="admAddService()" style="margin:10px 0 16px;font-size:12px;">+ SERVIÇO</button>
+
+    <div class="modal-section">Profissionais</div>
+    <div id="adm-barbers"></div>
+    <button class="btn btn-outline" onclick="admAddBarber()" style="margin:10px 0 16px;font-size:12px;">+ PERSONAL</button>
+
+    <button class="btn btn-primary" onclick="salvarAdmin()" id="btn-adm-save">
+      <span class="btn-label">SALVAR</span>
+      <div class="spinner" style="display:none;"></div>
+    </button>
+  </div>
+</div>
+
+<!-- Modal confirmação exclusão -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:360px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Confirma exclusão?</div>
+    <div style="font-size:13px;color:var(--texto-muted);margin-bottom:8px;" id="delete-shop-name"></div>
+    <div style="font-size:11px;color:#e74c3c;margin-bottom:20px;">Todos os dados serão apagados (profissionais, serviços, agendamentos).</div>
+    <div style="margin-bottom:12px;">
+      <input type="text" id="delete-confirm-input" style="width:100%;padding:10px;background:var(--cinza-medio);border:1px solid var(--borda);border-radius:8px;color:var(--texto-principal);font-size:13px;font-family:inherit;box-sizing:border-box;">
+    </div>
+    <div id="delete-error" style="display:none;font-size:11px;color:#e74c3c;background:rgba(231,76,60,0.1);border-radius:8px;padding:10px;margin-bottom:12px;text-align:left;word-break:break-all;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" onclick="fecharModalDelete()" style="flex:1;">CANCELAR</button>
+      <button class="btn" onclick="confirmarExclusao()" id="btn-delete-confirm" style="flex:1;background:#e74c3c;color:#fff;">
+        <span class="btn-label">EXCLUIR</span>
+        <div class="spinner" style="display:none;"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+// ── Config admin — só seu e-mail tem acesso ───────────────────
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+
+// Admin usa sb normal — RLS policy is_admin() libera acesso total
+
+let allShops = [];
+let allBarbers = [];
+let allServices = [];
+let allAppointments = [];
+let editShopBarbers = [];
+let editShopServices = [];
+let editDays = [];
+let editPayments = [];
+const PAY_OPTIONS = ['dinheiro', 'pix', 'credito', 'debito'];
+
+const DEFAULT_SERVICES = {
+  academia: [
+    { id: null, name: 'Corte', price: 25, duration_min: 30 },
+    { id: null, name: 'Barba', price: 15, duration_min: 20 },
+    { id: null, name: 'Corte + Barba', price: 35, duration_min: 45 },
+    { id: null, name: 'Sobrancelha', price: 10, duration_min: 10 },
+  ],
+  manicure: [
+    { id: null, name: 'Manicure simples', price: 25, duration_min: 40 },
+    { id: null, name: 'Pedicure', price: 30, duration_min: 50 },
+    { id: null, name: 'Manicure + Pedicure', price: 50, duration_min: 80 },
+    { id: null, name: 'Esmaltação em gel', price: 60, duration_min: 60 },
+    { id: null, name: 'Banho de gel', price: 50, duration_min: 60 },
+    { id: null, name: 'Alongamento', price: 120, duration_min: 120 },
+    { id: null, name: 'Francesinha', price: 35, duration_min: 50 },
+    { id: null, name: 'Spa dos pés', price: 40, duration_min: 45 },
+  ],
+  salao: [
+    { id: null, name: 'Corte feminino', price: 40, duration_min: 45 },
+    { id: null, name: 'Escova', price: 30, duration_min: 40 },
+    { id: null, name: 'Progressiva', price: 120, duration_min: 120 },
+    { id: null, name: 'Hidratação', price: 40, duration_min: 40 },
+    { id: null, name: 'Coloração', price: 80, duration_min: 90 },
+    { id: null, name: 'Manicure', price: 25, duration_min: 40 },
+    { id: null, name: 'Pedicure', price: 30, duration_min: 50 },
+    { id: null, name: 'Sobrancelha', price: 15, duration_min: 15 },
+  ],
+  outro: [],
+};
+
+function onAdmTypeChange() {
+  // Só preenche defaults se for novo (sem ID = sem serviços existentes)
+  const editId = document.getElementById('adm-edit-id').value;
+  if (!editId) {
+    const type = document.getElementById('adm-type').value;
+    editShopServices = JSON.parse(JSON.stringify(DEFAULT_SERVICES[type] || []));
+    renderAdmServices();
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session || !ADMIN_EMAILS.includes(session.user.email)) {
+    window.location.href = 'app.html';
+    return;
+  }
+
+  // Data no header
+  const hoje = new Date();
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  document.getElementById('header-date').textContent = dias[hoje.getDay()] + ', ' + hoje.getDate() + ' de ' + meses[hoje.getMonth()] + ' de ' + hoje.getFullYear();
+
+  await loadAll();
+});
+
+async function loadAll() {
+  // BUG 15 ALTO FIX: limitar queries pra não carregar tudo de uma vez
+  const [shopsRes, barbersRes, svcRes, apptsRes] = await Promise.all([
+    sb.from('barbershops').select('*').order('created_at', { ascending: false }).limit(200),
+    sb.from('barbers').select('*').limit(500),
+    sb.from('services').select('*').limit(500),
+    sb.from('appointments').select('*').limit(2000)
+  ]);
+
+  allShops = shopsRes.data || [];
+  allBarbers = barbersRes.data || [];
+  allServices = svcRes.data || [];
+  allAppointments = apptsRes.data || [];
+
+  // Buscar emails dos donos via auth.users (service key)
+  const ownerIds = [...new Set(allShops.map(s => s.owner_id).filter(Boolean))];
+  for (const s of allShops) {
+    s._owner_email = '—';
+  }
+  if (ownerIds.length) {
+    const { data: users } = await sb.rpc('admin_list_auth_users');
+    const userList = users || [];
+    for (const s of allShops) {
+      const u = userList.find(u => u.id === s.owner_id);
+      if (u) s._owner_email = u.email;
+    }
+  }
+
+  renderGlobalStats();
+  renderShops();
+}
+
+// ── Stats globais ─────────────────────────────────────────────
+function renderGlobalStats() {
+  const totalShops = allShops.length;
+  const totalBarbers = allBarbers.filter(b => b.active).length;
+  const totalAppts = allAppointments.length;
+  const totalDone = allAppointments.filter(a => a.status === 'done').length;
+  const totalNoShow = allAppointments.filter(a => a.status === 'no_show').length;
+  // BUG 7 FIX: price_paid como fonte primária
+  const revenue = allAppointments.filter(a => a.status === 'done').reduce((s, a) => {
+    const valor = (a.price_paid != null ? Number(a.price_paid) : (() => { const svc = allServices.find(sv => sv.id === a.service_id); return svc ? Number(svc.price) : 0; })());
+    return s + valor;
+  }, 0);
+
+  document.getElementById('global-stats').innerHTML = `
+    <div class="g-stat"><div class="g-stat-num" style="color:var(--verde-acao);">${totalShops}</div><div class="g-stat-label">CLIENTES</div></div>
+    <div class="g-stat"><div class="g-stat-num" style="color:var(--texto-principal);">${totalBarbers}</div><div class="g-stat-label">PROFISSIONAIS</div></div>
+    <div class="g-stat"><div class="g-stat-num" style="color:var(--texto-principal);">${totalAppts}</div><div class="g-stat-label">AGENDAMENTOS</div></div>
+    <div class="g-stat"><div class="g-stat-num" style="color:var(--verde-acao);">${totalDone}</div><div class="g-stat-label">ATENDIDOS</div></div>
+    <div class="g-stat"><div class="g-stat-num" style="color:#9b59b6;">${totalNoShow}</div><div class="g-stat-label">FALTARAM</div></div>
+    <div class="g-stat"><div class="g-stat-num" style="color:var(--verde-acao);">${formatMoney(revenue)}</div><div class="g-stat-label">FATURADO TOTAL</div></div>
+  `;
+}
+
+// ── Lista de academias ───────────────────────────────────────
+function renderShops() {
+  const el = document.getElementById('shops-list');
+
+  if (!allShops.length) {
+    el.innerHTML = '<div class="empty-admin">Nenhum cliente cadastrado.</div>';
+    return;
+  }
+
+  el.innerHTML = allShops.map(s => {
+    const shopBarbers = allBarbers.filter(b => b.barbershop_id === s.id && b.active);
+    const shopSvcs = allServices.filter(sv => sv.barbershop_id === s.id && sv.active);
+    const shopAppts = allAppointments.filter(a => a.barbershop_id === s.id);
+    const shopDone = shopAppts.filter(a => a.status === 'done');
+    // BUG 7 FIX: price_paid como fonte primária
+    const shopRevenue = shopDone.reduce((sum, a) => {
+      const valor = (a.price_paid != null ? Number(a.price_paid) : (() => { const svc = allServices.find(sv => sv.id === a.service_id); return svc ? Number(svc.price) : 0; })());
+      return sum + valor;
+    }, 0);
+
+    const planCls = s.plan === 'premium' ? 'plan-premium' : s.plan === 'profissional' ? 'plan-profissional' : 'plan-basico';
+    const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+
+    // Mensalidade
+    let mensBadge = '';
+    if (s.paid_until) {
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      const pago = new Date(s.paid_until + 'T00:00:00');
+      const diff = Math.ceil((pago - hoje) / 86400000);
+      if (diff < 0) {
+        mensBadge = `<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(231,76,60,0.15);color:#e74c3c;">VENCIDO ${Math.abs(diff)}d</span>`;
+      } else if (diff <= 7) {
+        mensBadge = `<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(243,156,18,0.15);color:#f39c12;">VENCE EM ${diff}d</span>`;
+      } else {
+        mensBadge = `<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(46,204,113,0.15);color:#2ecc71;">EM DIA</span>`;
+      }
+    } else {
+      mensBadge = `<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(255,255,255,0.06);color:var(--texto-muted);">SEM INFO</span>`;
+    }
+
+    return `<div class="shop-card">
+      <div class="shop-top">
+        <div>
+          <div class="shop-title">${esc(s.name)}</div>
+          <div class="shop-slug">${s.slug}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="shop-plan ${planCls}">${s.plan || 'basico'}</span>
+          ${mensBadge}
+        </div>
+      </div>
+      <div class="shop-meta">${s.city || '—'}${s.phone ? ' · ' + s.phone : ''} · ${s.opening_time || '08:00'}-${s.closing_time || '19:00'}${s.paid_until ? ' · Pago ate ' + s.paid_until.split('-').reverse().join('/') : ''}</div>
+      <div class="shop-meta" style="margin-top:2px;">Login: <strong>${s._owner_email || '—'}</strong> · Senha: <strong>${s.owner_password_hint ? esc(s.owner_password_hint) : '—'}</strong> <button class="shop-action-btn" style="padding:2px 8px;font-size:9px;margin-left:4px;" onclick="definirSenha('${esc(s.id)}','${esc(s.owner_id)}','${esc(s._owner_email)}')">DEFINIR SENHA</button></div>
+      ${shopBarbers.filter(b => b.phone).sort((a, b) => (b.is_owner ? 1 : 0) - (a.is_owner ? 1 : 0)).map(b => {
+        const isDono = b.is_owner;
+        const vinc = b.user_id ? 'vinculado' : 'aguardando';
+        const donoBadge = isDono ? ' <span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;background:rgba(212,168,83,0.15);color:#d4a853;">DONO</span>' : '';
+        const donoNote = isDono ? ' · <span style="color:#d4a853;font-size:9px;">usa login email acima</span>' : '';
+        const senhaBtn = !isDono && b.user_id ? ' <button class="shop-action-btn" style="padding:1px 6px;font-size:8px;margin-left:2px;" onclick="definirSenhaPersonal(\'' + esc(b.id) + '\',\'' + esc(b.user_id) + '\',\'' + esc(b.name) + '\')">SENHA</button>' : '';
+        const senhaHint = !isDono && b.password_hint ? ' · Senha: <strong>' + esc(b.password_hint) + '</strong>' : '';
+        return '<div class="shop-meta" style="margin-top:1px;font-size:11px;">&#x1F4F1; ' + esc(b.name) + donoBadge + ' · ' + esc(b.phone) + ' · <span style="color:' + (b.user_id ? '#22c55e' : '#f59e0b') + '">' + vinc + '</span>' + donoNote + senhaHint + senhaBtn + '</div>';
+      }).join('')}
+      <div class="shop-stats">
+        <span>Profissionais: <strong>${shopBarbers.length}</strong></span>
+        <span>Serviços: <strong>${shopSvcs.length}</strong></span>
+        <span>Agendamentos: <strong>${shopAppts.length}</strong></span>
+        <span>Faturado: <strong>${formatMoney(shopRevenue)}</strong></span>
+      </div>
+      <div class="shop-actions">
+        <button class="shop-action-btn" style="border-color:rgba(212,168,83,0.3);color:var(--verde-acao);font-weight:700;" onclick="entrarComo('${esc(s.id)}')">Entrar como</button>
+        <button class="shop-action-btn" onclick="editarShop('${esc(s.id)}')">Editar</button>
+        <button class="shop-action-btn" onclick="copiarLinkShop('${esc(s.slug)}')">Copiar link</button>
+        <button class="shop-action-btn" onclick="window.open('${baseUrl}agendar.html?slug=${esc(s.slug)}','_blank')">Ver pagina</button>
+        <button class="shop-action-btn" onclick="copiarLinkPersonal()">Link personal</button>
+        <button class="shop-action-btn danger" onclick="excluirShop('${esc(s.id)}')">Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function entrarComo(shopId) {
+  sessionStorage.removeItem('admin_viewing_shop');
+  sessionStorage.setItem('admin_viewing_shop', shopId);
+  window.location.href = 'dashboard.html?shop=' + shopId;
+}
+
+async function definirSenhaPersonal(barberId, userId, nome) {
+  const novaSenha = prompt('Nova senha pra ' + nome + '\n(mínimo 6 caracteres):');
+  if (!novaSenha || novaSenha.length < 6) {
+    if (novaSenha !== null) alert('Senha deve ter pelo menos 6 caracteres.');
+    return;
+  }
+
+  const { data, error } = await sb.rpc('admin_set_password', { p_user_id: userId, p_password: novaSenha });
+
+  if (!error && data && data.success) {
+    await sb.from('barbers').update({ password_hint: novaSenha }).eq('id', barberId);
+    alert('Senha do personal alterada!');
+    await loadAll();
+  } else {
+    alert('Erro ao alterar senha: ' + (error?.message || data?.error || 'desconhecido'));
+  }
+}
+
+async function definirSenha(shopId, userId, email) {
+  const novaSenha = prompt('Nova senha pra ' + email + '\n(minimo 6 caracteres):');
+  if (!novaSenha || novaSenha.length < 6) {
+    if (novaSenha !== null) alert('Senha deve ter pelo menos 6 caracteres.');
+    return;
+  }
+
+  const { data, error } = await sb.rpc('admin_set_password', { p_user_id: userId, p_password: novaSenha });
+
+  if (!error && data && data.success) {
+    // Salvar hint da senha no barbershop pra referência
+    await sb.from('barbershops').update({ owner_password_hint: novaSenha }).eq('id', shopId);
+    alert('Senha alterada com sucesso!');
+    await loadAll();
+  } else {
+    alert('Erro ao alterar senha: ' + (error?.message || data?.error || 'desconhecido'));
+  }
+}
+
+function copiarLinkPersonal() {
+  const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+  navigator.clipboard.writeText(baseUrl + 'personal-cadastro.html');
+  alert('Link copiado! Envie pro personal: ' + baseUrl + 'personal-cadastro.html');
+}
+
+function copiarLinkShop(slug) {
+  const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+  navigator.clipboard.writeText(baseUrl + 'agendar.html?slug=' + slug);
+}
+
+// ── Editar academia ──────────────────────────────────────────
+const DIAS_LABEL = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function editarShop(id) {
+  const s = allShops.find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('modal-admin-title').textContent = 'Editar · ' + s.name;
+  document.getElementById('adm-edit-id').value = s.id;
+  document.getElementById('adm-type').value = s.business_type || 'academia';
+  document.getElementById('adm-name').value = s.name || '';
+  document.getElementById('adm-city').value = s.city || '';
+  document.getElementById('adm-phone').value = s.phone || '';
+  document.getElementById('adm-address').value = s.address || '';
+  document.getElementById('adm-instagram').value = s.instagram || '';
+  editPayments = [...(s.payment_methods || ['dinheiro', 'pix'])];
+  renderAdmPayments();
+  document.getElementById('adm-plan').value = s.plan || 'basico';
+  document.getElementById('adm-paid-until').value = s.paid_until || '';
+  document.getElementById('adm-open').value = s.opening_time || '08:00';
+  document.getElementById('adm-close').value = s.closing_time || '19:00';
+  editDays = [...(s.days_open || [1,2,3,4,5,6])];
+  renderAdmDays();
+
+  document.getElementById('adm-owner-email').value = s._owner_email || '';
+  document.getElementById('adm-owner-password').value = s.owner_password_hint || '';
+
+  editShopBarbers = allBarbers.filter(b => b.barbershop_id === id).map(b => ({ id: b.id, name: b.name, phone: b.phone || '', user_id: b.user_id, active: b.active, is_owner: b.is_owner }));
+  renderAdmBarbers();
+
+  editShopServices = allServices.filter(sv => sv.barbershop_id === id).map(sv => ({ id: sv.id, name: sv.name, price: sv.price, duration_min: sv.duration_min }));
+  renderAdmServices();
+
+  document.getElementById('admin-edit-msg').className = 'msg';
+  document.getElementById('modal-admin-edit').classList.add('show');
+}
+
+function abrirNovaShop() {
+  document.getElementById('modal-admin-title').textContent = 'Novo Cliente';
+  document.getElementById('adm-edit-id').value = '';
+  document.getElementById('adm-owner-email').value = '';
+  document.getElementById('adm-owner-password').value = '';
+  document.getElementById('adm-type').value = 'academia';
+  document.getElementById('adm-name').value = '';
+  document.getElementById('adm-city').value = '';
+  document.getElementById('adm-phone').value = '';
+  document.getElementById('adm-address').value = '';
+  document.getElementById('adm-instagram').value = '';
+  editPayments = ['dinheiro', 'pix'];
+  renderAdmPayments();
+  document.getElementById('adm-plan').value = 'basico';
+  // Pago até: 30 dias a partir de hoje (trial)
+  const trial = new Date(); trial.setDate(trial.getDate() + 30);
+  document.getElementById('adm-paid-until').value = trial.toISOString().split('T')[0];
+  document.getElementById('adm-open').value = '08:00';
+  document.getElementById('adm-close').value = '19:00';
+  editDays = [1,2,3,4,5,6];
+  renderAdmDays();
+
+  editShopBarbers = [];
+  renderAdmBarbers();
+
+  const type = document.getElementById('adm-type').value;
+  editShopServices = JSON.parse(JSON.stringify(DEFAULT_SERVICES[type] || DEFAULT_SERVICES.academia));
+  renderAdmServices();
+
+  document.getElementById('admin-edit-msg').className = 'msg';
+  document.getElementById('modal-admin-edit').classList.add('show');
+}
+
+function fecharModalAdmin() {
+  document.getElementById('modal-admin-edit').classList.remove('show');
+}
+
+function renderAdmPayments() {
+  const labels = { dinheiro: 'Dinheiro', pix: 'PIX', credito: 'Crédito', debito: 'Débito' };
+  document.getElementById('adm-payments').innerHTML = PAY_OPTIONS.map(p =>
+    `<button type="button" class="pay-toggle ${editPayments.includes(p) ? 'active' : ''}" onclick="toggleAdmPay('${p}')">${labels[p]}</button>`
+  ).join('');
+}
+
+function toggleAdmPay(p) {
+  editPayments = editPayments.includes(p) ? editPayments.filter(x => x !== p) : [...editPayments, p];
+  renderAdmPayments();
+}
+
+function renderAdmDays() {
+  document.getElementById('adm-days').innerHTML = DIAS_LABEL.map((d, i) =>
+    `<button type="button" class="day-btn ${editDays.includes(i) ? 'active' : ''}" onclick="toggleAdmDay(${i})">${d}</button>`
+  ).join('');
+}
+
+function toggleAdmDay(i) {
+  editDays = editDays.includes(i) ? editDays.filter(d => d !== i) : [...editDays, i].sort();
+  renderAdmDays();
+}
+
+function renderAdmBarbers() {
+  document.getElementById('adm-barbers').innerHTML = editShopBarbers.map((b, i) => {
+    const status = b.user_id ? '<span style="font-size:9px;color:#22c55e;font-weight:700;">VINCULADO</span>' : (b.phone ? '<span style="font-size:9px;color:#f59e0b;font-weight:700;">AGUARDANDO</span>' : '');
+    return `<div style="background:var(--cinza-medio);border:1px solid var(--borda);border-radius:8px;padding:10px;margin-bottom:6px;">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+        <input type="text" value="${esc(b.name)}" onchange="editShopBarbers[${i}].name=this.value" placeholder="Nome" style="flex:1;padding:6px 8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:6px;color:var(--texto-principal);font-size:12px;font-family:inherit;">
+        <button class="barber-row-del" onclick="editShopBarbers.splice(${i},1);renderAdmBarbers()">&#x2715;</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="tel" value="${esc(b.phone || '')}" onchange="editShopBarbers[${i}].phone=this.value.replace(/\\D/g,'')" placeholder="Telefone (login)" style="flex:1;padding:6px 8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:6px;color:var(--texto-principal);font-size:12px;font-family:inherit;">
+        ${status}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAdmServices() {
+  document.getElementById('adm-services').innerHTML = editShopServices.map((s, i) =>
+    `<div class="svc-row">
+      <div><div class="svc-row-label">SERVIÇO</div><input type="text" value="${esc(s.name)}" onchange="editShopServices[${i}].name=this.value"></div>
+      <div><div class="svc-row-label">PREÇO</div><input type="number" value="${s.price||''}" min="0" step="1" onchange="editShopServices[${i}].price=parseFloat(this.value)||0"></div>
+      <div><div class="svc-row-label">MIN</div><input type="number" value="${s.duration_min||''}" min="5" step="5" onchange="editShopServices[${i}].duration_min=parseInt(this.value)||30"></div>
+      <button class="barber-row-del" onclick="editShopServices.splice(${i},1);renderAdmServices()" style="align-self:end;">✕</button>
+    </div>`
+  ).join('');
+}
+
+function admAddService() {
+  editShopServices.push({ id: null, name: '', price: 0, duration_min: 30 });
+  renderAdmServices();
+  const inputs = document.querySelectorAll('#adm-services input[type=text]');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function admAddBarber() {
+  editShopBarbers.push({ id: null, name: '', phone: '' });
+  renderAdmBarbers();
+  const inputs = document.querySelectorAll('#adm-barbers input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+async function salvarAdmin() {
+  const btn = document.getElementById('btn-adm-save');
+  const editId = document.getElementById('adm-edit-id').value;
+  const name = document.getElementById('adm-name').value.trim();
+  const city = document.getElementById('adm-city').value.trim().toUpperCase();
+  const phone = document.getElementById('adm-phone').value.trim();
+  const address = document.getElementById('adm-address').value.trim();
+  const instagram = document.getElementById('adm-instagram').value.trim();
+  const businessType = document.getElementById('adm-type').value;
+  const plan = document.getElementById('adm-plan').value;
+  const paidUntil = document.getElementById('adm-paid-until').value || null;
+  const opening = document.getElementById('adm-open').value;
+  const closing = document.getElementById('adm-close').value;
+  let slug = gerarSlug(name);
+
+  const ownerEmail = document.getElementById('adm-owner-email').value.trim().toLowerCase();
+  const ownerPassword = document.getElementById('adm-owner-password').value.trim();
+
+  if (!name) { showAdmMsg('Digite o nome do estabelecimento.', 'error'); return; }
+  if (!editId && (!ownerEmail || !ownerPassword)) { showAdmMsg('Preencha email e senha do dono.', 'error'); return; }
+  if (ownerPassword && ownerPassword.length < 6) { showAdmMsg('Senha deve ter pelo menos 6 caracteres.', 'error'); return; }
+
+  // Avisar se slug vai mudar (quebra links antigos)
+  if (editId) {
+    const shopAtual = allShops.find(s => s.id === editId);
+    if (shopAtual && shopAtual.slug !== slug && shopAtual.slug) {
+      if (!confirm('Mudar o nome altera o link de agendamento. Links antigos vão parar de funcionar. Continuar?')) return;
+    }
+  }
+
+  // BUG 9 FIX: verificar se slug já existe (excluindo o próprio registro se editando)
+  let slugQuery = sb.from('barbershops').select('id').eq('slug', slug);
+  if (editId) slugQuery = slugQuery.neq('id', editId);
+  const { data: existingSlug } = await slugQuery;
+  if (existingSlug && existingSlug.length > 0) {
+    slug = slug + '-' + Math.random().toString(36).slice(2, 6);
+  }
+
+  btn.disabled = true;
+  btn.querySelector('.btn-label').style.display = 'none';
+  btn.querySelector('.spinner').style.display = 'inline-block';
+
+  try {
+    let shopId = editId;
+
+    if (editId) {
+      // Atualizar academia
+      const { error } = await sb.from('barbershops').update({
+        name, slug, city, phone, address, instagram, payment_methods: editPayments,
+        business_type: businessType, plan, paid_until: paidUntil, opening_time: opening, closing_time: closing, days_open: editDays
+      }).eq('id', editId);
+      if (error) throw error;
+
+      // Atualizar senha do dono se preenchida
+      if (ownerPassword) {
+        const shop = allShops.find(s => s.id === editId);
+        if (shop && shop.owner_id) {
+          await sb.rpc('admin_set_password', { p_user_id: shop.owner_id, p_password: ownerPassword });
+          await sb.from('barbershops').update({ owner_password_hint: ownerPassword }).eq('id', editId);
+        }
+      }
+    } else {
+      // Criar nova — criar user do dono primeiro
+      const { data: signupData, error: signupErr } = await sb.auth.signUp({
+        email: ownerEmail,
+        password: ownerPassword,
+        options: { data: { nome: name } }
+      });
+      if (signupErr) {
+        if (signupErr.message.includes('already registered')) {
+          throw new Error('Esse email já está cadastrado. Use outro.');
+        }
+        throw signupErr;
+      }
+      if (!signupData.user) throw new Error('Erro ao criar conta do dono.');
+
+      const ownerId = signupData.user.id;
+      const { data, error } = await sb.from('barbershops').insert({
+        owner_id: ownerId, name, slug, city, phone, address, instagram,
+        payment_methods: editPayments, business_type: businessType, plan, paid_until: paidUntil,
+        opening_time: opening, closing_time: closing, days_open: editDays,
+        owner_password_hint: ownerPassword
+      }).select().single();
+      if (error) throw error;
+      shopId = data.id;
+
+      // Criar personal-dono automaticamente (primeiro da lista com is_owner)
+      if (editShopBarbers.length > 0) {
+        editShopBarbers[0].is_owner = true;
+      }
+    }
+
+    // Gerenciar serviços
+    const existingServices = allServices.filter(sv => sv.barbershop_id === shopId);
+    const editSvcIds = editShopServices.filter(s => s.id).map(s => s.id);
+
+    for (const sv of existingServices) {
+      if (!editSvcIds.includes(sv.id)) {
+        await sb.from('services').delete().eq('id', sv.id);
+      }
+    }
+
+    // Batch: separar updates e inserts
+    const svcUpdates = editShopServices.filter(sv => sv.name.trim() && sv.id);
+    const svcInserts = editShopServices.filter(sv => sv.name.trim() && !sv.id);
+
+    await Promise.all([
+      ...svcUpdates.map(sv => sb.from('services').update({ name: sv.name.trim(), price: sv.price, duration_min: sv.duration_min }).eq('id', sv.id)),
+      svcInserts.length ? sb.from('services').insert(svcInserts.map(sv => ({
+        barbershop_id: shopId, name: sv.name.trim(), price: sv.price || 0, duration_min: sv.duration_min || 30, active: true
+      }))) : Promise.resolve()
+    ]);
+
+    // Gerenciar personals
+    const existingBarbers = allBarbers.filter(b => b.barbershop_id === shopId);
+    const editIds = editShopBarbers.filter(b => b.id).map(b => b.id);
+
+    // Remover
+    for (const b of existingBarbers) {
+      if (!editIds.includes(b.id)) {
+        await sb.from('barbers').delete().eq('id', b.id);
+      }
+    }
+
+    // Validar telefones duplicados
+    const phones = editShopBarbers.filter(b => b.phone).map(b => b.phone);
+    const dupes = phones.filter((p, i) => phones.indexOf(p) !== i);
+    if (dupes.length) { throw new Error('Telefone duplicado: ' + dupes[0]); }
+
+    // Batch: separar updates e inserts
+    const barbUpdates = editShopBarbers.filter(b => b.name.trim() && b.id);
+    const barbInserts = editShopBarbers.filter(b => b.name.trim() && !b.id);
+
+    await Promise.all([
+      ...barbUpdates.map(b => sb.from('barbers').update({ name: b.name.trim(), phone: b.phone || null }).eq('id', b.id)),
+      barbInserts.length ? sb.from('barbers').insert(barbInserts.map(b => ({
+        barbershop_id: shopId, name: b.name.trim(), phone: b.phone || null, commission_pct: 0, active: true,
+        is_owner: b.is_owner || false
+      }))) : Promise.resolve()
+    ]);
+
+    fecharModalAdmin();
+    await loadAll();
+
+  } catch (e) {
+    console.error(e);
+    const msg = e.message?.includes('duplicate') ? 'Nome já existe.' : 'Erro ao salvar.';
+    showAdmMsg(msg, 'error');
+  }
+
+  btn.disabled = false;
+  btn.querySelector('.btn-label').style.display = 'inline';
+  btn.querySelector('.spinner').style.display = 'none';
+}
+
+function showAdmMsg(text, type) {
+  const el = document.getElementById('admin-edit-msg');
+  el.textContent = text;
+  el.className = `msg msg-${type} show`;
+}
+
+// ── Excluir academia ─────────────────────────────────────────
+let _deleteShopId = null;
+
+function excluirShop(id) {
+  const s = allShops.find(x => x.id === id);
+  if (!s) return;
+  _deleteShopId = id;
+  document.getElementById('delete-shop-name').textContent = s.name + ' · ' + (s.city || '');
+  document.getElementById('delete-confirm-input').value = '';
+  document.getElementById('delete-confirm-input').placeholder = 'Digite "' + s.name + '" pra confirmar';
+  document.getElementById('delete-error').style.display = 'none';
+  document.getElementById('modal-delete').classList.add('show');
+}
+
+function fecharModalDelete() {
+  document.getElementById('modal-delete').classList.remove('show');
+  _deleteShopId = null;
+}
+
+async function confirmarExclusao() {
+  if (!_deleteShopId) return;
+  const btn = document.getElementById('btn-delete-confirm');
+  const errEl = document.getElementById('delete-error');
+
+  // Validar que digitou o nome correto
+  const typedName = document.getElementById('delete-confirm-input').value.trim();
+  const shop = allShops.find(x => x.id === _deleteShopId);
+  if (!shop || typedName.toLowerCase() !== shop.name.toLowerCase()) {
+    errEl.textContent = 'Nome não confere. Digite "' + (shop ? shop.name : '') + '" pra confirmar.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.querySelector('.btn-label').style.display = 'none';
+  btn.querySelector('.spinner').style.display = 'inline-block';
+  errEl.style.display = 'none';
+
+  const id = _deleteShopId;
+
+  try {
+    // Deletar filhas na ordem certa
+    const filhas = ['payments','appointments','services','barbers','subscriptions'];
+    for (const t of filhas) {
+      const { error } = await sb.from(t).delete().eq('barbershop_id', id);
+      if (error) {
+        errEl.textContent = 'Erro em ' + t + ': ' + error.message;
+        errEl.style.display = 'block';
+        throw error;
+      }
+    }
+
+    // Deletar a academia
+    const { data: deleted, error } = await sb.from('barbershops').delete().eq('id', id).select();
+    if (error) {
+      errEl.textContent = 'Erro em barbershops: ' + error.message;
+      errEl.style.display = 'block';
+      throw error;
+    }
+
+    if (!deleted || !deleted.length) {
+      errEl.textContent = 'Nenhum registro excluído. ID: ' + id;
+      errEl.style.display = 'block';
+    } else {
+      fecharModalDelete();
+    }
+
+    await loadAll();
+  } catch (e) {
+    console.error('Erro na exclusao:', e);
+  }
+
+  btn.disabled = false;
+  btn.querySelector('.btn-label').style.display = 'inline';
+  btn.querySelector('.spinner').style.display = 'none';
+}
+
+// ── Logout ────────────────────────────────────────────────────
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = 'app.html';
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Agenda Semanal</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .ws-container { max-width:1100px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    /* Header */
+    .ws-header {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .ws-back {
+      width:36px; height:36px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:18px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      text-decoration:none; transition:all .2s;
+    }
+    .ws-back:hover { border-color:var(--borda-hover); text-decoration:none; }
+    .ws-header h1 { font-size:18px; font-weight:700; flex:1; }
+
+    /* Week nav */
+    .week-nav {
+      display:flex; align-items:center; justify-content:center; gap:12px;
+      margin-bottom:16px; flex-wrap:wrap;
+    }
+    .week-nav-btn {
+      width:36px; height:36px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:18px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all .2s; font-family:inherit;
+    }
+    .week-nav-btn:hover { border-color:var(--borda-hover); }
+    .week-label { font-size:14px; font-weight:700; text-align:center; min-width:180px; }
+    .btn-hoje {
+      padding:6px 14px; border-radius:8px; border:1px solid var(--accent-border);
+      background:var(--accent-soft); color:var(--accent); font-size:11px;
+      font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s;
+    }
+    .btn-hoje:hover { background:rgba(212,168,83,0.2); }
+    .btn-hoje.hidden { display:none; }
+
+    /* Toggle mode */
+    .mode-toggle {
+      display:flex; justify-content:center; gap:0; margin-bottom:16px;
+      border:1px solid var(--borda); border-radius:8px; overflow:hidden;
+      max-width:320px; margin-left:auto; margin-right:auto;
+    }
+    .mode-btn {
+      flex:1; padding:8px 16px; border:none; background:transparent;
+      color:var(--texto-muted); font-size:11px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s;
+      letter-spacing:0.5px;
+    }
+    .mode-btn.active {
+      background:var(--accent-soft); color:var(--accent);
+    }
+
+    /* ── DESKTOP: Weekly grid ── */
+    .week-grid {
+      display:grid; grid-template-columns:120px repeat(7, 1fr);
+      gap:1px; background:var(--borda); border:1px solid var(--borda);
+      border-radius:12px; overflow:hidden; margin-bottom:16px;
+    }
+    .wg-corner {
+      background:var(--cinza-medio); padding:10px; font-size:10px;
+      font-weight:700; color:var(--texto-muted); letter-spacing:1px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .wg-day-header {
+      background:var(--cinza-medio); padding:10px 6px; text-align:center;
+      font-size:11px; font-weight:700; color:var(--texto-secundario);
+    }
+    .wg-day-header .day-num {
+      font-size:18px; font-weight:800; display:block; margin-top:2px;
+      color:var(--texto-principal);
+    }
+    .wg-day-header.today {
+      background:rgba(212,168,83,0.08);
+      border-bottom:2px solid var(--accent);
+    }
+    .wg-day-header.today .day-num { color:var(--accent); }
+    .wg-day-header.closed { opacity:0.4; }
+
+    .wg-barber-label {
+      background:var(--cinza-escuro); padding:10px 8px;
+      display:flex; align-items:center; gap:8px; min-height:60px;
+    }
+    .wg-avatar {
+      width:28px; height:28px; border-radius:50%; flex-shrink:0;
+      background:var(--accent-avatar); display:flex; align-items:center;
+      justify-content:center; font-size:12px; font-weight:800; color:#fff;
+    }
+    .wg-bname { font-size:12px; font-weight:700; line-height:1.2; }
+
+    .wg-cell {
+      background:var(--cinza-escuro); padding:4px; min-height:60px;
+      display:flex; flex-direction:column; gap:3px; overflow-y:auto;
+      max-height:200px;
+    }
+    .wg-cell.today-col { background:rgba(212,168,83,0.03); }
+    .wg-cell.closed-col {
+      background:rgba(255,255,255,0.01); display:flex;
+      align-items:center; justify-content:center;
+    }
+    .wg-cell.folga-cell {
+      display:flex; align-items:center; justify-content:center;
+    }
+    .folga-badge {
+      font-size:9px; font-weight:700; color:var(--texto-muted);
+      background:rgba(255,255,255,0.04); padding:3px 8px; border-radius:6px;
+      letter-spacing:1px;
+    }
+    .closed-badge {
+      font-size:9px; font-weight:700; color:var(--texto-muted);
+      letter-spacing:1px; opacity:0.5;
+    }
+    .wg-empty {
+      font-size:11px; color:var(--texto-muted); text-align:center;
+      padding:8px 0; opacity:0.4;
+    }
+
+    /* Appointment mini card */
+    .appt-mini {
+      padding:4px 6px; border-radius:6px; font-size:10px;
+      cursor:pointer; transition:all .15s; border-left:3px solid;
+      line-height:1.3;
+    }
+    .appt-mini:hover { transform:scale(1.02); }
+    .appt-mini .am-time { font-weight:800; }
+    .appt-mini .am-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .appt-mini.st-confirmed { background:rgba(212,168,83,0.1); border-color:#d4a853; color:#d4a853; }
+    .appt-mini.st-done { background:rgba(46,204,113,0.1); border-color:#2ecc71; color:#2ecc71; }
+    .appt-mini.st-cancelled { background:rgba(231,76,60,0.08); border-color:#e74c3c; color:#e74c3c; opacity:0.6; }
+    .appt-mini.st-no_show { background:rgba(155,89,182,0.1); border-color:#9b59b6; color:#9b59b6; }
+    .appt-mini.st-pending { background:rgba(243,156,18,0.1); border-color:#f39c12; color:#f39c12; }
+
+    /* ── TODOS mode (no barber rows) ── */
+    .week-grid-todos {
+      display:grid; grid-template-columns:repeat(7, 1fr);
+      gap:1px; background:var(--borda); border:1px solid var(--borda);
+      border-radius:12px; overflow:hidden; margin-bottom:16px;
+    }
+    .wgt-day {
+      background:var(--cinza-escuro); padding:6px; min-height:120px;
+      display:flex; flex-direction:column; gap:3px;
+      overflow-y:auto; max-height:400px;
+    }
+    .wgt-day.today-col { background:rgba(212,168,83,0.03); }
+    .wgt-day.closed-col {
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,0.01);
+    }
+
+    /* ── Stats bar ── */
+    .ws-stats {
+      display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:16px;
+    }
+    .ws-stat {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:10px; padding:12px; text-align:center;
+    }
+    .ws-stat-num { font-size:18px; font-weight:800; }
+    .ws-stat-label { font-size:9px; color:var(--texto-muted); font-weight:700; letter-spacing:1px; margin-top:4px; }
+
+    /* ── MOBILE: Collapsible list ── */
+    .mobile-week { display:none; }
+
+    .mw-day {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:10px; margin-bottom:8px; overflow:hidden;
+    }
+    .mw-day-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 14px; cursor:pointer; user-select:none; transition:all .2s;
+    }
+    .mw-day-header:hover { background:rgba(255,255,255,0.02); }
+    .mw-day-header.today-header {
+      border-left:3px solid var(--accent);
+    }
+    .mw-day-name { font-size:14px; font-weight:700; }
+    .mw-day-date { font-size:12px; color:var(--texto-muted); margin-left:8px; }
+    .mw-day-count {
+      font-size:10px; font-weight:700; color:var(--texto-muted);
+      background:rgba(255,255,255,0.06); padding:3px 10px; border-radius:10px;
+    }
+    .mw-day-count.has-appts { color:var(--accent); background:var(--accent-soft); }
+    .mw-day-body { padding:0 14px 12px; display:none; }
+    .mw-day.open .mw-day-body { display:block; }
+    .mw-day.open .mw-day-header { border-bottom:1px solid var(--borda); }
+    .mw-day-closed {
+      font-size:11px; color:var(--texto-muted); text-align:center;
+      padding:16px 0; opacity:0.5;
+    }
+
+    .mw-appt {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 0; border-bottom:1px solid var(--borda);
+    }
+    .mw-appt:last-child { border-bottom:none; }
+    .mw-appt-time { font-size:14px; font-weight:800; min-width:50px; }
+    .mw-appt-info { flex:1; min-width:0; }
+    .mw-appt-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mw-appt-meta { font-size:11px; color:var(--texto-muted); }
+    .mw-appt-status {
+      font-size:8px; font-weight:700; padding:3px 8px; border-radius:12px;
+      text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0;
+    }
+    .mw-st-confirmed { background:rgba(212,168,83,0.15); color:#d4a853; }
+    .mw-st-done { background:rgba(46,204,113,0.12); color:#2ecc71; }
+    .mw-st-cancelled { background:rgba(231,76,60,0.1); color:#e74c3c; }
+    .mw-st-no_show { background:rgba(155,89,182,0.15); color:#9b59b6; }
+    .mw-st-pending { background:rgba(243,156,18,0.15); color:#f39c12; }
+
+    .mw-barber-section {
+      font-size:10px; font-weight:700; color:var(--texto-muted);
+      letter-spacing:1px; padding:10px 0 6px; margin-top:4px;
+      border-top:1px solid var(--borda);
+    }
+    .mw-barber-section:first-child { border-top:none; margin-top:0; }
+    .mw-folga {
+      font-size:11px; color:var(--texto-muted); opacity:0.5;
+      padding:6px 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .desktop-week { display:none !important; }
+      .mobile-week { display:block; }
+      .ws-stats { grid-template-columns:1fr 1fr; }
+      .ws-container { max-width:480px; }
+      .mode-toggle { display:none; }
+    }
+    @media (min-width: 769px) {
+      .mobile-week { display:none !important; }
+      .desktop-week { display:block; }
+    }
+
+    /* Loading */
+    .ws-loading {
+      text-align:center; padding:60px 0;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+
+    @keyframes spin {
+      to { transform:rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ws-container">
+
+  <!-- Loading -->
+  <div id="ws-loading" class="ws-loading">
+    <div style="margin:0 auto 12px;width:24px;height:24px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando agenda semanal...</div>
+  </div>
+
+  <!-- Content (hidden until loaded) -->
+  <div id="ws-content" style="display:none;">
+
+    <!-- Header -->
+    <div class="ws-header">
+      <a href="dashboard.html" class="ws-back">&#x2039;</a>
+      <h1>Agenda Semanal</h1>
+    </div>
+
+    <!-- Week navigation -->
+    <div class="week-nav">
+      <button class="week-nav-btn" onclick="changeWeek(-1)" title="Semana anterior">&#x2039;</button>
+      <div class="week-label" id="week-label"></div>
+      <button class="week-nav-btn" onclick="changeWeek(1)" title="Pr&#243;xima semana">&#x203A;</button>
+      <button class="btn-hoje" id="btn-hoje" onclick="goThisWeek()">HOJE</button>
+    </div>
+
+    <!-- Toggle mode -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-barber" onclick="setMode('barber')">POR PERSONAL</button>
+      <button class="mode-btn" id="mode-todos" onclick="setMode('todos')">TODOS</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="ws-stats" id="ws-stats">
+      <div class="ws-stat">
+        <div class="ws-stat-num" id="st-total" style="color:var(--texto-principal);">0</div>
+        <div class="ws-stat-label">AGENDADOS</div>
+      </div>
+      <div class="ws-stat">
+        <div class="ws-stat-num" id="st-done" style="color:var(--accent);">0</div>
+        <div class="ws-stat-label">ATENDIDOS</div>
+      </div>
+      <div class="ws-stat">
+        <div class="ws-stat-num" id="st-revenue" style="color:var(--accent);">0</div>
+        <div class="ws-stat-label">FATURADO</div>
+      </div>
+      <div class="ws-stat">
+        <div class="ws-stat-num" id="st-busiest" style="color:var(--accent);">—</div>
+        <div class="ws-stat-label">DIA CHEIO</div>
+      </div>
+    </div>
+
+    <!-- Desktop: Weekly grid -->
+    <div class="desktop-week" id="desktop-week"></div>
+
+    <!-- Mobile: Collapsible days -->
+    <div class="mobile-week" id="mobile-week"></div>
+
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--accent);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C5; Agenda Semanal</a>
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servi&#231;os</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relat&#243;rio</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Reten&#231;&#227;o</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfa&#231;&#227;o</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+console.log('Agenda Semanal v1 carregado');
+
+// ── Estado ─────────────────────────────────────────────────────
+let shop = null;
+let barbers = [];
+let services = [];
+let weekAppts = [];
+let weekStart = getMonday(new Date());
+let viewMode = 'barber'; // 'barber' | 'todos'
+
+const DIAS_CURTOS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S&#225;b', 'Dom'];
+const DIAS_NOMES = ['Segunda', 'Ter&#231;a', 'Quarta', 'Quinta', 'Sexta', 'S&#225;bado', 'Domingo'];
+const MESES_CURTOS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const STATUS_LABELS = { pending:'Pendente', confirmed:'Confirmado', done:'Atendido', cancelled:'Cancelado', no_show:'N&#227;o veio' };
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+
+const db = sb;
+
+// ── Helpers ────────────────────────────────────────────────────
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = dt.getDate() - day + (day === 0 ? -6 : 1);
+  dt.setDate(diff);
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function addDays(d, n) {
+  const dt = new Date(d);
+  dt.setDate(dt.getDate() + n);
+  return dt;
+}
+
+function fmtDateISO(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function isThisWeek() {
+  const now = getMonday(new Date());
+  return isSameDay(weekStart, now);
+}
+
+// day_of_week: 0=Dom, 1=Seg ... 6=Sab (JS standard)
+// days_open in barbershops uses same: 0=Dom, 1=Seg ... 6=Sab
+function getWeekDayJS(dayIndex) {
+  // dayIndex: 0=Seg, 1=Ter ... 6=Dom (grid index)
+  // returns JS day: 1=Seg, 2=Ter ... 0=Dom
+  return dayIndex === 6 ? 0 : dayIndex + 1;
+}
+
+function isShopOpen(jsDay) {
+  if (!shop || !shop.days_open) return true;
+  return shop.days_open.includes(jsDay);
+}
+
+function isBarberWorking(barber, jsDay) {
+  // Check working_days array first
+  if (barber.working_days && Array.isArray(barber.working_days)) {
+    return barber.working_days.includes(jsDay);
+  }
+  // Check schedule JSONB — keys can be day numbers or day names
+  if (barber.schedule && typeof barber.schedule === 'object') {
+    const dayKey = String(jsDay);
+    if (dayKey in barber.schedule) {
+      const val = barber.schedule[dayKey];
+      if (val === false || val === null || (typeof val === 'object' && val.off)) return false;
+      return true;
+    }
+  }
+  // Default: follow shop schedule
+  return isShopOpen(jsDay);
+}
+
+function apptTime(a) {
+  return new Date(a.scheduled_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getServiceName(id) {
+  const s = services.find(sv => sv.id === id);
+  return s ? s.name : '';
+}
+
+function getBarberName(id) {
+  const b = barbers.find(br => br.id === id);
+  return b ? b.name : 'Sem profissional';
+}
+
+// ── Init ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  const [svcRes, barbRes] = await Promise.all([
+    db.from('services').select('*').eq('barbershop_id', shop.id),
+    db.from('barbers').select('*').eq('barbershop_id', shop.id).eq('active', true)
+  ]);
+  services = svcRes.data || [];
+  barbers = barbRes.data || [];
+
+  document.getElementById('ws-loading').style.display = 'none';
+  document.getElementById('ws-content').style.display = 'block';
+
+  await renderWeek();
+});
+
+// ── Navigation ─────────────────────────────────────────────────
+function changeWeek(delta) {
+  weekStart = addDays(weekStart, delta * 7);
+  renderWeek();
+}
+
+function goThisWeek() {
+  weekStart = getMonday(new Date());
+  renderWeek();
+}
+
+function setMode(m) {
+  viewMode = m;
+  document.getElementById('mode-barber').classList.toggle('active', m === 'barber');
+  document.getElementById('mode-todos').classList.toggle('active', m === 'todos');
+  renderGrid();
+}
+
+// ── Fetch & Render ─────────────────────────────────────────────
+async function renderWeek() {
+  // Update label
+  const weekEnd = addDays(weekStart, 6);
+  const label = weekStart.getDate() + ' - ' + weekEnd.getDate() + ' ' + MESES_CURTOS[weekEnd.getMonth()];
+  document.getElementById('week-label').textContent = label;
+
+  // Show/hide HOJE button
+  document.getElementById('btn-hoje').classList.toggle('hidden', isThisWeek());
+
+  // Fetch appointments for the whole week (1 query)
+  const mondayISO = fmtDateISO(weekStart) + 'T00:00:00-03:00';
+  const sundayISO = fmtDateISO(addDays(weekStart, 6)) + 'T23:59:59-03:00';
+
+  const { data: appts } = await db
+    .from('appointments')
+    .select('*')
+    .eq('barbershop_id', shop.id)
+    .gte('scheduled_at', mondayISO)
+    .lte('scheduled_at', sundayISO)
+    .order('scheduled_at', { ascending: true });
+
+  weekAppts = appts || [];
+
+  renderStats();
+  renderGrid();
+  renderMobile();
+}
+
+// ── Stats ──────────────────────────────────────────────────────
+function renderStats() {
+  const total = weekAppts.length;
+  const done = weekAppts.filter(a => a.status === 'done').length;
+  const revenue = weekAppts.filter(a => a.status === 'done').reduce((s, a) => s + (a.price_paid || 0), 0);
+
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-done').textContent = done;
+  document.getElementById('st-revenue').textContent = formatMoney(revenue);
+
+  // Busiest day
+  const dayCounts = {};
+  weekAppts.forEach(a => {
+    if (a.status === 'cancelled') return;
+    const d = new Date(a.scheduled_at);
+    const key = d.getDay(); // 0-6
+    dayCounts[key] = (dayCounts[key] || 0) + 1;
+  });
+
+  let busiestDay = '—';
+  let maxCount = 0;
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+  for (const [day, count] of Object.entries(dayCounts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      busiestDay = dayNames[parseInt(day)];
+    }
+  }
+  document.getElementById('st-busiest').textContent = maxCount > 0 ? busiestDay : '—';
+}
+
+// ── Desktop Grid ───────────────────────────────────────────────
+function renderGrid() {
+  if (viewMode === 'barber') {
+    renderGridBarber();
+  } else {
+    renderGridTodos();
+  }
+}
+
+function renderGridBarber() {
+  const container = document.getElementById('desktop-week');
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
+
+  // Group appointments by barber_id and date
+  const grouped = {}; // barber_id -> { 'YYYY-MM-DD': [appts] }
+  weekAppts.forEach(a => {
+    const bid = a.barber_id || '_none';
+    if (!grouped[bid]) grouped[bid] = {};
+    const dKey = fmtDateISO(new Date(a.scheduled_at));
+    if (!grouped[bid][dKey]) grouped[bid][dKey] = [];
+    grouped[bid][dKey].push(a);
+  });
+
+  let html = '<div class="week-grid" style="grid-template-rows:auto' + ' auto'.repeat(barbers.length || 1) + ';">';
+
+  // Header row
+  html += '<div class="wg-corner">PERSONAL</div>';
+  days.forEach((d, i) => {
+    const jsDay = getWeekDayJS(i);
+    const isToday = isSameDay(d, today);
+    const closed = !isShopOpen(jsDay);
+    html += '<div class="wg-day-header' + (isToday ? ' today' : '') + (closed ? ' closed' : '') + '">';
+    html += DIAS_CURTOS[i] + '<span class="day-num">' + d.getDate() + '</span>';
+    html += '</div>';
+  });
+
+  // Barber rows
+  if (barbers.length === 0) {
+    html += '<div class="wg-barber-label"><span class="wg-bname" style="color:var(--texto-muted);">Nenhum personal</span></div>';
+    days.forEach((d, i) => {
+      html += '<div class="wg-cell"><div class="wg-empty">—</div></div>';
+    });
+  } else {
+    barbers.forEach(b => {
+      // Barber label
+      const initial = (b.name || '?')[0].toUpperCase();
+      html += '<div class="wg-barber-label">';
+      html += '<div class="wg-avatar">' + esc(initial) + '</div>';
+      html += '<div class="wg-bname">' + esc(b.name) + '</div>';
+      html += '</div>';
+
+      // Day cells
+      days.forEach((d, i) => {
+        const jsDay = getWeekDayJS(i);
+        const closed = !isShopOpen(jsDay);
+        const isToday = isSameDay(d, today);
+        const dKey = fmtDateISO(d);
+        const working = isBarberWorking(b, jsDay);
+
+        if (closed) {
+          html += '<div class="wg-cell closed-col' + (isToday ? ' today-col' : '') + '">';
+          html += '<span class="closed-badge">FECHADO</span></div>';
+        } else if (!working) {
+          html += '<div class="wg-cell folga-cell' + (isToday ? ' today-col' : '') + '">';
+          html += '<span class="folga-badge">FOLGA</span></div>';
+        } else {
+          const cellAppts = (grouped[b.id] && grouped[b.id][dKey]) || [];
+          html += '<div class="wg-cell' + (isToday ? ' today-col' : '') + '">';
+          if (cellAppts.length === 0) {
+            html += '<div class="wg-empty">—</div>';
+          } else {
+            cellAppts.forEach(a => {
+              html += renderMiniCard(a);
+            });
+          }
+          html += '</div>';
+        }
+      });
+    });
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderGridTodos() {
+  const container = document.getElementById('desktop-week');
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
+
+  // Group by date
+  const grouped = {};
+  weekAppts.forEach(a => {
+    const dKey = fmtDateISO(new Date(a.scheduled_at));
+    if (!grouped[dKey]) grouped[dKey] = [];
+    grouped[dKey].push(a);
+  });
+
+  let html = '<div class="week-grid-todos">';
+
+  // Headers
+  days.forEach((d, i) => {
+    const jsDay = getWeekDayJS(i);
+    const isToday = isSameDay(d, today);
+    const closed = !isShopOpen(jsDay);
+    html += '<div class="wg-day-header' + (isToday ? ' today' : '') + (closed ? ' closed' : '') + '">';
+    html += DIAS_CURTOS[i] + '<span class="day-num">' + d.getDate() + '</span>';
+    html += '</div>';
+  });
+
+  // Day columns
+  days.forEach((d, i) => {
+    const jsDay = getWeekDayJS(i);
+    const closed = !isShopOpen(jsDay);
+    const isToday = isSameDay(d, today);
+    const dKey = fmtDateISO(d);
+
+    if (closed) {
+      html += '<div class="wgt-day closed-col"><span class="closed-badge">FECHADO</span></div>';
+    } else {
+      const dayAppts = grouped[dKey] || [];
+      html += '<div class="wgt-day' + (isToday ? ' today-col' : '') + '">';
+      if (dayAppts.length === 0) {
+        html += '<div class="wg-empty" style="padding:20px 0;">—</div>';
+      } else {
+        dayAppts.forEach(a => {
+          html += renderMiniCard(a, true);
+        });
+      }
+      html += '</div>';
+    }
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderMiniCard(a, showBarber) {
+  const time = apptTime(a);
+  const name = a.client_name || 'Cliente';
+  const dKey = fmtDateISO(new Date(a.scheduled_at));
+  let html = '<div class="appt-mini st-' + esc(a.status) + '" onclick="goToDay(\'' + dKey + '\')" title="' + esc(name) + ' - ' + esc(getServiceName(a.service_id)) + '">';
+  html += '<div class="am-time">' + time + '</div>';
+  html += '<div class="am-name">' + esc(name) + '</div>';
+  if (showBarber && a.barber_id) {
+    html += '<div style="font-size:9px;opacity:0.7;margin-top:1px;">' + esc(getBarberName(a.barber_id)) + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Mobile Collapsible ─────────────────────────────────────────
+function renderMobile() {
+  const container = document.getElementById('mobile-week');
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
+
+  // Group by date + barber
+  const grouped = {};
+  weekAppts.forEach(a => {
+    const dKey = fmtDateISO(new Date(a.scheduled_at));
+    if (!grouped[dKey]) grouped[dKey] = [];
+    grouped[dKey].push(a);
+  });
+
+  let html = '';
+  days.forEach((d, i) => {
+    const jsDay = getWeekDayJS(i);
+    const isToday = isSameDay(d, today);
+    const closed = !isShopOpen(jsDay);
+    const dKey = fmtDateISO(d);
+    const dayAppts = grouped[dKey] || [];
+    const activeAppts = dayAppts.filter(a => a.status !== 'cancelled');
+    const openByDefault = isToday;
+
+    html += '<div class="mw-day' + (openByDefault ? ' open' : '') + '">';
+
+    // Header
+    html += '<div class="mw-day-header' + (isToday ? ' today-header' : '') + '" onclick="toggleMwDay(this)">';
+    html += '<div>';
+    html += '<span class="mw-day-name">' + DIAS_NOMES[i] + '</span>';
+    html += '<span class="mw-day-date">' + d.getDate() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '</span>';
+    html += '</div>';
+    if (closed) {
+      html += '<span class="mw-day-count">FECHADO</span>';
+    } else {
+      html += '<span class="mw-day-count' + (activeAppts.length > 0 ? ' has-appts' : '') + '">' + activeAppts.length + '</span>';
+    }
+    html += '</div>';
+
+    // Body
+    html += '<div class="mw-day-body">';
+    if (closed) {
+      html += '<div class="mw-day-closed">Estabelecimento fechado</div>';
+    } else if (dayAppts.length === 0) {
+      html += '<div class="mw-day-closed">Nenhum agendamento</div>';
+    } else {
+      // Group by barber
+      const byBarber = {};
+      dayAppts.forEach(a => {
+        const bid = a.barber_id || '_none';
+        if (!byBarber[bid]) byBarber[bid] = [];
+        byBarber[bid].push(a);
+      });
+
+      barbers.forEach(b => {
+        const working = isBarberWorking(b, jsDay);
+        const bAppts = byBarber[b.id] || [];
+
+        html += '<div class="mw-barber-section">' + esc(b.name).toUpperCase();
+        if (!working) html += ' &middot; FOLGA';
+        html += '</div>';
+
+        if (!working && bAppts.length === 0) {
+          html += '<div class="mw-folga">Folga</div>';
+        } else if (bAppts.length === 0) {
+          html += '<div class="mw-folga">Sem agendamentos</div>';
+        } else {
+          bAppts.forEach(a => {
+            html += '<div class="mw-appt" onclick="goToDay(\'' + dKey + '\')">';
+            html += '<div class="mw-appt-time" style="color:' + statusColor(a.status) + ';">' + apptTime(a) + '</div>';
+            html += '<div class="mw-appt-info">';
+            html += '<div class="mw-appt-name">' + esc(a.client_name || 'Cliente') + '</div>';
+            html += '<div class="mw-appt-meta">' + esc(getServiceName(a.service_id)) + '</div>';
+            html += '</div>';
+            html += '<span class="mw-appt-status mw-st-' + esc(a.status) + '">' + (STATUS_LABELS[a.status] || a.status) + '</span>';
+            html += '</div>';
+          });
+        }
+      });
+
+      // Appointments without barber
+      if (byBarber['_none'] && byBarber['_none'].length > 0) {
+        html += '<div class="mw-barber-section">SEM PERSONAL</div>';
+        byBarber['_none'].forEach(a => {
+          html += '<div class="mw-appt" onclick="goToDay(\'' + dKey + '\')">';
+          html += '<div class="mw-appt-time" style="color:' + statusColor(a.status) + ';">' + apptTime(a) + '</div>';
+          html += '<div class="mw-appt-info">';
+          html += '<div class="mw-appt-name">' + esc(a.client_name || 'Cliente') + '</div>';
+          html += '<div class="mw-appt-meta">' + esc(getServiceName(a.service_id)) + '</div>';
+          html += '</div>';
+          html += '<span class="mw-appt-status mw-st-' + esc(a.status) + '">' + (STATUS_LABELS[a.status] || a.status) + '</span>';
+          html += '</div>';
+        });
+      }
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function statusColor(status) {
+  const map = { confirmed:'#d4a853', done:'#2ecc71', cancelled:'#e74c3c', no_show:'#9b59b6', pending:'#f39c12' };
+  return map[status] || '#a3a3a3';
+}
+
+function toggleMwDay(header) {
+  header.closest('.mw-day').classList.toggle('open');
+}
+
+function goToDay(dateStr) {
+  // Navigate to dashboard with that date
+  window.location.href = 'dashboard.html?date=' + dateStr;
+}
+</script>
+<script src="js/ajuda.js?v=03201128" defer></script>
+<script src="js/sw-update.js?v=03201128" defer></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

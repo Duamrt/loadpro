@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Clientes</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .cli-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .cli-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .cli-header h1 { font-size:18px; font-weight:700; }
+    .cli-count { font-size:12px; color:var(--texto-muted); font-weight:600; }
+
+    .search-bar {
+      margin-bottom:16px;
+    }
+    .search-bar input {
+      width:100%; padding:12px 14px; background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:10px; color:var(--texto-principal); font-size:14px; font-family:inherit;
+      box-sizing:border-box;
+    }
+    .search-bar input:focus { border-color:var(--verde-acao); outline:none; }
+    .search-bar input::placeholder { color:var(--texto-muted); }
+
+    .client-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:14px; margin-bottom:8px; transition:all .2s; cursor:pointer;
+    }
+    .client-card:hover { border-color:var(--verde-acao); transform:translateY(-1px); }
+    .client-top { display:flex; justify-content:space-between; align-items:center; }
+    .client-name { font-size:14px; font-weight:700; }
+    .client-phone { font-size:12px; color:var(--texto-muted); margin-top:2px; }
+    .client-stats { font-size:11px; color:var(--texto-muted); margin-top:4px; }
+    .client-stats strong { color:var(--verde-acao); }
+
+    .client-avatar {
+      width:36px; height:36px; border-radius:50%;
+      background:var(--accent-avatar); display:flex; align-items:center;
+      justify-content:center; font-size:16px; font-weight:800; color:#fff;
+      flex-shrink:0;
+    }
+
+    .client-actions { display:flex; gap:6px; margin-top:10px; }
+    .client-btn {
+      padding:7px 14px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:11px;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
+      text-decoration:none;
+    }
+    .client-btn:hover { border-color:var(--verde-acao); color:var(--verde-acao); }
+    .client-btn.whatsapp { border-color:rgba(37,211,102,0.3); color:#25d366; }
+    .client-btn.whatsapp:hover { background:rgba(37,211,102,0.1); }
+
+    .empty-state {
+      text-align:center; padding:40px 20px; color:var(--texto-muted);
+    }
+
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+        .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+    body { padding-bottom:70px; }
+  </style>
+</head>
+<body>
+
+<div class="cli-container">
+
+  <div id="loading" style="text-align:center;padding:60px 0;">
+    <div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando clientes...</div>
+  </div>
+
+  <div id="content" style="display:none;">
+    <div class="cli-header">
+      <div style="display:flex;align-items:center;gap:8px;"><button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button><h1>Clientes</h1></div>
+      <span class="cli-count" id="cli-total"></span>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Buscar por nome ou telefone..." oninput="filtrar()">
+    </div>
+
+    <div id="cli-list"></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item active" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Serviços</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatório</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retenção</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfação</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+let shop = null;
+let allClients = [];
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Buscar todos os agendamentos done/confirmed pra consolidar clientes
+  const { data: appts } = await sb.from('appointments')
+    .select('client_name,client_phone,scheduled_at,status')
+    .eq('barbershop_id', shop.id)
+    .in('status', ['done','confirmed','pending'])
+    .order('scheduled_at', { ascending: false });
+  const apptList = appts || [];
+
+  // Consolidar clientes unicos por telefone
+  const map = {};
+  for (const a of apptList) {
+    const phone = (a.client_phone || '').replace(/\D/g, '');
+    if (!phone) continue;
+    if (!map[phone]) {
+      map[phone] = {
+        name: a.client_name,
+        phone: a.client_phone,
+        phoneClean: phone,
+        visits: 0,
+        done: 0,
+        lastVisit: null,
+        firstVisit: null
+      };
+    }
+    map[phone].visits++;
+    if (a.status === 'done') map[phone].done++;
+    // Nome mais recente
+    if (!map[phone].lastVisit || a.scheduled_at > map[phone].lastVisit) {
+      map[phone].lastVisit = a.scheduled_at;
+      map[phone].name = a.client_name;
+    }
+    if (!map[phone].firstVisit || a.scheduled_at < map[phone].firstVisit) {
+      map[phone].firstVisit = a.scheduled_at;
+    }
+  }
+
+  allClients = Object.values(map).sort((a, b) => (b.lastVisit || '').localeCompare(a.lastVisit || ''));
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  document.getElementById('cli-total').textContent = allClients.length + ' cliente' + (allClients.length !== 1 ? 's' : '');
+
+  renderClients(allClients);
+});
+
+function filtrar() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  if (!q) { renderClients(allClients); return; }
+  const filtered = allClients.filter(c =>
+    c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.phoneClean.includes(q)
+  );
+  renderClients(filtered);
+}
+
+function renderClients(list) {
+  const el = document.getElementById('cli-list');
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div style="font-size:40px;margin-bottom:12px;">&#x1F4CB;</div><div>Nenhum cliente encontrado.</div></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(c => {
+    const inicial = c.name.charAt(0).toUpperCase();
+    const ultima = c.lastVisit ? formatDate(c.lastVisit) : '—';
+    const primeira = c.firstVisit ? formatDate(c.firstVisit) : '—';
+
+    const histUrl = 'historico-cliente.html?phone=' + encodeURIComponent(c.phone);
+    return '<div class="client-card" onclick="if(!event.target.closest(\'.client-actions\'))window.location.href=\'' + histUrl + '\'">' +
+      '<div class="client-top">' +
+        '<div style="display:flex;align-items:center;gap:12px;">' +
+          '<div class="client-avatar">' + inicial + '</div>' +
+          '<div>' +
+            '<div class="client-name">' + esc(c.name) + '</div>' +
+            '<div class="client-phone">' + esc(c.phone) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="client-stats">' +
+        '<strong>' + c.done + '</strong> atendimento' + (c.done !== 1 ? 's' : '') +
+        ' · Ultima visita: ' + ultima +
+        ' · Cliente desde: ' + primeira +
+      '</div>' +
+      '<div class="client-actions">' +
+        '<a href="' + histUrl + '" class="client-btn" style="color:var(--verde-acao);border-color:var(--accent-border);">VER FICHA</a>' +
+        '<a href="https://wa.me/55' + c.phoneClean + '" target="_blank" class="client-btn whatsapp">ZAP</a>' +
+        '<button class="client-btn" onclick="copiarTelefone(\'' + esc(c.phoneClean) + '\',this)">COPIAR TEL</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function copiarTelefone(phone, btn) {
+  navigator.clipboard.writeText(phone).then(() => {
+    btn.textContent = 'COPIADO!';
+    setTimeout(() => btn.textContent = 'COPIAR TEL', 2000);
+  });
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NaLinha — Gestão para Personal Trainers</title>
+<meta name="description" content="Agenda online para academias, estética, sobrancelhas, unhas e salões. Controle de caixa, estoque e relatórios. 30 dias grátis.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NaLinha — Gestão para Personal Trainers">
+<meta property="og:description" content="Agenda online para academias, estética, sobrancelhas e salões. 30 dias grátis, sem cartão.">
+<meta property="og:image" content="https://usenalinha.com.br/img/og-preview.png">
+<meta property="og:url" content="https://usenalinha.com.br">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f0e8;
+    --gold: #22c55e;
+    --gold-light: #4ade80;
+    --gold-dark: #16a34a;
+    --gray: #1a1a1a;
+    --gray-mid: #2e2e2e;
+    --gray-text: #888;
+    --radius: 16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE TEXTURE ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(34,197,94,0.1);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+    color: var(--white);
+  }
+
+  .logo span { color: var(--gold); }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 40px;
+  }
+
+  nav ul li a {
+    color: var(--gray-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  nav ul li a:hover { color: var(--white); }
+
+  .nav-cta {
+    background: var(--gold);
+    color: var(--black) !important;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    transition: background 0.2s, transform 0.2s !important;
+  }
+
+  .nav-cta:hover {
+    background: var(--gold-light) !important;
+    transform: translateY(-1px);
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 140px 24px 80px;
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--gold-light);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
+    animation: fadeUp 0.6s ease both;
+  }
+  /* ─── BTN BLOCK (pricing) ─── */
+  .btn-block {
+    display: block;
+    text-align: center;
+    width: 100%;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 1.0;
+    letter-spacing: -2px;
+    max-width: 900px;
+    animation: fadeUp 0.7s ease 0.1s both;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--gold);
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--gray-text);
+    max-width: 560px;
+    margin: 24px auto 0;
+    font-weight: 300;
+    animation: fadeUp 0.7s ease 0.2s both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.7s ease 0.3s both;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--black);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .btn-primary:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(34,197,94,0.25);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.15);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .btn-ghost:hover {
+    border-color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* glow */
+  .hero-glow {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* nichos pill list */
+  .nichos {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 40px;
+    animation: fadeUp 0.7s ease 0.4s both;
+  }
+
+  .nicho-pill {
+    background: var(--gray);
+    border: 1px solid var(--gray-mid);
+    color: var(--gray-text);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  /* ─── STATS ─── */
+  .stats {
+    border-top: 1px solid var(--gray-mid);
+    border-bottom: 1px solid var(--gray-mid);
+    padding: 48px 48px;
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    flex-wrap: wrap;
+    background: var(--gray);
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--gold);
+    letter-spacing: -1px;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--gray-text);
+    margin-top: 4px;
+  }
+
+  /* ─── SECTION BASE ─── */
+  section {
+    padding: 100px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  h2 span { color: var(--gold); }
+
+  .section-sub {
+    color: var(--gray-text);
+    font-size: 1.05rem;
+    margin-top: 16px;
+    max-width: 480px;
+    font-weight: 300;
+  }
+
+  /* ─── FEATURES GRID ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 56px;
+  }
+
+  .feat-card {
+    background: var(--gray);
+    border: 1px solid var(--gray-mid);
+    border-radius: var(--radius);
+    padding: 32px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feat-card:hover {
+    border-color: rgba(34,197,94,0.3);
+    transform: translateY(-4px);
+  }
+
+  .feat-card:hover::before { opacity: 1; }
+
+  .feat-icon {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .feat-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+  }
+
+  .feat-desc {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  /* ─── BIG FEATURE SPLIT ─── */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .split.reverse { direction: rtl; }
+  .split.reverse > * { direction: ltr; }
+
+  .split-visual {
+    background: var(--gray);
+    border: 1px solid var(--gray-mid);
+    border-radius: 24px;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Mock UI inside split visual */
+  .mock-ui {
+    width: 85%;
+    background: #111;
+    border-radius: 12px;
+    border: 1px solid #2a2a2a;
+    padding: 16px;
+    font-size: 0.7rem;
+  }
+
+  .mock-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #222;
+  }
+
+  .mock-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .mock-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #1a1a1a;
+    color: #aaa;
+  }
+
+  .mock-row:last-child { border: none; }
+
+  .mock-badge {
+    background: rgba(34,197,94,0.15);
+    color: var(--gold);
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+
+  .mock-badge.done {
+    background: rgba(100,200,100,0.12);
+    color: #6dca6d;
+  }
+
+  .mock-amount {
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+
+  /* cash mock */
+  .mock-cash {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .mock-cash-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .mock-cash-label { color: #555; font-size: 0.65rem; margin-bottom: 4px; }
+  .mock-cash-value { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+  .green { color: #6dca6d; }
+  .red { color: #e06060; }
+
+  /* ─── NICHO SECTION ─── */
+  .nichos-section { background: var(--gray); }
+  .nichos-wrap { max-width: 1200px; margin: 0 auto; padding: 100px 48px; }
+
+  .nichos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 48px;
+    max-width: 900px;
+  }
+
+  @media (max-width: 560px) {
+    .nichos-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+
+  .nicho-card {
+    background: var(--black);
+    border: 1px solid var(--gray-mid);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .nicho-card:hover {
+    border-color: var(--gold-dark);
+    background: rgba(34,197,94,0.04);
+  }
+
+  .nicho-emoji { font-size: 2.2rem; margin-bottom: 12px; display: block; }
+  .nicho-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+
+  /* ─── TESTIMONIALS ─── */
+  .testi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 56px;
+  }
+
+  .testi-card {
+    background: var(--gray);
+    border: 1px solid var(--gray-mid);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+
+  .testi-stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 14px; }
+
+  .testi-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+
+  .testi-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .testi-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--gold-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--black);
+    flex-shrink: 0;
+  }
+
+  .testi-name { font-weight: 600; font-size: 0.9rem; }
+  .testi-role { color: var(--gray-text); font-size: 0.8rem; }
+
+  /* ─── PRICING ─── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 56px;
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .price-card {
+    background: var(--gray);
+    border: 1px solid var(--gray-mid);
+    border-radius: 24px;
+    padding: 36px 32px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .price-card.featured {
+    background: linear-gradient(145deg, #1e1a10, #1a1608);
+    border-color: var(--gold-dark);
+    box-shadow: 0 0 60px rgba(34,197,94,0.1);
+  }
+
+  .price-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: var(--black);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 100px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .price-plan {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+
+  .price-desc { color: var(--gray-text); font-size: 0.85rem; margin-bottom: 24px; }
+
+  .price-value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 28px;
+  }
+
+  .price-currency { font-size: 1rem; color: var(--gold); margin-top: 8px; }
+  .price-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 3rem;
+    letter-spacing: -2px;
+    color: var(--white);
+  }
+  .price-period { color: var(--gray-text); font-size: 0.85rem; }
+
+  .price-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .price-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #ccc;
+  }
+
+  .price-features li::before {
+    content: '✓';
+    color: var(--gold);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .price-features li.off { color: #555; }
+  .price-features li.off::before { content: '✗'; color: #444; }
+
+  /* ─── CTA FINAL ─── */
+  .cta-section {
+    text-align: center;
+    padding: 120px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(34,197,94,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-section h2 { max-width: 700px; margin: 0 auto 20px; }
+  .cta-section .section-sub { margin: 0 auto 40px; }
+
+  .cta-note {
+    margin-top: 20px;
+    color: var(--gray-text);
+    font-size: 0.85rem;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--gray-mid);
+    padding: 40px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    color: var(--gray-text);
+    font-size: 0.85rem;
+  }
+
+  footer a { color: var(--gray-text); text-decoration: none; }
+  footer a:hover { color: var(--white); }
+
+  .footer-links { display: flex; gap: 32px; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── HAMBURGER ─── */
+  .nav-hamburger {
+    display: none;
+    background: none; border: none; cursor: pointer;
+    flex-direction: column; gap: 5px; padding: 8px;
+  }
+  .nav-hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--white); border-radius: 2px; transition: all 0.2s;
+  }
+
+  /* ─── WHATSAPP FLOAT ─── */
+  .whatsapp-float {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #25d366; display: flex; align-items: center;
+    justify-content: center; box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(37,211,102,0.5); }
+  .whatsapp-float svg { width: 28px; height: 28px; fill: #fff; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-hamburger { display: flex; }
+    nav ul {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      background: rgba(10,10,10,0.95); backdrop-filter: blur(16px);
+      flex-direction: column; padding: 16px 20px; gap: 0;
+      border-bottom: 1px solid rgba(34,197,94,0.1);
+    }
+    nav ul.open { display: flex; }
+    nav ul li a {
+      display: block; padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 1rem;
+    }
+    nav ul li:last-child a { border: none; margin-top: 8px; text-align: center; }
+    section { padding: 60px 20px; }
+    .stats { padding: 40px 20px; gap: 40px; }
+    .split { grid-template-columns: 1fr; gap: 40px; }
+    .split.reverse { direction: ltr; }
+    footer { padding: 32px 20px; flex-direction: column; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+    .nichos-wrap { padding: 60px 20px; }
+    h1 { letter-spacing: -1px; }
+    .pricing-grid { grid-template-columns: 1fr !important; max-width: 400px !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Na<span>Regua</span></div>
+  <button class="nav-hamburger" onclick="document.getElementById('nav-menu').classList.toggle('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul id="nav-menu">
+    <li><a href="#funcionalidades" onclick="document.getElementById('nav-menu').classList.remove('open')">Funcionalidades</a></li>
+    <li><a href="#para-quem" onclick="document.getElementById('nav-menu').classList.remove('open')">Para quem</a></li>
+    <li><a href="#planos" onclick="document.getElementById('nav-menu').classList.remove('open')">Planos</a></li>
+    <li><a href="#faq" onclick="document.getElementById('nav-menu').classList.remove('open')">FAQ</a></li>
+    <li><a href="app.html" class="nav-cta">Entrar no sistema</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge">✦ Feito para personal trainers que querem escalar sem perder o controle</div>
+  <h1>Treinos, dieta e alunos.<em> Tudo num só lugar.</em></h1>
+  <p class="hero-sub">Prescreva treinos, monte dietas, acompanhe evolução, controle pagamentos e agenda — sem planilha, sem WhatsApp.</p>
+  <div class="hero-actions">
+    <a href="app.html" class="btn-primary">Criar conta grátis</a>
+    <a href="#diferenciais" class="btn-ghost">Como funciona →</a>
+  </div>
+  <p style="margin-top:20px;font-size:0.9rem;color:var(--gray-text);animation:fadeUp 0.7s ease 0.35s both;">30 dias grátis • Sem cartão • Cancela quando quiser</p>
+  <div class="nichos">
+    <span class="nicho-pill">💪 Personal Trainer</span>
+    <span class="nicho-pill">🏋️ Estúdio</span>
+    <span class="nicho-pill">🧘 Pilates</span>
+    <span class="nicho-pill">🥊 Funcional</span>
+    <span class="nicho-pill">🏃 Assessoria</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat reveal">
+    <div class="stat-num">24h</div>
+    <div class="stat-label">sua agenda disponível pro cliente</div>
+  </div>
+  <div class="stat reveal">
+    <div class="stat-num">0</div>
+    <div class="stat-label">papelada ou caderninho</div>
+  </div>
+  <div class="stat reveal">
+    <div class="stat-num">1 min</div>
+    <div class="stat-label">para criar sua conta e começar</div>
+  </div>
+  <div class="stat reveal">
+    <div class="stat-num">R$0</div>
+    <div class="stat-label">para testar, sem cartão</div>
+  </div>
+</div>
+<div style="text-align:center;padding:24px 20px 0;">
+  <a href="app.html" style="color:var(--gold);font-size:0.95rem;font-weight:600;text-decoration:none;">Cria sua conta em 1 minuto →</a>
+</div>
+
+<!-- FEATURES -->
+<section id="funcionalidades">
+  <div class="reveal">
+    <div class="section-tag">Funcionalidades</div>
+    <h2>Tudo que você precisa.<span> Nada que você não precisa.</span></h2>
+    <p class="section-sub">Ferramentas diretas ao ponto — sem complicação, sem treinamento longo, sem enrolação.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <span class="feat-icon">📋</span>
+      <div class="feat-title">Prescrição de treino</div>
+      <p class="feat-desc">Monte fichas completas com exercícios, séries, repetições e carga. O aluno vê no celular na hora do treino.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">🥗</span>
+      <div class="feat-title">Plano alimentar</div>
+      <p class="feat-desc">Prescreva dietas com refeições, macros e observações. O aluno consulta a qualquer hora sem te mandar mensagem.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">📈</span>
+      <div class="feat-title">Evolução do aluno</div>
+      <p class="feat-desc">Registre peso, medidas e fotos. O aluno acompanha o progresso com gráficos — e você prova seu resultado.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">📅</span>
+      <div class="feat-title">Agenda inteligente</div>
+      <p class="feat-desc">O aluno agenda pelo link, sem WhatsApp. Controle de presença automático — quem veio, quem faltou.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">💰</span>
+      <div class="feat-title">Controle financeiro</div>
+      <p class="feat-desc">Mensalidades, pagamentos avulsos, comissões. Sabe exatamente quanto entrou e quem tá devendo.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">📱</span>
+      <div class="feat-title">App do aluno</div>
+      <p class="feat-desc">Seu aluno abre o link no celular e vê: treino do dia, dieta, evolução e próximo horário. Sem instalar nada.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SPLIT — Agenda -->
+<section>
+  <div class="split reveal">
+    <div>
+      <div class="section-tag">Agenda online</div>
+      <h2>Fim do <span>WhatsApp caótico.</span></h2>
+      <p class="section-sub" style="max-width:400px">Seu cliente entra no link, escolhe o horário e confirma sozinho. Você não precisa parar o que está fazendo para responder mensagem.</p>
+      <br><br>
+      <a href="app.html" class="btn-primary">Criar conta grátis</a>
+    </div>
+    <div class="split-visual">
+      <div class="mock-ui">
+        <div class="mock-header">
+          <div class="mock-dot" style="background:#e06060"></div>
+          <div class="mock-dot" style="background:#e0a060"></div>
+          <div class="mock-dot" style="background:#6dca6d"></div>
+          <span style="color:#555;margin-left:8px;font-size:0.65rem">Agenda de hoje</span>
+        </div>
+        <div class="mock-row">
+          <span>09:00 — Lucas M.</span>
+          <span class="mock-badge done">Confirmado</span>
+        </div>
+        <div class="mock-row">
+          <span>10:30 — Ana Paula</span>
+          <span class="mock-badge done">Confirmado</span>
+        </div>
+        <div class="mock-row">
+          <span>12:00 — Marcos F.</span>
+          <span class="mock-badge">Aguardando</span>
+        </div>
+        <div class="mock-row">
+          <span>14:00 — Juliana R.</span>
+          <span class="mock-badge">Aguardando</span>
+        </div>
+        <div class="mock-row">
+          <span>15:30 — Pedro A.</span>
+          <span class="mock-badge done">Confirmado</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPLIT — Caixa (reverse) -->
+<section>
+  <div class="split reverse reveal">
+    <div>
+      <div class="section-tag">Controle financeiro</div>
+      <h2>Sabe quanto <span>sobrou hoje?</span></h2>
+      <p class="section-sub" style="max-width:400px">Com o NaLinha você fecha o caixa em segundos. Entradas, saídas, comissões — tudo registrado, tudo visível, sem surpresa no final do mês.</p>
+      <br><br>
+      <a href="app.html" class="btn-primary">Criar conta grátis</a>
+    </div>
+    <div class="split-visual">
+      <div class="mock-ui">
+        <div class="mock-header">
+          <div class="mock-dot" style="background:#e06060"></div>
+          <div class="mock-dot" style="background:#e0a060"></div>
+          <div class="mock-dot" style="background:#6dca6d"></div>
+          <span style="color:#555;margin-left:8px;font-size:0.65rem">Resumo financeiro</span>
+        </div>
+        <div class="mock-cash">
+          <div class="mock-cash-card">
+            <div class="mock-cash-label">Entradas</div>
+            <div class="mock-cash-value green">R$ 1.840</div>
+          </div>
+          <div class="mock-cash-card">
+            <div class="mock-cash-label">Saídas</div>
+            <div class="mock-cash-value red">R$ 420</div>
+          </div>
+          <div class="mock-cash-card" style="grid-column: span 2; background:#0e1a0e;">
+            <div class="mock-cash-label">Lucro do dia</div>
+            <div class="mock-cash-value green" style="font-size:1.4rem">R$ 1.420</div>
+          </div>
+        </div>
+        <div class="mock-row">
+          <span>Comissão — Ana</span>
+          <span class="mock-amount">R$ 180</span>
+        </div>
+        <div class="mock-row">
+          <span>Comissão — Marcos</span>
+          <span class="mock-amount">R$ 240</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MUITO ALÉM DA AGENDA -->
+<section id="diferenciais" style="padding-bottom:40px;">
+  <div class="reveal" style="text-align:center;margin-bottom:56px;">
+    <div class="section-tag">Diferenciais</div>
+    <h2>Muito além da <span>planilha.</span></h2>
+    <p class="section-sub" style="margin:16px auto 0;max-width:560px;">Enquanto outros apps só fazem agenda, o NaLinha entrega prescrição de treino, dieta, evolução e gestão completa — tudo que o personal precisa.</p>
+  </div>
+  <div class="features-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+    <div class="feat-card reveal">
+      <span class="feat-icon">🔄</span>
+      <div class="feat-title">Planos mensais</div>
+      <p class="feat-desc">Crie planos por aluno — mensal, trimestral, semestral. Controle quem pagou, quem renovou e quem venceu automaticamente.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">📊</span>
+      <div class="feat-title">Controle de presença</div>
+      <p class="feat-desc">Veja quem veio e quem faltou. O sistema identifica alunos que estão sumindo antes que cancelem o plano.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">🎯</span>
+      <div class="feat-title">Retenção de alunos</div>
+      <p class="feat-desc">Aluno não apareceu essa semana? O sistema avisa. Você recupera antes que ele desista e vá pra outro personal.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">📸</span>
+      <div class="feat-title">Antes e depois</div>
+      <p class="feat-desc">Registre fotos de evolução do aluno. Nada vende mais personal do que resultado comprovado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MOCK MENU — 35+ FUNCIONALIDADES -->
+<section style="padding-top:40px;">
+  <div class="split reveal">
+    <div>
+      <div class="section-tag">Plataforma completa</div>
+      <h2>Tudo que o personal <span>precisa.</span></h2>
+      <p class="section-sub" style="max-width:400px">Não é um app de agenda que faz "um pouco de cada coisa". É um sistema completo construído pra quem vive de treinar pessoas.</p>
+      <br><br>
+      <a href="app.html" class="btn-primary">Criar conta grátis</a>
+    </div>
+    <div class="split-visual" style="aspect-ratio:3/4;">
+      <div class="mock-ui" style="width:90%;font-size:0.65rem;">
+        <div class="mock-header" style="margin-bottom:8px;padding-bottom:8px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.6rem;color:#000;">N</div>
+          <span style="color:var(--white);font-weight:700;font-size:0.7rem;">NaLinha</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <div style="color:var(--gold);font-size:0.55rem;font-weight:700;letter-spacing:1px;padding:6px 0 2px;">TREINO</div>
+          <div style="padding:5px 8px;border-radius:6px;color:#ccc;background:rgba(34,197,94,0.08);">📋 Fichas de treino</div>
+          <div style="padding:5px 8px;color:#888;">🥗 Planos alimentares</div>
+          <div style="padding:5px 8px;color:#888;">📈 Evolução (peso/medidas)</div>
+          <div style="padding:5px 8px;color:#888;">📸 Fotos antes/depois</div>
+
+          <div style="color:var(--gold);font-size:0.55rem;font-weight:700;letter-spacing:1px;padding:6px 0 2px;">AGENDA</div>
+          <div style="padding:5px 8px;color:#888;">📅 Dashboard</div>
+          <div style="padding:5px 8px;color:#888;">📆 Agenda semanal</div>
+          <div style="padding:5px 8px;color:#888;">✅ Presença (veio/faltou)</div>
+          <div style="padding:5px 8px;color:#888;">🔗 Link pro aluno</div>
+
+          <div style="color:var(--gold);font-size:0.55rem;font-weight:700;letter-spacing:1px;padding:6px 0 2px;">FINANCEIRO</div>
+          <div style="padding:5px 8px;color:#888;">💰 Caixa</div>
+          <div style="padding:5px 8px;color:#888;">🔄 Mensalidades</div>
+          <div style="padding:5px 8px;color:#888;">📊 Relatórios</div>
+          <div style="padding:5px 8px;color:#888;">🎯 Metas</div>
+
+          <div style="color:var(--gold);font-size:0.55rem;font-weight:700;letter-spacing:1px;padding:6px 0 2px;">ALUNOS</div>
+          <div style="padding:5px 8px;color:#888;">👤 Base de alunos</div>
+          <div style="padding:5px 8px;color:#888;">🎟️ Pacotes</div>
+          <div style="padding:5px 8px;color:#888;">📣 Retenção</div>
+          <div style="padding:5px 8px;color:#888;">⭐ Satisfação</div>
+
+          <div style="color:var(--gold);font-size:0.55rem;font-weight:700;letter-spacing:1px;padding:6px 0 2px;">GESTÃO</div>
+          <div style="padding:5px 8px;color:#888;">👥 Equipe</div>
+          <div style="padding:5px 8px;color:#888;">🏋️ Serviços</div>
+          <div style="padding:5px 8px;color:#888;">📦 Suplementos</div>
+          <div style="padding:5px 8px;color:#888;">⚙️ Configurações</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUEM -->
+<div class="nichos-section" id="para-quem">
+  <div class="nichos-wrap">
+    <div class="reveal">
+      <div class="section-tag">Para quem é</div>
+      <h2>Feito para <span>personal trainers.</span></h2>
+      <p class="section-sub">Personal trainer, estúdio, pilates, funcional, assessoria — qualquer modalidade, qualquer tamanho.</p>
+    </div>
+    <div class="nichos-grid" style="max-width: 640px;">
+      <div class="nicho-card reveal">
+        <span class="nicho-emoji">💪</span>
+        <div class="nicho-name">Personal Trainer</div>
+      </div>
+      <div class="nicho-card reveal">
+        <span class="nicho-emoji">💅</span>
+        <div class="nicho-name">Estúdio Fitness</div>
+      </div>
+      <div class="nicho-card reveal">
+        <span class="nicho-emoji">🧘</span>
+        <div class="nicho-name">Pilates</div>
+      </div>
+      <div class="nicho-card reveal">
+        <span class="nicho-emoji">🪒</span>
+        <div class="nicho-name">Funcional / Cross</div>
+      </div>
+      <div class="nicho-card reveal">
+        <span class="nicho-emoji">💇</span>
+        <div class="nicho-name">Assessoria Corrida</div>
+      </div>
+      <div class="nicho-card reveal">
+        <span class="nicho-emoji">👥</span>
+        <div class="nicho-name">Equipe / Estúdio</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<section id="depoimentos">
+  <div class="reveal">
+    <div class="section-tag">Depoimentos</div>
+    <h2>Quem usa, <span>não volta pro WhatsApp.</span></h2>
+  </div>
+  <div class="testi-grid" style="max-width:700px;">
+    <div class="testi-card reveal">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"Antes eu perdia horário toda semana por falta de confirmação. Agora o cliente agenda sozinho e eu só apareço para atender."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">RM</div>
+        <div>
+          <div class="testi-name">Rafael Moura</div>
+          <div class="testi-role">Personal Trainer — Limoeiro, PE</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"Agora eu sei exatamente quanto entrou e quanto saiu todo dia. Antes eu fechava o mês no prejuízo sem saber por quê."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">TC</div>
+        <div>
+          <div class="testi-name">Thiago Costa</div>
+          <div class="testi-role">Personal Trainer — Limoeiro, PE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="planos">
+  <div class="reveal" style="text-align:center">
+    <div class="section-tag">Planos</div>
+    <h2>Simples assim. <span>Sem pegadinha.</span></h2>
+    <p class="section-sub" style="margin: 16px auto 0">Menos que um corte por mês. Com tudo que sua academia precisa.</p>
+  </div>
+
+  <div class="pricing-grid reveal" style="grid-template-columns:repeat(3,1fr);max-width:960px;">
+    <!-- BÁSICO -->
+    <div class="price-card">
+      <div class="price-plan">Básico</div>
+      <p class="price-desc">Pra quem trabalha sozinho e quer sair do caderninho.</p>
+      <div class="price-value">
+        <span class="price-currency">R$</span>
+        <span class="price-num">29</span>
+        <span class="price-period">,90/mês</span>
+      </div>
+      <ul class="price-features">
+        <li>1 profissional</li>
+        <li>Agendamento online 24/7</li>
+        <li>Agenda do dia + semanal</li>
+        <li>Financeiro básico (caixa)</li>
+        <li>Clientes + histórico</li>
+        <li>QR Code + link público</li>
+        <li>Tema claro/escuro</li>
+      </ul>
+      <a href="app.html" class="btn-ghost btn-block">Começar grátis</a>
+      <p style="text-align:center;font-size:0.75rem;color:var(--gray-text);margin-top:10px;">30 dias grátis • Sem cartão • Cancela quando quiser</p>
+    </div>
+
+    <!-- PERSONAL -->
+    <div class="price-card featured">
+      <div class="price-badge">Mais popular</div>
+      <div class="price-plan" style="margin-top:8px;">Personal</div>
+      <p class="price-desc">Pra quem tem equipe e quer controle total.</p>
+      <div class="price-value">
+        <span class="price-currency">R$</span>
+        <span class="price-num">49</span>
+        <span class="price-period">,90/mês</span>
+      </div>
+      <ul class="price-features">
+        <li>Até 3 profissionais</li>
+        <li>Tudo do Básico</li>
+        <li>Estoque + produtos</li>
+        <li>Comandas + comissões</li>
+        <li>Pacotes de serviços</li>
+        <li>Relatórios avançados</li>
+        <li>Lembretes inteligentes</li>
+        <li>Metas mensais</li>
+      </ul>
+      <a href="app.html" class="btn-primary btn-block">Começar grátis →</a>
+      <p style="text-align:center;font-size:0.75rem;color:var(--gray-text);margin-top:10px;">30 dias grátis • Sem cartão • Cancela quando quiser</p>
+    </div>
+
+    <!-- PREMIUM -->
+    <div class="price-card">
+      <div class="price-plan">Premium</div>
+      <p class="price-desc">Pra quem quer escalar e não perder nenhum cliente.</p>
+      <div class="price-value">
+        <span class="price-currency">R$</span>
+        <span class="price-num">79</span>
+        <span class="price-period">,90/mês</span>
+      </div>
+      <ul class="price-features">
+        <li>Profissionais ilimitados</li>
+        <li>Tudo do Personal</li>
+        <li>Assinaturas / mensalidades</li>
+        <li>Promoções e cupons</li>
+        <li>Folha de pagamento</li>
+        <li>Horários ociosos (heatmap)</li>
+        <li>Galeria de portfólio</li>
+        <li>Suporte prioritário</li>
+      </ul>
+      <a href="app.html" class="btn-ghost btn-block">Começar grátis</a>
+      <p style="text-align:center;font-size:0.75rem;color:var(--gray-text);margin-top:10px;">30 dias grátis • Sem cartão • Cancela quando quiser</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="max-width:640px;margin:0 auto;padding:80px 24px 40px;">
+  <div class="reveal" style="text-align:center;margin-bottom:40px;">
+    <div class="section-tag">Duvidas</div>
+    <h2>Perguntas <span>frequentes.</span></h2>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <details class="reveal" style="background:var(--gray);border:1px solid var(--gray-mid);border-radius:14px;padding:18px 20px;cursor:pointer;">
+      <summary style="font-weight:700;font-size:0.95rem;color:var(--white);list-style:none;display:flex;justify-content:space-between;align-items:center;">Qual o melhor sistema para academia?<span style="color:var(--gold);font-size:1.2rem;">+</span></summary>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-text);line-height:1.7;">O NaLinha foi construído especificamente para academias, salões, estética e personal trainers. Agenda online, caixa, comissões, estoque, assinaturas e mais 30 ferramentas — tudo num sistema só, com preço justo e sem contrato.</p>
+    </details>
+    <details class="reveal" style="background:var(--gray);border:1px solid var(--gray-mid);border-radius:14px;padding:18px 20px;cursor:pointer;">
+      <summary style="font-weight:700;font-size:0.95rem;color:var(--white);list-style:none;display:flex;justify-content:space-between;align-items:center;">Como organizar a agenda do meu estúdio?<span style="color:var(--gold);font-size:1.2rem;">+</span></summary>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-text);line-height:1.7;">Com o NaLinha você cria um link de agendamento e compartilha no WhatsApp ou Instagram. O cliente escolhe o profissional, o serviço e o horário disponível — tudo sozinho, 24 horas por dia. Sem ligação, sem mensagem, sem caderninho.</p>
+    </details>
+    <details class="reveal" style="background:var(--gray);border:1px solid var(--gray-mid);border-radius:14px;padding:18px 20px;cursor:pointer;">
+      <summary style="font-weight:700;font-size:0.95rem;color:var(--white);list-style:none;display:flex;justify-content:space-between;align-items:center;">Como calcular comissão de personal automaticamente?<span style="color:var(--gold);font-size:1.2rem;">+</span></summary>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-text);line-height:1.7;">Cada profissional tem seu percentual configurável. A cada atendimento concluído, o sistema calcula a comissão automaticamente e gera a folha de pagamento no final do período. Zero conta manual.</p>
+    </details>
+    <details class="reveal" style="background:var(--gray);border:1px solid var(--gray-mid);border-radius:14px;padding:18px 20px;cursor:pointer;">
+      <summary style="font-weight:700;font-size:0.95rem;color:var(--white);list-style:none;display:flex;justify-content:space-between;align-items:center;">Dá pra usar sem instalar app?<span style="color:var(--gold);font-size:1.2rem;">+</span></summary>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-text);line-height:1.7;">Sim. O NaLinha funciona direto no navegador do celular — Android ou iPhone. Você também pode instalar como app na tela inicial (PWA), mas não precisa baixar nada da loja. Seus clientes também agendam pelo navegador, sem instalar nada.</p>
+    </details>
+    <details class="reveal" style="background:var(--gray);border:1px solid var(--gray-mid);border-radius:14px;padding:18px 20px;cursor:pointer;">
+      <summary style="font-weight:700;font-size:0.95rem;color:var(--white);list-style:none;display:flex;justify-content:space-between;align-items:center;">Como funciona o clube de assinaturas?<span style="color:var(--gold);font-size:1.2rem;">+</span></summary>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-text);line-height:1.7;">Você cria planos mensais para seus clientes fixos — por exemplo, "2 cortes por mês por R$60". O sistema controla quem pagou, quem renovou e quem venceu. Receita previsível todo mês e cliente fidelizado.</p>
+    </details>
+    <details class="reveal" style="background:var(--gray);border:1px solid var(--gray-mid);border-radius:14px;padding:18px 20px;cursor:pointer;">
+      <summary style="font-weight:700;font-size:0.95rem;color:var(--white);list-style:none;display:flex;justify-content:space-between;align-items:center;">Preciso de cartão para testar?<span style="color:var(--gold);font-size:1.2rem;">+</span></summary>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-text);line-height:1.7;">Não. Os 30 dias são 100% grátis e sem cartão. Você cria a conta, configura tudo e só paga se decidir continuar depois do trial.</p>
+    </details>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<div class="cta-section">
+  <div class="section-tag reveal">Comece agora</div>
+  <h2 class="reveal">Seu negócio merece mais do que<span> um caderninho.</span></h2>
+  <p class="section-sub reveal">Crie sua conta em 1 minuto. 30 dias grátis, sem cartão.</p>
+  <a href="app.html" class="btn-primary reveal">Começar meus 30 dias grátis →</a>
+  <p class="cta-note reveal">Sem compromisso. Cancela quando quiser.</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Na<span style="color:var(--gold)">Regua</span></div>
+  <div class="footer-links">
+    <a href="#funcionalidades">Funcionalidades</a>
+    <a href="#planos">Planos</a>
+    <a href="app.html">Entrar no sistema</a>
+  </div>
+  <div>© 2026 NaLinha. Todos os direitos reservados.</div>
+</footer>
+
+<!-- WHATSAPP FLUTUANTE -->
+<a href="https://wa.me/5587981456565?text=Oi%2C%20quero%20saber%20mais%20sobre%20o%20NaLinha!" class="whatsapp-float" target="_blank" aria-label="Fale conosco no WhatsApp">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

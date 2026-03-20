@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Promoções</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .promo-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .promo-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .promo-header h1 { font-size:18px; font-weight:700; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    .btn-new {
+      padding:8px 14px; border-radius:8px; border:none;
+      background:var(--verde-acao); color:#000; font-size:11px;
+      font-weight:700; font-family:inherit; cursor:pointer; transition:all .2s;
+      letter-spacing:0.5px;
+    }
+    .btn-new:hover { opacity:.9; }
+
+    /* KPI Cards */
+    .kpi-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:24px; }
+    .kpi-card {
+      background:var(--cinza-escuro); border-radius:12px; padding:12px; text-align:center;
+    }
+    .kpi-card.gold { border:1px solid var(--accent-border); }
+    .kpi-card.blue { border:1px solid rgba(59,130,246,0.3); }
+    .kpi-card.green { border:1px solid rgba(34,197,94,0.3); }
+    .kpi-num { font-size:22px; font-weight:800; }
+    .kpi-num.gold { color:var(--accent); }
+    .kpi-num.blue { color:#3b82f6; }
+    .kpi-num.green { color:#22c55e; }
+    .kpi-label { font-size:8px; color:var(--texto-muted); font-weight:700; letter-spacing:0.5px; margin-top:4px; }
+
+    /* Section */
+    .section-title {
+      font-size:11px; color:var(--texto-muted); font-weight:700;
+      letter-spacing:1.5px; margin:24px 0 12px;
+    }
+
+    /* Campaign cards */
+    .camp-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:14px; margin-bottom:8px; transition:all .2s; cursor:pointer;
+    }
+    .camp-card:hover { border-color:var(--borda-hover); }
+    .camp-top { display:flex; justify-content:space-between; align-items:flex-start; }
+    .camp-title { font-size:14px; font-weight:700; }
+    .camp-date { font-size:11px; color:var(--texto-muted); }
+    .camp-preview { font-size:12px; color:var(--texto-muted); margin-top:6px; line-height:1.4; }
+    .camp-footer { display:flex; gap:8px; margin-top:8px; align-items:center; }
+    .camp-badge {
+      font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px;
+      display:inline-block;
+    }
+    .camp-badge.sent { background:rgba(34,197,94,0.15); color:#22c55e; }
+    .camp-badge.draft { background:rgba(245,158,11,0.15); color:#f59e0b; }
+    .camp-recipients { font-size:11px; color:var(--texto-muted); }
+
+    .empty-state {
+      text-align:center; padding:40px 20px; color:var(--texto-muted);
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000;
+      display:none; align-items:flex-start; justify-content:center; padding:16px;
+      overflow-y:auto;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal-box {
+      background:#0a0a0a; border:1px solid var(--borda); border-radius:16px;
+      padding:24px; max-width:420px; width:100%; margin:24px auto;
+    }
+    .modal-title { font-size:16px; font-weight:700; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+    .modal-close {
+      background:none; border:none; color:var(--texto-muted); font-size:22px;
+      cursor:pointer; padding:0 4px; font-family:inherit;
+    }
+    .modal-close:hover { color:var(--texto-principal); }
+
+    /* Steps indicator */
+    .steps-bar { display:flex; gap:4px; margin-bottom:20px; }
+    .step-dot {
+      flex:1; height:3px; border-radius:2px; background:var(--borda);
+      transition:all .3s;
+    }
+    .step-dot.active { background:var(--verde-acao); }
+    .step-dot.done { background:rgba(212,168,83,0.4); }
+
+    .step-label { font-size:12px; color:var(--texto-muted); font-weight:600; margin-bottom:16px; }
+
+    /* Form fields */
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:11px; color:var(--texto-muted); font-weight:600; margin-bottom:6px; }
+    .field input, .field textarea, .field select {
+      width:100%; padding:10px 12px; background:var(--preto); border:1px solid var(--borda);
+      border-radius:8px; color:var(--texto-principal); font-size:14px; font-family:inherit;
+      box-sizing:border-box;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color:var(--verde-acao); outline:none; }
+    .field textarea { resize:vertical; min-height:100px; line-height:1.5; }
+    .field select { appearance:none; cursor:pointer; }
+    .field .hint { font-size:10px; color:var(--texto-muted); margin-top:4px; }
+
+    .char-counter { font-size:10px; color:var(--texto-muted); text-align:right; margin-top:2px; }
+    .char-counter.warn { color:#f59e0b; }
+    .char-counter.danger { color:#ef4444; }
+
+    /* Audience selector */
+    .audience-options { display:flex; flex-direction:column; gap:6px; }
+    .audience-opt {
+      padding:12px; border-radius:10px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:13px;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
+      text-align:left; display:flex; justify-content:space-between; align-items:center;
+    }
+    .audience-opt:hover { border-color:var(--borda-hover); }
+    .audience-opt.selected { border-color:var(--verde-acao); color:var(--verde-acao); background:var(--accent-soft); }
+    .audience-opt .count { font-size:11px; opacity:.7; }
+
+    /* Custom filters */
+    .custom-filters { margin-top:12px; padding:12px; background:var(--preto); border-radius:10px; border:1px solid var(--borda); display:none; }
+    .custom-filters.show { display:block; }
+
+    /* Template buttons */
+    .template-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+    .template-btn {
+      padding:6px 12px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:11px;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
+    }
+    .template-btn:hover { border-color:var(--verde-acao); color:var(--verde-acao); }
+
+    /* Preview */
+    .msg-preview {
+      background:var(--preto); border:1px solid var(--borda); border-radius:10px;
+      padding:14px; margin-top:12px;
+    }
+    .msg-preview-label { font-size:10px; color:var(--texto-muted); font-weight:700; letter-spacing:0.5px; margin-bottom:8px; }
+    .msg-preview-text { font-size:13px; color:var(--texto-secundario); line-height:1.5; white-space:pre-wrap; }
+
+    /* Recipients checklist */
+    .recipients-list {
+      max-height:300px; overflow-y:auto; margin:12px 0;
+      border:1px solid var(--borda); border-radius:10px;
+    }
+    .recip-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 12px; border-bottom:1px solid var(--borda); transition:all .2s;
+    }
+    .recip-item:last-child { border-bottom:none; }
+    .recip-item.sent { opacity:.5; }
+    .recip-left { display:flex; align-items:center; gap:8px; }
+    .recip-check {
+      width:18px; height:18px; border-radius:4px; border:1px solid var(--borda);
+      background:transparent; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+      font-size:11px; color:var(--verde-acao); transition:all .2s;
+    }
+    .recip-item.sent .recip-check { background:rgba(34,197,94,0.15); border-color:rgba(34,197,94,0.3); }
+    .recip-name { font-size:13px; font-weight:600; }
+    .recip-phone { font-size:11px; color:var(--texto-muted); }
+    .recip-send {
+      padding:6px 14px; border-radius:8px; border:1px solid rgba(37,211,102,0.3);
+      background:transparent; color:#25d366; font-size:11px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s; text-decoration:none;
+    }
+    .recip-send:hover { background:rgba(37,211,102,0.1); }
+    .recip-item.sent .recip-send { pointer-events:none; opacity:.4; }
+
+    /* Action buttons */
+    .modal-actions { display:flex; gap:8px; margin-top:16px; }
+    .modal-btn {
+      flex:1; padding:12px; border-radius:10px; font-size:13px; font-weight:700;
+      font-family:inherit; cursor:pointer; border:none; transition:all .2s;
+      text-align:center;
+    }
+    .modal-btn.primary { background:var(--verde-acao); color:#000; }
+    .modal-btn.primary:hover { opacity:.9; }
+    .modal-btn.secondary { background:transparent; border:1px solid var(--borda); color:var(--texto-secundario); }
+    .modal-btn.secondary:hover { border-color:var(--borda-hover); }
+    .modal-btn.whatsapp { background:#25d366; color:#fff; }
+    .modal-btn.whatsapp:hover { opacity:.9; }
+    .modal-btn:disabled { opacity:.4; pointer-events:none; }
+
+    .selected-count {
+      font-size:13px; font-weight:700; color:var(--verde-acao);
+      margin-top:12px; padding:10px; background:var(--accent-soft);
+      border-radius:8px; text-align:center;
+    }
+
+    .progress-bar {
+      height:4px; background:var(--borda); border-radius:2px; margin:12px 0; overflow:hidden;
+    }
+    .progress-bar .fill { height:100%; background:var(--verde-acao); border-radius:2px; transition:width .3s; }
+
+    .send-status { font-size:12px; color:var(--texto-muted); text-align:center; margin-top:8px; }
+
+    /* Detail modal */
+    .detail-msg { font-size:13px; color:var(--texto-secundario); line-height:1.5; white-space:pre-wrap;
+      padding:14px; background:var(--preto); border-radius:10px; border:1px solid var(--borda); margin:12px 0; }
+    .detail-meta { font-size:12px; color:var(--texto-muted); margin-bottom:8px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+  </style>
+</head>
+<body>
+
+<div class="promo-container">
+
+  <div id="loading" style="text-align:center;padding:60px 0;">
+    <div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando promoções...</div>
+  </div>
+
+  <div id="content" style="display:none;">
+    <div class="promo-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button>
+        <h1>Promoções</h1>
+      </div>
+      <button class="btn-new" onclick="openNewModal()">+ NOVA MENSAGEM</button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card gold">
+        <div class="kpi-num gold" id="kpi-clients">0</div>
+        <div class="kpi-label">CLIENTES</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-num blue" id="kpi-sent">0</div>
+        <div class="kpi-label">ENVIADAS</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-num green" id="kpi-last">—</div>
+        <div class="kpi-label">ÚLTIMA CAMPANHA</div>
+      </div>
+    </div>
+
+    <div class="section-title">CAMPANHAS RECENTES</div>
+    <div id="campaigns-list"></div>
+  </div>
+</div>
+
+<!-- Modal Nova Mensagem -->
+<div class="modal-overlay" id="modal-new">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="modal-new-title">Nova Mensagem</span>
+      <button class="modal-close" onclick="closeNewModal()">&times;</button>
+    </div>
+
+    <div class="steps-bar">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+    </div>
+
+    <!-- STEP 1 — Público -->
+    <div id="step-1">
+      <div class="step-label">Passo 1 — Escolha o público</div>
+      <div class="audience-options">
+        <button class="audience-opt" data-filter="all" onclick="selectAudience(this)">
+          <span>&#x1F4E2; Todos os clientes</span>
+          <span class="count" id="cnt-all">0</span>
+        </button>
+        <button class="audience-opt" data-filter="active" onclick="selectAudience(this)">
+          <span>&#x2705; Clientes ativos (últimos 30 dias)</span>
+          <span class="count" id="cnt-active">0</span>
+        </button>
+        <button class="audience-opt" data-filter="inactive" onclick="selectAudience(this)">
+          <span>&#x1F4A4; Clientes sumidos (+30 dias)</span>
+          <span class="count" id="cnt-inactive">0</span>
+        </button>
+        <button class="audience-opt" data-filter="birthday" onclick="selectAudience(this)">
+          <span>&#x1F382; Aniversariantes do mês</span>
+          <span class="count" id="cnt-birthday">0</span>
+        </button>
+        <button class="audience-opt" data-filter="subscribers" onclick="selectAudience(this)">
+          <span>&#x1F451; Assinantes</span>
+          <span class="count" id="cnt-subscribers">0</span>
+        </button>
+        <button class="audience-opt" data-filter="custom" onclick="selectAudience(this)">
+          <span>&#x1F50D; Filtro personalizado</span>
+          <span class="count" id="cnt-custom">—</span>
+        </button>
+      </div>
+
+      <div class="custom-filters" id="custom-filters">
+        <div class="field">
+          <label>Serviço</label>
+          <select id="filter-service"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label>Personal</label>
+          <select id="filter-barber"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label>Período</label>
+          <div style="display:flex;gap:6px;">
+            <input type="date" id="filter-date-from" style="flex:1;">
+            <input type="date" id="filter-date-to" style="flex:1;">
+          </div>
+        </div>
+        <button class="modal-btn primary" style="margin-top:8px;flex:none;width:100%;" onclick="applyCustomFilter()">APLICAR FILTRO</button>
+      </div>
+
+      <div class="selected-count" id="selected-count" style="display:none;">
+        <span id="count-text">0 clientes selecionados</span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="closeNewModal()">CANCELAR</button>
+        <button class="modal-btn primary" id="btn-step1-next" onclick="goStep(2)" disabled>PRÓXIMO</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 — Mensagem -->
+    <div id="step-2" style="display:none;">
+      <div class="step-label">Passo 2 — Escreva a mensagem</div>
+
+      <div class="field">
+        <label>Título (referência interna)</label>
+        <input type="text" id="msg-title" placeholder="Ex: Promoção Corte + Barba">
+      </div>
+
+      <div class="field">
+        <label>Templates rápidos</label>
+        <div class="template-btns">
+          <button class="template-btn" onclick="insertTemplate('promo')">&#x1F525; Promoção</button>
+          <button class="template-btn" onclick="insertTemplate('news')">&#x2728; Novidade</button>
+          <button class="template-btn" onclick="insertTemplate('reminder')">&#x1F4AC; Lembrete</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Mensagem</label>
+        <textarea id="msg-body" placeholder="Digite sua mensagem...&#10;&#10;Variáveis: {nome} {academia} {link}" oninput="updatePreview()"></textarea>
+        <div class="char-counter" id="char-counter">0 / 1000</div>
+        <div class="hint">Use {nome} para o nome do cliente, {academia} para o nome da academia, {link} para o link de agendamento.</div>
+      </div>
+
+      <div class="msg-preview" id="msg-preview" style="display:none;">
+        <div class="msg-preview-label">PRÉ-VISUALIZAÇÃO</div>
+        <div class="msg-preview-text" id="preview-text"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="goStep(1)">VOLTAR</button>
+        <button class="modal-btn primary" id="btn-step2-next" onclick="goStep(3)" disabled>PRÓXIMO</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 — Enviar -->
+    <div id="step-3" style="display:none;">
+      <div class="step-label">Passo 3 — Revisar e enviar</div>
+
+      <div style="margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--texto-muted);margin-bottom:4px;">Mensagem:</div>
+        <div class="detail-msg" id="review-msg"></div>
+      </div>
+
+      <div class="selected-count" style="display:flex;justify-content:space-between;align-items:center;">
+        <span id="review-count">0 destinatários</span>
+        <span style="font-size:11px;opacity:.7;">via WhatsApp</span>
+      </div>
+
+      <div class="progress-bar" id="send-progress" style="display:none;">
+        <div class="fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="send-status" id="send-status"></div>
+
+      <div class="recipients-list" id="recipients-list"></div>
+
+      <div class="modal-actions" id="step3-actions">
+        <button class="modal-btn secondary" onclick="goStep(2)">VOLTAR</button>
+        <button class="modal-btn whatsapp" id="btn-send-all" onclick="sendAll()">&#x1F4AC; ABRIR TODOS</button>
+      </div>
+
+      <div class="modal-actions" id="step3-done" style="display:none;">
+        <button class="modal-btn primary" onclick="closeNewModal();loadCampaigns();">CONCLUIR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalhe Campanha -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="detail-title">Campanha</span>
+      <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+    </div>
+    <div class="detail-meta" id="detail-meta"></div>
+    <div class="detail-msg" id="detail-msg"></div>
+    <div style="font-size:12px;color:var(--texto-muted);margin-top:12px;" id="detail-filter"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeDetailModal()">FECHAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item active" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Serviços</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatório</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retenção</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfação</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+let shop = null;
+let allClients = []; // {name, phone, lastVisit}
+let allAppts = [];
+let selectedFilter = null;
+let selectedRecipients = [];
+let currentStep = 1;
+let services = [];
+let barbers = [];
+let birthdayClients = [];
+let subscriberClients = [];
+let hasPromoTable = false;
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Load appointments
+  const { data: appts } = await db.from('appointments')
+    .select('client_name,client_phone,scheduled_at,status,service_id,barber_id')
+    .eq('barbershop_id', shop.id)
+    .in('status', ['done','confirmed','pending'])
+    .order('scheduled_at', { ascending: false });
+  allAppts = appts || [];
+
+  // Consolidate unique clients by phone
+  const map = {};
+  for (const a of allAppts) {
+    const phone = (a.client_phone || '').replace(/\D/g, '');
+    if (!phone) continue;
+    if (!map[phone]) {
+      map[phone] = { name: a.client_name || 'Cliente', phone, lastVisit: a.scheduled_at };
+    }
+  }
+  allClients = Object.values(map);
+
+  // Load services
+  try {
+    const { data: svc } = await db.from('services').select('id,name').eq('barbershop_id', shop.id).eq('active', true);
+    services = svc || [];
+  } catch(e) { services = []; }
+
+  // Load barbers
+  try {
+    const { data: brb } = await db.from('barbers').select('id,name').eq('barbershop_id', shop.id).eq('active', true);
+    barbers = brb || [];
+  } catch(e) { barbers = []; }
+
+  // Load birthday clients
+  try {
+    const month = new Date().getMonth() + 1;
+    const monthStr = String(month).padStart(2, '0');
+    const { data: bday } = await db.from('clients')
+      .select('name,phone,birthday')
+      .eq('barbershop_id', shop.id)
+      .not('birthday', 'is', null);
+    birthdayClients = (bday || []).filter(c => {
+      if (!c.birthday) return false;
+      const bm = c.birthday.substring(5, 7);
+      return bm === monthStr;
+    });
+  } catch(e) { birthdayClients = []; }
+
+  // Load subscribers
+  try {
+    const { data: subs } = await db.from('assinatura_clientes')
+      .select('client_name,client_phone')
+      .eq('barbershop_id', shop.id)
+      .eq('active', true);
+    subscriberClients = (subs || []).map(s => ({
+      name: s.client_name || 'Assinante',
+      phone: (s.client_phone || '').replace(/\D/g, '')
+    })).filter(s => s.phone);
+  } catch(e) { subscriberClients = []; }
+
+  // Check if promocoes table exists
+  try {
+    const { error } = await db.from('promocoes').select('id').limit(1);
+    hasPromoTable = !error;
+  } catch(e) { hasPromoTable = false; }
+
+  // Populate filter dropdowns
+  const selSvc = document.getElementById('filter-service');
+  services.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; selSvc.appendChild(o); });
+  const selBrb = document.getElementById('filter-barber');
+  barbers.forEach(b => { const o = document.createElement('option'); o.value = b.id; o.textContent = b.name; selBrb.appendChild(o); });
+
+  // Update audience counts
+  updateAudienceCounts();
+
+  // Load campaigns
+  await loadCampaigns();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+});
+
+/* ========== Audience Counts ========== */
+function getActiveCutoff() {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  return d.toISOString();
+}
+
+function updateAudienceCounts() {
+  const cutoff = getActiveCutoff();
+  const active = allClients.filter(c => c.lastVisit && c.lastVisit >= cutoff);
+  const inactive = allClients.filter(c => !c.lastVisit || c.lastVisit < cutoff);
+
+  document.getElementById('cnt-all').textContent = allClients.length;
+  document.getElementById('cnt-active').textContent = active.length;
+  document.getElementById('cnt-inactive').textContent = inactive.length;
+  document.getElementById('cnt-birthday').textContent = birthdayClients.length;
+  document.getElementById('cnt-subscribers').textContent = subscriberClients.length;
+
+  // KPI
+  document.getElementById('kpi-clients').textContent = allClients.length;
+}
+
+/* ========== Audience Selection ========== */
+function selectAudience(btn) {
+  document.querySelectorAll('.audience-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedFilter = btn.dataset.filter;
+
+  const customDiv = document.getElementById('custom-filters');
+  customDiv.classList.toggle('show', selectedFilter === 'custom');
+
+  if (selectedFilter !== 'custom') {
+    selectedRecipients = getRecipientsByFilter(selectedFilter);
+    showSelectedCount();
+  } else {
+    selectedRecipients = [];
+    document.getElementById('selected-count').style.display = 'none';
+  }
+
+  document.getElementById('btn-step1-next').disabled = selectedRecipients.length === 0 && selectedFilter !== 'custom';
+}
+
+function getRecipientsByFilter(filter) {
+  const cutoff = getActiveCutoff();
+  switch(filter) {
+    case 'all': return [...allClients];
+    case 'active': return allClients.filter(c => c.lastVisit && c.lastVisit >= cutoff);
+    case 'inactive': return allClients.filter(c => !c.lastVisit || c.lastVisit < cutoff);
+    case 'birthday':
+      return birthdayClients.map(c => ({
+        name: c.name || 'Cliente',
+        phone: (c.phone || '').replace(/\D/g, ''),
+        lastVisit: null
+      })).filter(c => c.phone);
+    case 'subscribers': return [...subscriberClients];
+    default: return [];
+  }
+}
+
+function applyCustomFilter() {
+  const svcId = document.getElementById('filter-service').value;
+  const brbId = document.getElementById('filter-barber').value;
+  const from = document.getElementById('filter-date-from').value;
+  const to = document.getElementById('filter-date-to').value;
+
+  let filtered = allAppts.filter(a => {
+    if (svcId && a.service_id !== svcId) return false;
+    if (brbId && a.barber_id !== brbId) return false;
+    if (from && a.scheduled_at < from) return false;
+    if (to && a.scheduled_at > to + 'T23:59:59') return false;
+    return true;
+  });
+
+  // Deduplicate by phone
+  const map = {};
+  for (const a of filtered) {
+    const phone = (a.client_phone || '').replace(/\D/g, '');
+    if (!phone) continue;
+    if (!map[phone]) map[phone] = { name: a.client_name || 'Cliente', phone, lastVisit: a.scheduled_at };
+  }
+  selectedRecipients = Object.values(map);
+  document.getElementById('cnt-custom').textContent = selectedRecipients.length;
+  showSelectedCount();
+  document.getElementById('btn-step1-next').disabled = selectedRecipients.length === 0;
+}
+
+function showSelectedCount() {
+  const el = document.getElementById('selected-count');
+  el.style.display = 'block';
+  document.getElementById('count-text').textContent = selectedRecipients.length + ' clientes selecionados';
+}
+
+/* ========== Steps Navigation ========== */
+function goStep(n) {
+  if (n === 2 && selectedRecipients.length === 0) return;
+  if (n === 3) {
+    const body = document.getElementById('msg-body').value.trim();
+    if (!body) return;
+  }
+
+  currentStep = n;
+  document.getElementById('step-1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('step-2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('step-3').style.display = n === 3 ? 'block' : 'none';
+
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.remove('active', 'done');
+    if (i === n) dot.classList.add('active');
+    else if (i < n) dot.classList.add('done');
+  }
+
+  if (n === 2) updatePreview();
+  if (n === 3) buildReview();
+}
+
+/* ========== Templates ========== */
+function insertTemplate(type) {
+  const ta = document.getElementById('msg-body');
+  const shopName = shop.name || 'nossa academia';
+  const link = shop.slug ? ('https://usenalinha.com.br/agendar.html?b=' + shop.slug) : 'https://usenalinha.com.br';
+
+  const templates = {
+    promo: `Promoção especial na ${esc(shopName)}! \n\n[descreva a promoção aqui]\n\nAgende agora: ${link}`,
+    news: `Novidade na ${esc(shopName)}! \n\n[descreva a novidade aqui]\n\nAgende: ${link}`,
+    reminder: `Fala, {nome}! Faz tempo que você não aparece na ${esc(shopName)}. Bora dar aquele trato?\n\nAgende seu horário: ${link}`
+  };
+
+  ta.value = templates[type] || '';
+  updatePreview();
+  ta.focus();
+}
+
+/* ========== Preview ========== */
+function updatePreview() {
+  const body = document.getElementById('msg-body').value;
+  const len = body.length;
+  const counter = document.getElementById('char-counter');
+  counter.textContent = len + ' / 1000';
+  counter.className = 'char-counter' + (len > 900 ? ' danger' : len > 700 ? ' warn' : '');
+
+  const previewDiv = document.getElementById('msg-preview');
+  const previewText = document.getElementById('preview-text');
+
+  if (body.trim()) {
+    previewDiv.style.display = 'block';
+    const shopName = shop.name || 'nossa academia';
+    const link = shop.slug ? ('https://usenalinha.com.br/agendar.html?b=' + shop.slug) : 'https://usenalinha.com.br';
+    let preview = body
+      .replace(/\{nome\}/g, 'João')
+      .replace(/\{academia\}/g, shopName)
+      .replace(/\{link\}/g, link);
+    previewText.textContent = preview;
+  } else {
+    previewDiv.style.display = 'none';
+  }
+
+  document.getElementById('btn-step2-next').disabled = !body.trim();
+}
+
+/* ========== Review & Send ========== */
+function buildReview() {
+  const body = document.getElementById('msg-body').value;
+  document.getElementById('review-msg').textContent = body;
+  document.getElementById('review-count').textContent = selectedRecipients.length + ' destinatários';
+
+  // Build recipients list
+  const list = document.getElementById('recipients-list');
+  list.innerHTML = '';
+
+  selectedRecipients.forEach((r, i) => {
+    const msg = buildMessage(body, r);
+    const waLink = buildWhatsAppLink(r.phone, msg);
+
+    const div = document.createElement('div');
+    div.className = 'recip-item';
+    div.id = 'recip-' + i;
+    div.innerHTML = `
+      <div class="recip-left">
+        <div class="recip-check" id="check-${i}"></div>
+        <div>
+          <div class="recip-name">${esc(r.name)}</div>
+          <div class="recip-phone">${esc(formatPhone(r.phone))}</div>
+        </div>
+      </div>
+      <a class="recip-send" href="${esc(waLink)}" target="_blank" onclick="markSent(${i})">ENVIAR</a>
+    `;
+    list.appendChild(div);
+  });
+
+  // Reset progress
+  document.getElementById('send-progress').style.display = 'none';
+  document.getElementById('send-status').textContent = '';
+  document.getElementById('step3-actions').style.display = 'flex';
+  document.getElementById('step3-done').style.display = 'none';
+}
+
+function buildMessage(template, recipient) {
+  const shopName = shop.name || 'nossa academia';
+  const link = shop.slug ? ('https://usenalinha.com.br/agendar.html?b=' + shop.slug) : 'https://usenalinha.com.br';
+  return template
+    .replace(/\{nome\}/g, recipient.name || 'Cliente')
+    .replace(/\{academia\}/g, shopName)
+    .replace(/\{link\}/g, link);
+}
+
+function buildWhatsAppLink(phone, message) {
+  let p = phone.replace(/\D/g, '');
+  if (p.length <= 11) p = '55' + p;
+  return 'https://wa.me/' + p + '?text=' + encodeURIComponent(message);
+}
+
+function formatPhone(p) {
+  if (!p) return '';
+  p = p.replace(/\D/g, '');
+  if (p.length === 11) return '(' + p.slice(0,2) + ') ' + p.slice(2,7) + '-' + p.slice(7);
+  if (p.length === 10) return '(' + p.slice(0,2) + ') ' + p.slice(2,6) + '-' + p.slice(6);
+  return p;
+}
+
+function markSent(i) {
+  const item = document.getElementById('recip-' + i);
+  if (item) {
+    item.classList.add('sent');
+    document.getElementById('check-' + i).textContent = '\u2713';
+  }
+  checkAllSent();
+}
+
+function checkAllSent() {
+  const total = selectedRecipients.length;
+  const sent = document.querySelectorAll('.recip-item.sent').length;
+  if (sent === total && total > 0) {
+    document.getElementById('send-status').textContent = 'Todas as mensagens foram abertas!';
+    saveCampaign();
+  }
+}
+
+/* ========== Send All ========== */
+async function sendAll() {
+  const body = document.getElementById('msg-body').value;
+  const total = selectedRecipients.length;
+  if (total === 0) return;
+
+  document.getElementById('send-progress').style.display = 'block';
+  document.getElementById('btn-send-all').disabled = true;
+  document.getElementById('send-status').textContent = 'Abrindo links... não feche esta aba.';
+
+  for (let i = 0; i < total; i++) {
+    const r = selectedRecipients[i];
+    const msg = buildMessage(body, r);
+    const waLink = buildWhatsAppLink(r.phone, msg);
+
+    window.open(waLink, '_blank');
+    markSent(i);
+
+    // Update progress
+    const pct = Math.round(((i + 1) / total) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('send-status').textContent = `Enviando ${i + 1} de ${total}...`;
+
+    // Delay between opens to avoid popup blocking
+    if (i < total - 1) {
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
+  document.getElementById('send-status').textContent = `Concluído! ${total} mensagens abertas.`;
+  document.getElementById('step3-actions').style.display = 'none';
+  document.getElementById('step3-done').style.display = 'flex';
+
+  await saveCampaign();
+}
+
+/* ========== Save Campaign ========== */
+async function saveCampaign() {
+  if (!hasPromoTable) return;
+  try {
+    const title = document.getElementById('msg-title').value.trim() || 'Sem título';
+    const body = document.getElementById('msg-body').value.trim();
+    await db.from('promocoes').insert({
+      barbershop_id: shop.id,
+      title: title,
+      message: body,
+      recipient_filter: { type: selectedFilter },
+      recipient_count: selectedRecipients.length,
+      sent_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    });
+  } catch(e) { console.warn('Erro ao salvar campanha:', e); }
+}
+
+/* ========== Load Campaigns ========== */
+async function loadCampaigns() {
+  const listEl = document.getElementById('campaigns-list');
+
+  if (!hasPromoTable) {
+    listEl.innerHTML = '<div class="empty-state"><div style="font-size:32px;margin-bottom:12px;">&#x1F4E3;</div><div style="font-size:14px;font-weight:600;margin-bottom:4px;">Envie sua primeira mensagem</div><div style="font-size:12px;">Clique em "+ NOVA MENSAGEM" para começar.</div></div>';
+    return;
+  }
+
+  try {
+    const { data: campaigns, error } = await db.from('promocoes')
+      .select('*')
+      .eq('barbershop_id', shop.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+
+    if (!campaigns || campaigns.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div style="font-size:32px;margin-bottom:12px;">&#x1F4E3;</div><div style="font-size:14px;font-weight:600;margin-bottom:4px;">Nenhuma campanha ainda</div><div style="font-size:12px;">Clique em "+ NOVA MENSAGEM" para começar.</div></div>';
+      document.getElementById('kpi-sent').textContent = '0';
+      document.getElementById('kpi-last').textContent = '—';
+      return;
+    }
+
+    // Update KPIs
+    document.getElementById('kpi-sent').textContent = campaigns.length;
+    const lastDate = campaigns[0].sent_at || campaigns[0].created_at;
+    document.getElementById('kpi-last').textContent = formatDate(lastDate);
+    document.getElementById('kpi-last').style.fontSize = '12px';
+
+    listEl.innerHTML = '';
+    campaigns.forEach(c => {
+      const preview = (c.message || '').substring(0, 80) + ((c.message || '').length > 80 ? '...' : '');
+      const filterLabel = getFilterLabel(c.recipient_filter);
+      const card = document.createElement('div');
+      card.className = 'camp-card';
+      card.onclick = () => openDetailModal(c);
+      card.innerHTML = `
+        <div class="camp-top">
+          <div class="camp-title">${esc(c.title || 'Sem título')}</div>
+          <div class="camp-date">${formatDate(c.sent_at || c.created_at)}</div>
+        </div>
+        <div class="camp-preview">${esc(preview)}</div>
+        <div class="camp-footer">
+          <span class="camp-badge ${c.sent_at ? 'sent' : 'draft'}">${c.sent_at ? 'ENVIADA' : 'RASCUNHO'}</span>
+          <span class="camp-recipients">${c.recipient_count || 0} destinatários</span>
+          ${filterLabel ? '<span class="camp-recipients">&middot; ' + esc(filterLabel) + '</span>' : ''}
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  } catch(e) {
+    console.warn('Erro ao carregar campanhas:', e);
+    listEl.innerHTML = '<div class="empty-state"><div style="font-size:32px;margin-bottom:12px;">&#x1F4E3;</div><div style="font-size:14px;font-weight:600;margin-bottom:4px;">Envie sua primeira mensagem</div><div style="font-size:12px;">Clique em "+ NOVA MENSAGEM" para começar.</div></div>';
+  }
+}
+
+function getFilterLabel(filter) {
+  if (!filter || !filter.type) return '';
+  const labels = {
+    all: 'Todos',
+    active: 'Ativos',
+    inactive: 'Sumidos',
+    birthday: 'Aniversariantes',
+    subscribers: 'Assinantes',
+    custom: 'Filtro personalizado'
+  };
+  return labels[filter.type] || '';
+}
+
+/* ========== Modals ========== */
+function openNewModal() {
+  // Reset
+  currentStep = 1;
+  selectedFilter = null;
+  selectedRecipients = [];
+  document.querySelectorAll('.audience-opt').forEach(b => b.classList.remove('selected'));
+  document.getElementById('custom-filters').classList.remove('show');
+  document.getElementById('selected-count').style.display = 'none';
+  document.getElementById('msg-title').value = '';
+  document.getElementById('msg-body').value = '';
+  document.getElementById('msg-preview').style.display = 'none';
+  document.getElementById('char-counter').textContent = '0 / 1000';
+  document.getElementById('btn-step1-next').disabled = true;
+  document.getElementById('btn-step2-next').disabled = true;
+
+  goStep(1);
+  document.getElementById('modal-new').classList.add('show');
+}
+
+function closeNewModal() {
+  document.getElementById('modal-new').classList.remove('show');
+}
+
+function openDetailModal(campaign) {
+  document.getElementById('detail-title').textContent = campaign.title || 'Sem título';
+  document.getElementById('detail-meta').textContent =
+    formatDate(campaign.sent_at || campaign.created_at) + ' — ' +
+    (campaign.recipient_count || 0) + ' destinatários';
+  document.getElementById('detail-msg').textContent = campaign.message || '';
+  document.getElementById('detail-filter').textContent =
+    'Público: ' + (getFilterLabel(campaign.recipient_filter) || 'Não definido');
+  document.getElementById('modal-detail').classList.add('show');
+}
+
+function closeDetailModal() {
+  document.getElementById('modal-detail').classList.remove('show');
+}
+
+// Close modals on overlay click
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('show');
+  }
+});
+</script>
+<script src="js/ajuda.js?v=03201128" defer></script>
+<script src="js/sw-update.js?v=03201128" defer></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

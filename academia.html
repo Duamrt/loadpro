@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha</title>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="NaLinha">
+  <meta property="og:description" content="Agende seu horário online. Rápido e sem complicação.">
+  <meta property="og:image" content="https://usenalinha.com.br/img/og-preview.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { padding-bottom: 0; }
+
+    /* ── Sticky Header ─────────────────────────────────── */
+    .sticky-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--borda);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+    }
+    .sticky-header.visible { transform: translateY(0); }
+    .sticky-header .shop-name {
+      font-size: 14px; font-weight: 700; color: var(--accent);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;
+    }
+    .sticky-header .btn-agendar-sm {
+      padding: 7px 16px; border-radius: 8px; font-size: 11px; font-weight: 700;
+      background: var(--accent); color: #000; border: none; cursor: pointer;
+      font-family: inherit; letter-spacing: 0.5px; text-decoration: none;
+    }
+
+    /* ── Container ─────────────────────────────────────── */
+    .page-container {
+      max-width: 520px; width: 100%; margin: 0 auto; padding: 0 16px;
+    }
+
+    /* ── Hero ──────────────────────────────────────────── */
+    .hero {
+      text-align: center; padding: 48px 0 32px;
+      border-bottom: 1px solid var(--borda);
+    }
+    .hero-name {
+      font-size: 28px; font-weight: 800; color: var(--accent);
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+    .hero-location {
+      font-size: 13px; color: var(--texto-secundario); margin-bottom: 14px;
+    }
+    .hero-rating {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 700; margin-bottom: 20px;
+    }
+    .hero-rating .stars { color: var(--accent); letter-spacing: 1px; }
+    .hero-rating .count { color: var(--texto-muted); font-weight: 400; font-size: 12px; }
+
+    .hero-cta {
+      display: block; width: 100%; padding: 14px; border-radius: 10px;
+      background: var(--accent); color: #000; font-size: 14px; font-weight: 800;
+      letter-spacing: 1px; border: none; cursor: pointer; font-family: inherit;
+      text-align: center; text-decoration: none; margin-bottom: 14px;
+      transition: all 0.2s;
+    }
+    .hero-cta:hover { background: var(--accent-hover); text-decoration: none; color: #000; }
+
+    .hero-links {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    }
+    .hero-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      text-decoration: none; transition: all 0.2s; border: 1px solid var(--borda);
+      color: var(--texto-secundario);
+    }
+    .hero-link:hover { border-color: var(--borda-hover); text-decoration: none; }
+    .hero-link.whatsapp { color: #25d366; border-color: rgba(37,211,102,0.3); }
+    .hero-link.whatsapp:hover { background: rgba(37,211,102,0.08); }
+    .hero-link.instagram { color: #e4405f; border-color: rgba(228,64,95,0.3); }
+    .hero-link.instagram:hover { background: rgba(228,64,95,0.08); }
+
+    /* ── Sections ──────────────────────────────────────── */
+    .section {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--borda);
+    }
+    .section:last-child { border-bottom: none; }
+    .section-title {
+      font-size: 13px; font-weight: 700; color: var(--texto-muted);
+      text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;
+    }
+
+    /* ── Sobre ─────────────────────────────────────────── */
+    .sobre-text {
+      font-size: 14px; color: var(--texto-secundario); line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .horario-grid {
+      display: grid; grid-template-columns: auto 1fr; gap: 4px 12px;
+      font-size: 13px;
+    }
+    .horario-dia { color: var(--texto-secundario); font-weight: 600; }
+    .horario-hora { color: var(--texto-muted); }
+    .horario-dia.hoje { color: var(--accent); }
+    .horario-hora.hoje { color: var(--accent); }
+    .horario-fechado { color: var(--vermelho); font-style: italic; }
+
+    /* ── Equipe ────────────────────────────────────────── */
+    .equipe-scroll {
+      display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .equipe-scroll::-webkit-scrollbar { display: none; }
+    .barber-card {
+      flex-shrink: 0; width: 140px; text-align: center;
+      background: var(--cinza-escuro); border: 1px solid var(--borda);
+      border-radius: 12px; padding: 16px 10px; cursor: pointer;
+      transition: all 0.2s; text-decoration: none; display: block;
+    }
+    .barber-card:hover { border-color: var(--accent-border); text-decoration: none; }
+    .barber-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent-dark); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; margin: 0 auto 8px;
+    }
+    .barber-name {
+      font-size: 13px; font-weight: 700; color: var(--texto-principal);
+      margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .barber-specialty {
+      font-size: 10px; color: var(--texto-muted); line-height: 1.4;
+    }
+
+    /* ── Servicos ──────────────────────────────────────── */
+    .service-list { display: flex; flex-direction: column; gap: 8px; }
+    .service-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: var(--cinza-escuro);
+      border: 1px solid var(--borda); border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .service-item:hover { border-color: var(--borda-hover); }
+    .service-info { flex: 1; min-width: 0; }
+    .service-name { font-size: 13px; font-weight: 600; color: var(--texto-principal); }
+    .service-meta {
+      font-size: 11px; color: var(--texto-muted); margin-top: 2px;
+      display: flex; gap: 8px; align-items: center;
+    }
+    .service-price { font-weight: 700; color: var(--accent); }
+    .service-btn {
+      padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 700;
+      background: rgba(212,168,83,0.1); border: 1px solid var(--accent-border);
+      color: var(--accent); cursor: pointer; font-family: inherit;
+      letter-spacing: 0.5px; text-decoration: none; white-space: nowrap;
+    }
+    .service-btn:hover { background: rgba(212,168,83,0.2); text-decoration: none; }
+
+    /* Combos divider */
+    .combo-divider {
+      text-align: center; font-size: 11px; font-weight: 700; color: var(--accent);
+      letter-spacing: 1px; margin: 16px 0 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .combo-divider::before, .combo-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--borda);
+    }
+    .combo-badge {
+      font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px;
+      background: rgba(212,168,83,0.15); color: var(--accent); margin-left: 6px;
+    }
+
+    /* ── Galeria ───────────────────────────────────────── */
+    .galeria-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
+    }
+    .galeria-item {
+      aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer;
+      background: var(--cinza-medio); position: relative;
+    }
+    .galeria-item img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform 0.3s;
+    }
+    .galeria-item:hover img { transform: scale(1.05); }
+    .galeria-more {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.7); font-size: 14px; font-weight: 700;
+      color: var(--texto-principal);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.95); align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 100%; max-height: 90vh; border-radius: 8px; object-fit: contain;
+    }
+    .lightbox-close {
+      position: absolute; top: 16px; right: 16px;
+      background: none; border: none; color: #fff; font-size: 28px;
+      cursor: pointer; padding: 8px; line-height: 1;
+    }
+
+    /* ── Avaliacoes ────────────────────────────────────── */
+    .avaliacoes-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+    }
+    .avg-big {
+      font-size: 36px; font-weight: 800; color: var(--accent);
+      line-height: 1;
+    }
+    .avg-stars { font-size: 18px; color: var(--accent); }
+    .avg-count { font-size: 11px; color: var(--texto-muted); margin-top: 2px; }
+
+    .review-card {
+      background: var(--cinza-escuro); border: 1px solid var(--borda);
+      border-radius: 10px; padding: 14px; margin-bottom: 8px;
+    }
+    .review-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px;
+    }
+    .review-name { font-size: 12px; font-weight: 700; }
+    .review-date { font-size: 10px; color: var(--texto-muted); }
+    .review-stars { font-size: 12px; color: var(--accent); margin-bottom: 4px; }
+    .review-comment { font-size: 13px; color: var(--texto-secundario); line-height: 1.5; }
+
+    .btn-avaliar {
+      display: block; width: 100%; padding: 10px; border-radius: 8px;
+      background: transparent; border: 1.5px solid var(--accent-border);
+      color: var(--accent); font-size: 12px; font-weight: 700;
+      font-family: inherit; cursor: pointer; text-align: center;
+      text-decoration: none; margin-top: 12px; transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .btn-avaliar:hover { background: rgba(212,168,83,0.08); text-decoration: none; }
+
+    /* ── Localizacao ───────────────────────────────────── */
+    .local-address {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 14px; color: var(--texto-secundario); line-height: 1.5;
+    }
+    .local-icon { font-size: 18px; flex-shrink: 0; }
+    .local-link {
+      display: inline-block; margin-top: 8px; font-size: 12px;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* ── Footer ────────────────────────────────────────── */
+    .page-footer {
+      padding: 32px 0 24px; text-align: center;
+    }
+    .footer-cta {
+      display: block; width: 100%; padding: 14px; border-radius: 10px;
+      background: var(--accent); color: #000; font-size: 14px; font-weight: 800;
+      letter-spacing: 1px; border: none; cursor: pointer; font-family: inherit;
+      text-align: center; text-decoration: none; margin-bottom: 16px;
+      transition: all 0.2s;
+    }
+    .footer-cta:hover { background: var(--accent-hover); text-decoration: none; color: #000; }
+    .footer-links {
+      display: flex; gap: 16px; justify-content: center; align-items: center;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .footer-link {
+      font-size: 12px; color: var(--texto-muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-link:hover { color: var(--texto-secundario); text-decoration: none; }
+    .footer-social {
+      display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;
+    }
+    .footer-social a {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--borda); color: var(--texto-muted);
+      font-size: 15px; transition: all 0.2s; text-decoration: none;
+    }
+    .footer-social a:hover { border-color: var(--borda-hover); color: var(--texto-secundario); }
+    .powered-by {
+      font-size: 10px; color: var(--texto-muted); letter-spacing: 0.5px;
+    }
+    .powered-by a { color: var(--accent); font-weight: 600; }
+
+    /* ── Loading / Error ───────────────────────────────── */
+    .loading-page {
+      min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px;
+    }
+    .loading-spinner {
+      width: 32px; height: 32px; border: 3px solid var(--borda);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-page {
+      min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; text-align: center; padding: 24px;
+    }
+    .error-page h1 { font-size: 20px; color: var(--texto-principal); }
+    .error-page p { font-size: 13px; color: var(--texto-muted); }
+
+    /* ── Empty state ───────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 20px; color: var(--texto-muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sticky Header -->
+<div class="sticky-header" id="stickyHeader">
+  <span class="shop-name" id="stickyName"></span>
+  <a class="btn-agendar-sm" id="stickyBtn">AGENDAR</a>
+</div>
+
+<!-- Loading -->
+<div class="loading-page" id="loading">
+  <div class="loading-spinner"></div>
+  <div style="font-size:12px;color:var(--texto-muted);">Carregando...</div>
+</div>
+
+<!-- Error -->
+<div class="error-page" id="errorPage" style="display:none;">
+  <h1>Estabelecimento não encontrado</h1>
+  <p>Verifique o link e tente novamente.</p>
+  <a href="https://usenalinha.com.br" style="margin-top:8px;font-size:13px;">Ir para NaLinha</a>
+</div>
+
+<!-- Content -->
+<div class="page-container" id="content" style="display:none;">
+
+  <!-- Hero -->
+  <section class="hero" id="heroSection">
+    <h1 class="hero-name" id="heroName"></h1>
+    <div class="hero-location" id="heroLocation"></div>
+    <div class="hero-rating" id="heroRating" style="display:none;">
+      <span class="stars" id="heroStars"></span>
+      <span style="font-weight:800;" id="heroAvg"></span>
+      <span class="count" id="heroCount"></span>
+    </div>
+    <a class="hero-cta" id="heroCta">AGENDAR AGORA</a>
+    <div class="hero-links" id="heroLinks"></div>
+  </section>
+
+  <!-- Sobre -->
+  <section class="section" id="sobreSection" style="display:none;">
+    <div class="section-title">Sobre</div>
+    <div class="sobre-text" id="sobreText"></div>
+    <div class="section-title" style="margin-top:16px;">Horário de Funcionamento</div>
+    <div class="horario-grid" id="horarioGrid"></div>
+  </section>
+
+  <!-- Equipe -->
+  <section class="section" id="equipeSection" style="display:none;">
+    <div class="section-title">Equipe</div>
+    <div class="equipe-scroll" id="equipeScroll"></div>
+  </section>
+
+  <!-- Servicos -->
+  <section class="section" id="servicosSection" style="display:none;">
+    <div class="section-title">Servicos</div>
+    <div class="service-list" id="serviceList"></div>
+    <div id="combosArea" style="display:none;">
+      <div class="combo-divider">COMBOS</div>
+      <div class="service-list" id="comboList"></div>
+    </div>
+  </section>
+
+  <!-- Galeria -->
+  <section class="section" id="galeriaSection" style="display:none;">
+    <div class="section-title">Galeria</div>
+    <div class="galeria-grid" id="galeriaGrid"></div>
+  </section>
+
+  <!-- Avaliacoes -->
+  <section class="section" id="avaliacoesSection" style="display:none;">
+    <div class="section-title">Avaliacoes</div>
+    <div class="avaliacoes-header" id="avaliacoesHeader"></div>
+    <div id="reviewsList"></div>
+    <a class="btn-avaliar" id="btnAvaliar">DEIXAR AVALIACAO</a>
+  </section>
+
+  <!-- Localizacao -->
+  <section class="section" id="localSection" style="display:none;">
+    <div class="section-title">Localizacao</div>
+    <div class="local-address" id="localAddress"></div>
+  </section>
+
+  <!-- Footer -->
+  <div class="page-footer" id="pageFooter">
+    <a class="footer-cta" id="footerCta">AGENDAR HORARIO</a>
+    <div class="footer-social" id="footerSocial"></div>
+    <div class="footer-links">
+      <a class="footer-link" id="footerMinhaConta">Minha Conta</a>
+    </div>
+    <div class="powered-by">Powered by <a href="https://usenalinha.com.br">NaLinha</a></div>
+  </div>
+
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightboxImg" src="" alt="Foto">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// ACADEMIA — Mini-site publico
+// ══════════════════════════════════════════════════════════════
+
+const params = new URLSearchParams(location.search);
+const slug = params.get('slug');
+
+let shop = null;
+let allFotos = [];
+
+const DIAS_SEMANA = ['Domingo','Segunda','Terca','Quarta','Quinta','Sexta','Sabado'];
+const DIAS_ABREV = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+
+// ── Init ──────────────────────────────────────────────────────
+(async function init() {
+  if (!slug) { showError(); return; }
+
+  try {
+    // Load shop
+    const { data: shopData, error } = await sb
+      .from('barbershops')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (error || !shopData) { showError(); return; }
+    shop = shopData;
+
+    // Update page title + OG
+    document.title = esc(shop.name) + ' — NaLinha';
+    document.querySelector('meta[property="og:title"]').content = shop.name + ' — Agende online';
+    document.querySelector('meta[property="og:description"]').content = 'Agende seu horário na ' + shop.name + '. Rápido e sem complicação.';
+
+    // Load all data in parallel
+    const [barbers, services, combos, fotos, reviews] = await Promise.all([
+      loadBarbers(),
+      loadServices(),
+      loadCombos(),
+      loadGaleria(),
+      loadReviews()
+    ]);
+
+    // Barber specialties
+    const specialties = await loadBarberSpecialties(barbers, services);
+
+    // Render everything
+    renderHero(reviews);
+    renderSobre();
+    renderEquipe(barbers, specialties);
+    renderServicos(services, combos);
+    renderGaleria(fotos);
+    renderAvaliacoes(reviews);
+    renderLocalizacao();
+    renderFooter();
+    initStickyHeader();
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+  } catch (e) {
+    console.error('Erro ao carregar academia:', e);
+    showError();
+  }
+})();
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('errorPage').style.display = 'flex';
+}
+
+function agendarUrl(barberId) {
+  let url = 'agendar.html?slug=' + encodeURIComponent(slug);
+  if (barberId) url += '&barber=' + barberId;
+  return url;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA LOADERS
+// ══════════════════════════════════════════════════════════════
+
+async function loadBarbers() {
+  try {
+    const { data } = await sb.from('barbers')
+      .select('id,name,active')
+      .eq('barbershop_id', shop.id)
+      .eq('active', true)
+      .order('name');
+    return data || [];
+  } catch (e) { return []; }
+}
+
+async function loadServices() {
+  try {
+    const { data } = await sb.from('services')
+      .select('id,name,price,duration,active,category')
+      .eq('barbershop_id', shop.id)
+      .eq('active', true)
+      .order('name');
+    return data || [];
+  } catch (e) { return []; }
+}
+
+async function loadCombos() {
+  try {
+    const { data } = await sb.from('combos')
+      .select('*, combo_services(service_id)')
+      .eq('barbershop_id', shop.id)
+      .eq('active', true);
+    return data || [];
+  } catch (e) {
+    console.log('Tabela combos nao encontrada.');
+    return [];
+  }
+}
+
+async function loadGaleria() {
+  try {
+    const { data } = await sb.from('galeria')
+      .select('id,url,caption')
+      .eq('barbershop_id', shop.id)
+      .order('created_at', { ascending: false });
+    return data || [];
+  } catch (e) {
+    console.log('Tabela galeria nao encontrada.');
+    return [];
+  }
+}
+
+async function loadReviews() {
+  try {
+    const { data } = await sb.from('respostas_satisfacao')
+      .select('rating,comment,client_name,responded_at')
+      .eq('barbershop_id', shop.id)
+      .order('responded_at', { ascending: false })
+      .limit(50);
+    return data || [];
+  } catch (e) {
+    console.log('Tabela respostas_satisfacao nao encontrada.');
+    return [];
+  }
+}
+
+async function loadBarberSpecialties(barbers, services) {
+  const specialties = {};
+  if (!barbers.length || !services.length) return specialties;
+
+  try {
+    const { data } = await sb.from('appointments')
+      .select('barber_id,service_id')
+      .eq('barbershop_id', shop.id)
+      .eq('status', 'completed')
+      .limit(500);
+
+    if (!data || !data.length) return specialties;
+
+    // Count service per barber
+    const counts = {};
+    data.forEach(a => {
+      if (!a.barber_id || !a.service_id) return;
+      if (!counts[a.barber_id]) counts[a.barber_id] = {};
+      counts[a.barber_id][a.service_id] = (counts[a.barber_id][a.service_id] || 0) + 1;
+    });
+
+    // Top 2 services per barber
+    const serviceMap = {};
+    services.forEach(s => { serviceMap[s.id] = s.name; });
+
+    for (const barberId in counts) {
+      const sorted = Object.entries(counts[barberId])
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([sId]) => serviceMap[sId])
+        .filter(Boolean);
+      if (sorted.length) specialties[barberId] = sorted;
+    }
+  } catch (e) {
+    console.log('Nao foi possivel carregar especialidades.');
+  }
+
+  return specialties;
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDERERS
+// ══════════════════════════════════════════════════════════════
+
+function renderHero(reviews) {
+  document.getElementById('heroName').textContent = shop.name;
+
+  // Location
+  const parts = [];
+  if (shop.city) parts.push(shop.city);
+  if (shop.address) parts.push(shop.address);
+  const locEl = document.getElementById('heroLocation');
+  if (parts.length) {
+    locEl.textContent = parts.join(' · ');
+  } else {
+    locEl.style.display = 'none';
+  }
+
+  // Rating
+  if (reviews.length) {
+    const avg = reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length;
+    const ratingEl = document.getElementById('heroRating');
+    ratingEl.style.display = 'inline-flex';
+    document.getElementById('heroStars').textContent = renderStarsText(avg);
+    document.getElementById('heroAvg').textContent = avg.toFixed(1);
+    document.getElementById('heroCount').textContent = '(' + reviews.length + ' avaliac' + (reviews.length === 1 ? 'ao' : 'oes') + ')';
+  }
+
+  // CTA
+  const ctaUrl = agendarUrl();
+  document.getElementById('heroCta').href = ctaUrl;
+
+  // Links
+  const linksEl = document.getElementById('heroLinks');
+  let linksHtml = '';
+  if (shop.phone) {
+    const phone = shop.phone.replace(/\D/g, '');
+    linksHtml += '<a href="https://wa.me/55' + phone + '" target="_blank" class="hero-link whatsapp">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
+      + 'WhatsApp</a>';
+  }
+  if (shop.instagram) {
+    const ig = esc(shop.instagram.replace('@', ''));
+    linksHtml += '<a href="https://instagram.com/' + ig + '" target="_blank" class="hero-link instagram">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>'
+      + 'Instagram</a>';
+  }
+  linksEl.innerHTML = linksHtml;
+
+  // Sticky header
+  document.getElementById('stickyName').textContent = shop.name;
+  document.getElementById('stickyBtn').href = ctaUrl;
+}
+
+function renderSobre() {
+  const section = document.getElementById('sobreSection');
+
+  // Description
+  const desc = shop.description || (shop.policies && shop.policies.observacoes) || '';
+  const textEl = document.getElementById('sobreText');
+  if (desc) {
+    textEl.textContent = desc;
+  } else {
+    textEl.style.display = 'none';
+  }
+
+  // Horario
+  const daysOpen = shop.days_open || [1, 2, 3, 4, 5, 6];
+  const openTime = (shop.opening_time || '08:00').slice(0, 5);
+  const closeTime = (shop.closing_time || '19:00').slice(0, 5);
+  const hoje = new Date().getDay();
+
+  let gridHtml = '';
+  for (let d = 0; d < 7; d++) {
+    const isOpen = Array.isArray(daysOpen) ? daysOpen.includes(d) : false;
+    const isHoje = d === hoje;
+    const diaClass = isHoje ? ' hoje' : '';
+
+    gridHtml += '<div class="horario-dia' + diaClass + '">' + DIAS_SEMANA[d] + '</div>';
+    if (isOpen) {
+      gridHtml += '<div class="horario-hora' + diaClass + '">' + openTime + ' - ' + closeTime + '</div>';
+    } else {
+      gridHtml += '<div class="horario-hora horario-fechado">Fechado</div>';
+    }
+  }
+  document.getElementById('horarioGrid').innerHTML = gridHtml;
+
+  section.style.display = 'block';
+}
+
+function renderEquipe(barbers, specialties) {
+  if (!barbers.length) return;
+  const section = document.getElementById('equipeSection');
+  const scroll = document.getElementById('equipeScroll');
+
+  scroll.innerHTML = barbers.map(b => {
+    const initial = (b.name || '?').charAt(0).toUpperCase();
+    const specs = specialties[b.id];
+    const specText = specs ? specs.join(' · ') : '';
+
+    return '<a class="barber-card" href="' + agendarUrl(b.id) + '">'
+      + '<div class="barber-avatar">' + initial + '</div>'
+      + '<div class="barber-name">' + esc(b.name) + '</div>'
+      + (specText ? '<div class="barber-specialty">' + esc(specText) + '</div>' : '')
+      + '</a>';
+  }).join('');
+
+  section.style.display = 'block';
+}
+
+function renderServicos(services, combos) {
+  if (!services.length && !combos.length) return;
+  const section = document.getElementById('servicosSection');
+
+  // Services
+  if (services.length) {
+    document.getElementById('serviceList').innerHTML = services.map(s => {
+      const dur = s.duration ? s.duration + ' min' : '';
+      return '<div class="service-item">'
+        + '<div class="service-info">'
+        + '<div class="service-name">' + esc(s.name) + '</div>'
+        + '<div class="service-meta">'
+        + '<span class="service-price">' + formatMoney(s.price) + '</span>'
+        + (dur ? '<span>' + dur + '</span>' : '')
+        + '</div>'
+        + '</div>'
+        + '<a class="service-btn" href="' + agendarUrl() + '">AGENDAR</a>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Combos
+  if (combos.length) {
+    const serviceMap = {};
+    services.forEach(s => { serviceMap[s.id] = s; });
+
+    document.getElementById('combosArea').style.display = 'block';
+    document.getElementById('comboList').innerHTML = combos.map(c => {
+      const comboServices = (c.combo_services || []);
+      const originalPrice = comboServices.reduce((sum, cs) => {
+        const svc = serviceMap[cs.service_id];
+        return sum + (svc ? Number(svc.price || 0) : 0);
+      }, 0);
+      const savings = originalPrice > Number(c.price) ? originalPrice - Number(c.price) : 0;
+
+      return '<div class="service-item">'
+        + '<div class="service-info">'
+        + '<div class="service-name">' + esc(c.name)
+        + (savings > 0 ? '<span class="combo-badge">-' + formatMoney(savings) + '</span>' : '')
+        + '</div>'
+        + '<div class="service-meta">'
+        + '<span class="service-price">' + formatMoney(c.price) + '</span>'
+        + (c.duration ? '<span>' + c.duration + ' min</span>' : '')
+        + '</div>'
+        + '</div>'
+        + '<a class="service-btn" href="' + agendarUrl() + '">AGENDAR</a>'
+        + '</div>';
+    }).join('');
+  }
+
+  section.style.display = 'block';
+}
+
+function renderGaleria(fotos) {
+  if (!fotos.length) return;
+  allFotos = fotos;
+
+  const section = document.getElementById('galeriaSection');
+  const grid = document.getElementById('galeriaGrid');
+  const maxShow = 6;
+  const showing = fotos.slice(0, maxShow);
+
+  grid.innerHTML = showing.map((f, i) => {
+    const isLast = i === maxShow - 1 && fotos.length > maxShow;
+    return '<div class="galeria-item" onclick="openLightbox(' + i + ')">'
+      + '<img src="' + esc(f.url) + '" alt="' + esc(f.caption || 'Foto') + '" loading="lazy">'
+      + (isLast ? '<div class="galeria-more">+' + (fotos.length - maxShow) + '</div>' : '')
+      + '</div>';
+  }).join('');
+
+  section.style.display = 'block';
+}
+
+function renderAvaliacoes(reviews) {
+  if (!reviews.length) {
+    // Show just the CTA to leave a review
+    const section = document.getElementById('avaliacoesSection');
+    document.getElementById('avaliacoesHeader').innerHTML =
+      '<div><div class="avg-big">—</div><div class="avg-count">Nenhuma avaliacao ainda</div></div>';
+    document.getElementById('reviewsList').innerHTML = '';
+    document.getElementById('btnAvaliar').href = 'satisfacao.html?shop=' + shop.id;
+    section.style.display = 'block';
+    return;
+  }
+
+  const section = document.getElementById('avaliacoesSection');
+  const avg = reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length;
+
+  // Header
+  document.getElementById('avaliacoesHeader').innerHTML =
+    '<div>'
+    + '<div class="avg-big">' + avg.toFixed(1) + '</div>'
+    + '<div class="avg-stars">' + renderStarsText(avg) + '</div>'
+    + '<div class="avg-count">' + reviews.length + ' avaliac' + (reviews.length === 1 ? 'ao' : 'oes') + '</div>'
+    + '</div>';
+
+  // Last 5 reviews with comments
+  const withComments = reviews.filter(r => r.comment);
+  const showing = (withComments.length ? withComments : reviews).slice(0, 5);
+
+  document.getElementById('reviewsList').innerHTML = showing.map(r => {
+    const firstName = (r.client_name || 'Cliente').split(' ')[0];
+    const date = r.responded_at ? formatDate(r.responded_at) : '';
+
+    return '<div class="review-card">'
+      + '<div class="review-header">'
+      + '<span class="review-name">' + esc(firstName) + '</span>'
+      + '<span class="review-date">' + date + '</span>'
+      + '</div>'
+      + '<div class="review-stars">' + renderStarsText(r.rating || 0) + '</div>'
+      + (r.comment ? '<div class="review-comment">' + esc(r.comment) + '</div>' : '')
+      + '</div>';
+  }).join('');
+
+  document.getElementById('btnAvaliar').href = 'satisfacao.html?shop=' + shop.id;
+  section.style.display = 'block';
+}
+
+function renderLocalizacao() {
+  if (!shop.address) return;
+  const section = document.getElementById('localSection');
+  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(shop.address + (shop.city ? ', ' + shop.city : ''));
+
+  document.getElementById('localAddress').innerHTML =
+    '<span class="local-icon">&#x1F4CD;</span>'
+    + '<div>'
+    + '<div>' + esc(shop.address) + (shop.city ? ', ' + esc(shop.city) : '') + '</div>'
+    + '<a class="local-link" href="' + mapsUrl + '" target="_blank">Abrir no Google Maps &#8594;</a>'
+    + '</div>';
+
+  section.style.display = 'block';
+}
+
+function renderFooter() {
+  document.getElementById('footerCta').href = agendarUrl();
+  document.getElementById('footerMinhaConta').href = 'minha-conta.html?shop=' + slug;
+
+  let socialHtml = '';
+  if (shop.phone) {
+    const phone = shop.phone.replace(/\D/g, '');
+    socialHtml += '<a href="https://wa.me/55' + phone + '" target="_blank" title="WhatsApp">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
+      + '</a>';
+  }
+  if (shop.instagram) {
+    const ig = esc(shop.instagram.replace('@', ''));
+    socialHtml += '<a href="https://instagram.com/' + ig + '" target="_blank" title="Instagram">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>'
+      + '</a>';
+  }
+  document.getElementById('footerSocial').innerHTML = socialHtml;
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+
+function renderStarsText(rating) {
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.25 && rating - full < 0.75;
+  const empty = 5 - full - (half ? 1 : 0);
+  let str = '';
+  for (let i = 0; i < full; i++) str += '\u2605';
+  if (half) str += '\u2606';
+  for (let i = 0; i < empty; i++) str += '\u2606';
+  return str;
+}
+
+// ── Sticky header on scroll ──────────────────────────────────
+function initStickyHeader() {
+  const header = document.getElementById('stickyHeader');
+  const hero = document.getElementById('heroSection');
+
+  if (!hero) return;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        header.classList.remove('visible');
+      } else {
+        header.classList.add('visible');
+      }
+    });
+  }, { threshold: 0, rootMargin: '-50px 0px 0px 0px' });
+
+  observer.observe(hero);
+}
+
+// ── Lightbox ─────────────────────────────────────────────────
+let currentLightbox = 0;
+
+function openLightbox(index) {
+  currentLightbox = index;
+  const foto = allFotos[index];
+  if (!foto) return;
+  document.getElementById('lightboxImg').src = foto.url;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close lightbox with Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight' && document.getElementById('lightbox').classList.contains('open')) {
+    const next = (currentLightbox + 1) % allFotos.length;
+    openLightbox(next);
+  }
+  if (e.key === 'ArrowLeft' && document.getElementById('lightbox').classList.contains('open')) {
+    const prev = (currentLightbox - 1 + allFotos.length) % allFotos.length;
+    openLightbox(prev);
+  }
+});
+
+// Swipe on lightbox
+let touchStartX = 0;
+document.getElementById('lightbox').addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+document.getElementById('lightbox').addEventListener('touchend', e => {
+  const diff = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(diff) > 50) {
+    if (diff < 0) openLightbox((currentLightbox + 1) % allFotos.length);
+    else openLightbox((currentLightbox - 1 + allFotos.length) % allFotos.length);
+  }
+}, { passive: true });
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+</body>
+</html>

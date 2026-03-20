@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Configurações</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .cfg-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .cfg-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:20px;
+    }
+    .cfg-header h1 { font-size:18px; font-weight:700; }
+
+    .btn-save {
+      padding:7px 16px; border-radius:8px; border:none;
+      background:var(--verde-acao); color:#000; font-size:11px;
+      font-weight:700; font-family:inherit; cursor:pointer; transition:all .2s;
+    }
+    .btn-save:hover { opacity:0.9; transform:translateY(-1px); }
+    .btn-save:disabled { opacity:0.5; cursor:default; transform:none; }
+
+    /* Unsaved indicator */
+    .unsaved-badge {
+      display:none; font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px;
+      background:rgba(245,158,11,0.15); color:#f59e0b; margin-left:8px;
+    }
+    .unsaved-badge.show { display:inline-block; }
+
+    /* Sections */
+    .cfg-section {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      margin-bottom:12px; overflow:hidden;
+    }
+    .cfg-section-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px; cursor:pointer; user-select:none; transition:all .2s;
+    }
+    .cfg-section-header:hover { background:rgba(255,255,255,0.02); }
+    .cfg-section-title {
+      font-size:11px; font-weight:800; letter-spacing:1px; color:var(--verde-acao);
+      text-transform:uppercase;
+    }
+    .cfg-section-icon {
+      font-size:12px; color:var(--texto-muted); transition:transform .3s;
+    }
+    .cfg-section.collapsed .cfg-section-icon { transform:rotate(-90deg); }
+    .cfg-section-body {
+      padding:0 16px 16px; transition:all .3s;
+    }
+    .cfg-section.collapsed .cfg-section-body { display:none; }
+
+    /* Parameter rows */
+    .cfg-param {
+      padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .cfg-param:last-child { border-bottom:none; }
+    .cfg-param-top {
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .cfg-param-info { flex:1; }
+    .cfg-param-label { font-size:13px; font-weight:600; }
+    .cfg-param-desc { font-size:11px; color:var(--texto-muted); margin-top:2px; line-height:1.4; }
+
+    /* Select */
+    .cfg-select {
+      background:var(--fundo); border:1px solid var(--borda); border-radius:8px;
+      padding:8px 12px; color:var(--texto-secundario); font-size:13px;
+      font-family:inherit; min-width:90px; cursor:pointer; text-align:right;
+    }
+    .cfg-select:focus { border-color:var(--verde-acao); outline:none; }
+
+    /* Number input */
+    .cfg-number {
+      background:var(--fundo); border:1px solid var(--borda); border-radius:8px;
+      padding:8px 12px; color:var(--texto-secundario); font-size:13px;
+      font-family:inherit; width:70px; text-align:right;
+    }
+    .cfg-number:focus { border-color:var(--verde-acao); outline:none; }
+
+    /* Toggle switch */
+    .toggle-wrap { flex-shrink:0; }
+    .toggle {
+      position:relative; display:inline-block; width:44px; height:24px;
+    }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-slider {
+      position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+      background:rgba(255,255,255,0.1); border-radius:24px; transition:all .3s;
+    }
+    .toggle-slider:before {
+      content:""; position:absolute; height:18px; width:18px; left:3px; bottom:3px;
+      background:#fff; border-radius:50%; transition:all .3s;
+    }
+    .toggle input:checked + .toggle-slider {
+      background:var(--verde-acao);
+    }
+    .toggle input:checked + .toggle-slider:before {
+      transform:translateX(20px);
+    }
+
+    /* Multi-checkbox (payment methods) */
+    .cfg-checks {
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
+    }
+    .cfg-check {
+      display:flex; align-items:center; gap:6px; padding:6px 12px;
+      border:1px solid var(--borda); border-radius:8px; cursor:pointer;
+      font-size:12px; font-weight:600; transition:all .2s; user-select:none;
+    }
+    .cfg-check.active {
+      border-color:rgba(212,168,83,0.4); background:rgba(212,168,83,0.08); color:var(--verde-acao);
+    }
+    .cfg-check input { display:none; }
+
+    /* Color presets */
+    .cfg-colors { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+    .cfg-color {
+      width:36px; height:36px; border-radius:50%; cursor:pointer;
+      border:3px solid transparent; transition:all .2s; position:relative;
+    }
+    .cfg-color.active { border-color:#fff; transform:scale(1.15); }
+    .cfg-color:hover { transform:scale(1.1); }
+    .cfg-color-label {
+      font-size:9px; text-align:center; color:var(--texto-muted);
+      margin-top:4px; font-weight:600;
+    }
+    .cfg-color-wrap { display:flex; flex-direction:column; align-items:center; }
+
+    /* Bottom save bar */
+    .cfg-bottom-save {
+      text-align:center; margin-top:8px; margin-bottom:8px;
+    }
+    .cfg-bottom-save .btn-save { width:100%; padding:12px; font-size:13px; }
+
+    /* Toast */
+    .toast {
+      position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-80px);
+      background:#22c55e; color:#000; padding:12px 24px; border-radius:10px;
+      font-size:13px; font-weight:700; font-family:inherit; z-index:9999;
+      transition:transform .4s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.error { background:#ef4444; color:#fff; }
+  </style>
+</head>
+<body style="padding-bottom:70px;">
+
+<div class="toast" id="toast"></div>
+
+<div class="cfg-container">
+  <div id="loading" style="text-align:center;padding:60px 0;">
+    <div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--verde-acao);border-radius:50%;animation:spin .6s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando configurações...</div>
+  </div>
+
+  <div id="content" style="display:none;">
+
+    <!-- Header -->
+    <div class="cfg-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-back" onclick="history.back()">&#x2190;</button>
+        <h1>Configurações</h1>
+        <span class="unsaved-badge" id="unsaved-badge">NÃO SALVO</span>
+      </div>
+      <button class="btn-save" id="btn-save-top" onclick="salvar()">SALVAR</button>
+    </div>
+
+    <!-- AGENDAMENTO -->
+    <div class="cfg-section" id="sec-agendamento">
+      <div class="cfg-section-header" onclick="toggleSection('sec-agendamento')">
+        <span class="cfg-section-title">&#x1F4C5; Agendamento</span>
+        <span class="cfg-section-icon">&#x25BE;</span>
+      </div>
+      <div class="cfg-section-body">
+
+        <!-- 1. Intervalo de horários -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Intervalo de horários</div>
+              <div class="cfg-param-desc">Como os horários são divididos na agenda</div>
+            </div>
+            <select class="cfg-select" id="cfg-slot-interval" onchange="markDirty()">
+              <option value="15">15 min</option>
+              <option value="20">20 min</option>
+              <option value="30">30 min</option>
+              <option value="40">40 min</option>
+              <option value="45">45 min</option>
+              <option value="60">60 min</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Limite de agendamento futuro -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Limite de agendamento futuro</div>
+              <div class="cfg-param-desc">Quantos dias à frente o cliente pode agendar</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" class="cfg-number" id="cfg-booking-limit" min="1" max="90" onchange="markDirty()" oninput="markDirty()">
+              <span style="font-size:11px;color:var(--texto-muted);">dias</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Máximo de agendamentos em aberto -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Máximo de agendamentos em aberto</div>
+              <div class="cfg-param-desc">Quantos agendamentos futuros o mesmo cliente pode ter ao mesmo tempo (0 = sem limite)</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" class="cfg-number" id="cfg-max-pending" min="0" max="10" onchange="markDirty()" oninput="markDirty()">
+              <span style="font-size:11px;color:var(--texto-muted);">máx</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Limite de cancelamento -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Limite de cancelamento</div>
+              <div class="cfg-param-desc">Horas mínimas de antecedência para cancelar</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" class="cfg-number" id="cfg-cancel-limit" min="0" max="48" onchange="markDirty()" oninput="markDirty()">
+              <span style="font-size:11px;color:var(--texto-muted);">h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Permitir mesmo horário -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Permitir mesmo horário</div>
+              <div class="cfg-param-desc">Aceitar agendamento em horário já ocupado (fila)</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-allow-overlap" onchange="markDirty()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Confirmar automaticamente -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Confirmar automaticamente</div>
+              <div class="cfg-param-desc">Novos agendamentos são confirmados na hora</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-auto-confirm" onchange="markDirty()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- NOTIFICAÇÕES -->
+    <div class="cfg-section" id="sec-notificacoes">
+      <div class="cfg-section-header" onclick="toggleSection('sec-notificacoes')">
+        <span class="cfg-section-title">&#x1F514; Notificações</span>
+        <span class="cfg-section-icon">&#x25BE;</span>
+      </div>
+      <div class="cfg-section-body">
+
+        <!-- 6. Lembrete antes do horário -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Lembrete antes do horário</div>
+              <div class="cfg-param-desc">Minutos de antecedência para lembrar o cliente</div>
+            </div>
+            <select class="cfg-select" id="cfg-reminder-minutes" onchange="markDirty()">
+              <option value="15">15 min</option>
+              <option value="20">20 min</option>
+              <option value="30">30 min</option>
+              <option value="60">60 min</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 7. Mensagem de confirmação -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Confirmação via WhatsApp</div>
+              <div class="cfg-param-desc">Enviar mensagem de confirmação ao agendar</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-send-confirmation" onchange="markDirty()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div class="cfg-section" id="sec-financeiro">
+      <div class="cfg-section-header" onclick="toggleSection('sec-financeiro')">
+        <span class="cfg-section-title">&#x1F4B0; Financeiro</span>
+        <span class="cfg-section-icon">&#x25BE;</span>
+      </div>
+      <div class="cfg-section-body">
+
+        <!-- 8. Comissão padrão -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Comissão padrão</div>
+              <div class="cfg-param-desc">Percentual de comissão para novos personals</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" class="cfg-number" id="cfg-default-commission" min="0" max="100" onchange="markDirty()" oninput="markDirty()">
+              <span style="font-size:11px;color:var(--texto-muted);">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Formas de pagamento -->
+        <div class="cfg-param">
+          <div class="cfg-param-info">
+            <div class="cfg-param-label">Formas de pagamento aceitas</div>
+            <div class="cfg-param-desc">Quais formas de pagamento aparecem no caixa</div>
+          </div>
+          <div class="cfg-checks" id="cfg-payment-methods">
+            <label class="cfg-check active" data-value="pix" onclick="toggleCheck(this)">
+              <input type="checkbox" checked> PIX
+            </label>
+            <label class="cfg-check active" data-value="dinheiro" onclick="toggleCheck(this)">
+              <input type="checkbox" checked> Dinheiro
+            </label>
+            <label class="cfg-check active" data-value="debito" onclick="toggleCheck(this)">
+              <input type="checkbox" checked> Débito
+            </label>
+            <label class="cfg-check active" data-value="credito" onclick="toggleCheck(this)">
+              <input type="checkbox" checked> Crédito
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- APARÊNCIA -->
+    <div class="cfg-section" id="sec-aparencia">
+      <div class="cfg-section-header" onclick="toggleSection('sec-aparencia')">
+        <span class="cfg-section-title">&#x1F3A8; Aparência</span>
+        <span class="cfg-section-icon">&#x25BE;</span>
+      </div>
+      <div class="cfg-section-body">
+
+        <!-- Segmento do negócio -->
+        <div class="cfg-param">
+          <div class="cfg-param-info">
+            <div class="cfg-param-label">Segmento</div>
+            <div class="cfg-param-desc">Define o visual e os formulários (anamnese, lembretes) do sistema</div>
+          </div>
+          <div class="cfg-colors" id="cfg-segment" style="margin-top:8px;">
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-segment="academia" style="background:#d4a853;" onclick="selectSegment(this)"></div>
+              <div class="cfg-color-label">Academia</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-segment="estetica" style="background:#e91e8c;" onclick="selectSegment(this)"></div>
+              <div class="cfg-color-label">Estética</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-segment="sobrancelha" style="background:#c4956a;" onclick="selectSegment(this)"></div>
+              <div class="cfg-color-label">Sobrancelha</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-segment="unha" style="background:#a855f7;" onclick="selectSegment(this)"></div>
+              <div class="cfg-color-label">Unha</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-segment="salao" style="background:#b76e79;" onclick="selectSegment(this)"></div>
+              <div class="cfg-color-label">Estúdio</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tema claro/escuro -->
+        <div class="cfg-param">
+          <div class="cfg-param-top">
+            <div class="cfg-param-info">
+              <div class="cfg-param-label">Modo claro</div>
+              <div class="cfg-param-desc">Alternar entre tema escuro e claro</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-theme-toggle" onchange="handleThemeToggle(this)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. Cor do tema -->
+        <div class="cfg-param">
+          <div class="cfg-param-info">
+            <div class="cfg-param-label">Cor do tema</div>
+            <div class="cfg-param-desc">Cor de destaque usada em toda a interface</div>
+          </div>
+          <div class="cfg-colors" id="cfg-accent-color">
+            <div class="cfg-color-wrap">
+              <div class="cfg-color active" data-color="#d4a853" style="background:#d4a853;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Gold</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#e91e8c" style="background:#e91e8c;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Pink</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#c4956a" style="background:#c4956a;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Nude</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#b76e79" style="background:#b76e79;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Rosé</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#a855f7" style="background:#a855f7;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Lilás</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#22c55e" style="background:#22c55e;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Green</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#3b82f6" style="background:#3b82f6;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Blue</div>
+            </div>
+            <div class="cfg-color-wrap">
+              <div class="cfg-color" data-color="#ef4444" style="background:#ef4444;" onclick="selectColor(this)"></div>
+              <div class="cfg-color-label">Red</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom save -->
+    <div class="cfg-bottom-save">
+      <button class="btn-save" id="btn-save-bottom" onclick="salvar()">SALVAR CONFIGURAÇÕES</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item active" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servicos</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatorio</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retencao</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfacao</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699;&#xFE0F; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+let shop = null;
+let isDirty = false;
+
+const DEFAULTS = {
+  slot_interval: 30,
+  booking_limit_days: 30,
+  max_pending_bookings: 2,
+  cancel_limit_hours: 2,
+  allow_overlap: false,
+  auto_confirm: true,
+  reminder_minutes: 30,
+  send_confirmation: true,
+  default_commission: 0,
+  payment_methods: ['pix', 'dinheiro', 'debito', 'credito'],
+  accent_color: '#d4a853'
+};
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html'; return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  loadSettings();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+});
+
+function getSettings() {
+  // Merge saved settings with defaults (handles missing column gracefully)
+  const saved = (shop && shop.settings) ? shop.settings : {};
+  return { ...DEFAULTS, ...saved };
+}
+
+function loadSettings() {
+  const s = getSettings();
+
+  document.getElementById('cfg-slot-interval').value = s.slot_interval;
+  document.getElementById('cfg-booking-limit').value = s.booking_limit_days;
+  document.getElementById('cfg-max-pending').value = s.max_pending_bookings;
+  document.getElementById('cfg-cancel-limit').value = s.cancel_limit_hours;
+  document.getElementById('cfg-allow-overlap').checked = s.allow_overlap;
+  document.getElementById('cfg-auto-confirm').checked = s.auto_confirm;
+  document.getElementById('cfg-reminder-minutes').value = s.reminder_minutes;
+  document.getElementById('cfg-send-confirmation').checked = s.send_confirmation;
+  document.getElementById('cfg-default-commission').value = s.default_commission;
+
+  // Payment methods
+  const methods = s.payment_methods || DEFAULTS.payment_methods;
+  document.querySelectorAll('#cfg-payment-methods .cfg-check').forEach(el => {
+    const val = el.dataset.value;
+    const isOn = methods.includes(val);
+    el.classList.toggle('active', isOn);
+    el.querySelector('input').checked = isOn;
+  });
+
+  // Segmento
+  const seg = s.segmento || 'academia';
+  document.querySelectorAll('#cfg-segment .cfg-color').forEach(el => {
+    el.classList.toggle('active', el.dataset.segment === seg);
+  });
+
+  // Accent color
+  const color = s.accent_color || DEFAULTS.accent_color;
+  document.querySelectorAll('#cfg-accent-color .cfg-color').forEach(el => {
+    el.classList.toggle('active', el.dataset.color === color);
+  });
+
+  // Sync theme
+  if (typeof syncThemeFromSettings === 'function') syncThemeFromSettings(s);
+
+  isDirty = false;
+  document.getElementById('unsaved-badge').classList.remove('show');
+}
+
+function collectSettings() {
+  const methods = [];
+  document.querySelectorAll('#cfg-payment-methods .cfg-check.active').forEach(el => {
+    methods.push(el.dataset.value);
+  });
+
+  let accentColor = DEFAULTS.accent_color;
+  const activeColor = document.querySelector('#cfg-accent-color .cfg-color.active');
+  if (activeColor) accentColor = activeColor.dataset.color;
+
+  let segmento = 'academia';
+  const activeSeg = document.querySelector('#cfg-segment .cfg-color.active');
+  if (activeSeg) segmento = activeSeg.dataset.segment;
+
+  return {
+    slot_interval: parseInt(document.getElementById('cfg-slot-interval').value) || DEFAULTS.slot_interval,
+    booking_limit_days: parseInt(document.getElementById('cfg-booking-limit').value) || DEFAULTS.booking_limit_days,
+    max_pending_bookings: parseInt(document.getElementById('cfg-max-pending').value) || 0,
+    cancel_limit_hours: parseInt(document.getElementById('cfg-cancel-limit').value) || 0,
+    allow_overlap: document.getElementById('cfg-allow-overlap').checked,
+    auto_confirm: document.getElementById('cfg-auto-confirm').checked,
+    reminder_minutes: parseInt(document.getElementById('cfg-reminder-minutes').value) || DEFAULTS.reminder_minutes,
+    send_confirmation: document.getElementById('cfg-send-confirmation').checked,
+    default_commission: parseInt(document.getElementById('cfg-default-commission').value) || 0,
+    payment_methods: methods.length ? methods : DEFAULTS.payment_methods,
+    accent_color: accentColor,
+    segmento: segmento
+  };
+}
+
+async function salvar() {
+  const btnTop = document.getElementById('btn-save-top');
+  const btnBottom = document.getElementById('btn-save-bottom');
+  btnTop.disabled = true;
+  btnBottom.disabled = true;
+  btnTop.textContent = 'SALVANDO...';
+  btnBottom.textContent = 'SALVANDO...';
+
+  const settings = collectSettings();
+
+  try {
+    const { error } = await db.from('barbershops').update({ settings }).eq('id', shop.id);
+
+    if (error) {
+      // If column doesn't exist, show helpful message
+      if (error.message && (error.message.includes('settings') || error.message.includes('column'))) {
+        showToast('Coluna settings não existe ainda. Execute: ALTER TABLE barbershops ADD COLUMN settings JSONB DEFAULT \'{}\';', true);
+      } else {
+        showToast('Erro ao salvar: ' + error.message, true);
+      }
+    } else {
+      shop.settings = settings;
+      isDirty = false;
+      document.getElementById('unsaved-badge').classList.remove('show');
+      // Sync tema em todas as páginas
+      if (typeof syncThemeFromSettings === 'function') syncThemeFromSettings(settings);
+      showToast('Configurações salvas!');
+    }
+  } catch (e) {
+    showToast('Erro ao salvar.', true);
+  }
+
+  btnTop.disabled = false;
+  btnBottom.disabled = false;
+  btnTop.textContent = 'SALVAR';
+  btnBottom.textContent = 'SALVAR CONFIGURAÇÕES';
+}
+
+function markDirty() {
+  isDirty = true;
+  document.getElementById('unsaved-badge').classList.add('show');
+}
+
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function toggleCheck(el) {
+  // Prevent unchecking all — at least one must remain
+  const isActive = el.classList.contains('active');
+  const activeCount = document.querySelectorAll('#cfg-payment-methods .cfg-check.active').length;
+  if (isActive && activeCount <= 1) return;
+
+  el.classList.toggle('active');
+  el.querySelector('input').checked = !isActive;
+  markDirty();
+}
+
+function selectColor(el) {
+  document.querySelectorAll('#cfg-accent-color .cfg-color').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // Preview cor em tempo real
+  if (typeof setAccentColor === 'function') setAccentColor(el.dataset.color);
+  markDirty();
+}
+
+function selectSegment(el) {
+  document.querySelectorAll('#cfg-segment .cfg-color').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // Preview segmento em tempo real
+  var seg = el.dataset.segment;
+  if (typeof setSegment === 'function') setSegment(seg);
+  // Auto-selecionar cor padrão do segmento
+  var segDefaults = { academia:'#d4a853', estetica:'#e91e8c', sobrancelha:'#c4956a', unha:'#a855f7', salao:'#b76e79' };
+  var defaultColor = segDefaults[seg] || '#d4a853';
+  document.querySelectorAll('#cfg-accent-color .cfg-color').forEach(c => {
+    c.classList.toggle('active', c.dataset.color === defaultColor);
+  });
+  markDirty();
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  requestAnimationFrame(() => { t.classList.add('show'); });
+  setTimeout(() => { t.classList.remove('show'); }, isError ? 5000 : 2500);
+}
+
+// Theme toggle handler
+function handleThemeToggle(el) {
+  toggleTheme();
+}
+// Sync theme toggle state on load
+document.addEventListener('DOMContentLoaded', function() {
+  var toggle = document.getElementById('cfg-theme-toggle');
+  if (toggle) toggle.checked = getTheme() === 'light';
+});
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', function(e) {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

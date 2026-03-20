@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Busca</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .busca-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .busca-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .busca-header h1 { font-size:18px; font-weight:700; }
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    /* Search bar */
+    .search-wrapper {
+      position:relative; margin-bottom:12px;
+    }
+    .search-icon {
+      position:absolute; left:14px; top:50%; transform:translateY(-50%);
+      font-size:18px; color:var(--texto-muted); pointer-events:none;
+    }
+    .search-input {
+      width:100%; padding:14px 44px 14px 44px; background:var(--cinza-escuro);
+      border:2px solid var(--borda); border-radius:12px; color:var(--texto-principal);
+      font-size:16px; font-family:inherit; box-sizing:border-box; transition:border-color .2s;
+    }
+    .search-input:focus { border-color:var(--verde-acao); outline:none; }
+    .search-input::placeholder { color:var(--texto-muted); }
+    .search-clear {
+      position:absolute; right:12px; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:var(--texto-muted); font-size:18px;
+      cursor:pointer; padding:4px 6px; display:none; font-family:inherit;
+    }
+    .search-clear:hover { color:var(--texto-principal); }
+
+    /* Filter chips */
+    .filter-chips {
+      display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;
+    }
+    .filter-chip {
+      padding:6px 14px; border-radius:20px; font-size:11px; font-weight:700;
+      border:1.5px solid var(--borda); background:transparent; color:var(--texto-muted);
+      cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap;
+    }
+    .filter-chip:hover { border-color:var(--borda-hover); }
+    .filter-chip.active { border-color:var(--verde-acao); background:rgba(212,168,83,0.1); color:var(--verde-acao); }
+
+    /* Recent searches */
+    .recent-section { margin-bottom:20px; }
+    .recent-title {
+      font-size:11px; font-weight:700; color:var(--texto-muted); letter-spacing:1px;
+      margin-bottom:10px; text-transform:uppercase;
+    }
+    .recent-item {
+      display:flex; align-items:center; gap:10px; padding:10px 12px;
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      margin-bottom:6px; cursor:pointer; transition:all .2s;
+    }
+    .recent-item:hover { border-color:var(--borda-hover); }
+    .recent-icon { color:var(--texto-muted); font-size:14px; }
+    .recent-text { font-size:13px; color:var(--texto-secundario); flex:1; }
+    .recent-remove {
+      background:none; border:none; color:var(--texto-muted); font-size:14px;
+      cursor:pointer; padding:2px 4px; opacity:0.5; transition:opacity .2s;
+    }
+    .recent-remove:hover { opacity:1; }
+
+    /* Results */
+    .results-section { margin-bottom:20px; }
+    .results-group { margin-bottom:20px; }
+    .group-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--borda);
+    }
+    .group-title {
+      font-size:10px; font-weight:800; color:var(--verde-acao); letter-spacing:1.5px;
+      text-transform:uppercase;
+    }
+    .group-count {
+      font-size:9px; font-weight:700; color:var(--texto-muted);
+      background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:10px;
+    }
+    .view-all {
+      font-size:10px; font-weight:700; color:var(--verde-acao); cursor:pointer;
+      background:none; border:none; font-family:inherit; transition:opacity .2s;
+    }
+    .view-all:hover { opacity:0.7; }
+
+    .result-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      padding:12px 14px; margin-bottom:6px; cursor:pointer; transition:all .2s;
+      text-decoration:none; display:block; color:inherit;
+    }
+    .result-card:hover { border-color:var(--borda-hover); transform:translateY(-1px); }
+    .result-top { display:flex; justify-content:space-between; align-items:flex-start; }
+    .result-name { font-size:13px; font-weight:700; }
+    .result-name mark {
+      background:rgba(212,168,83,0.25); color:var(--verde-acao); border-radius:2px;
+      padding:0 1px;
+    }
+    .result-meta { font-size:11px; color:var(--texto-muted); margin-top:2px; }
+    .result-meta mark {
+      background:rgba(212,168,83,0.25); color:var(--verde-acao); border-radius:2px;
+      padding:0 1px;
+    }
+    .result-badge {
+      font-size:9px; font-weight:700; padding:3px 8px; border-radius:12px;
+      text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;
+    }
+    .badge-active { background:rgba(212,168,83,0.15); color:#d4a853; }
+    .badge-inactive { background:rgba(243,156,18,0.15); color:#f39c12; }
+    .result-price { font-size:14px; font-weight:800; color:var(--verde-acao); }
+
+    .status-pending { background:rgba(243,156,18,0.15); color:#f39c12; }
+    .status-confirmed { background:rgba(212,168,83,0.15); color:#d4a853; }
+    .status-done { background:rgba(255,255,255,0.08); color:var(--texto-muted); }
+    .status-cancelled { background:rgba(231,76,60,0.1); color:#e74c3c; }
+    .status-no_show { background:rgba(155,89,182,0.15); color:#9b59b6; }
+
+    /* Empty / loading */
+    .empty-state {
+      text-align:center; padding:60px 20px; color:var(--texto-muted);
+    }
+    .empty-icon { font-size:48px; margin-bottom:16px; }
+    .empty-text { font-size:14px; line-height:1.5; }
+    .empty-sub { font-size:12px; color:var(--texto-muted); margin-top:6px; opacity:0.7; }
+
+    .spinner {
+      width:28px; height:28px; border:3px solid var(--borda);
+      border-top-color:var(--verde-acao); border-radius:50%;
+      animation:spin .6s linear infinite; margin:40px auto;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    /* Keyboard shortcut hint */
+    .shortcut-hint {
+      font-size:10px; color:var(--texto-muted); text-align:center; margin-top:8px; opacity:0.5;
+    }
+    .shortcut-hint kbd {
+      background:rgba(255,255,255,0.08); border:1px solid var(--borda);
+      border-radius:4px; padding:1px 5px; font-size:10px; font-family:inherit;
+    }
+  </style>
+</head>
+<body style="padding-bottom:70px;">
+
+<div class="busca-container">
+  <div class="busca-header">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-back" onclick="history.back()">&#x2190;</button>
+      <h1>Busca</h1>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-wrapper">
+    <span class="search-icon">&#x1F50D;</span>
+    <input type="text" id="search-input" class="search-input"
+           placeholder="Buscar clientes, agendamentos, serviços..."
+           autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="search-clear" id="btn-clear" onclick="clearSearch()">&#x2715;</button>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="filter-chips" id="filter-chips">
+    <button class="filter-chip active" data-filter="todos">Todos</button>
+    <button class="filter-chip" data-filter="clientes">Clientes</button>
+    <button class="filter-chip" data-filter="agendamentos">Agendamentos</button>
+    <button class="filter-chip" data-filter="servicos">Serviços</button>
+    <button class="filter-chip" data-filter="produtos">Produtos</button>
+    <button class="filter-chip" data-filter="personals">Personals</button>
+  </div>
+
+  <!-- Content area -->
+  <div id="content">
+    <!-- Recent searches (shown when empty) -->
+    <div id="recent-section" class="recent-section" style="display:none;">
+      <div class="recent-title">Buscas recentes</div>
+      <div id="recent-list"></div>
+    </div>
+
+    <!-- Initial empty state -->
+    <div id="empty-initial" class="empty-state">
+      <div class="empty-icon">&#x1F50E;</div>
+      <div class="empty-text">Digite para buscar em todo o sistema</div>
+      <div class="empty-sub">Clientes, agendamentos, serviços, produtos e personals</div>
+      <div class="shortcut-hint" style="margin-top:20px;">
+        Dica: <kbd>Ctrl</kbd> + <kbd>K</kbd> para buscar de qualquer tela
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" style="display:none;">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- No results -->
+    <div id="empty-noresults" class="empty-state" style="display:none;">
+      <div class="empty-icon">&#x1F6AB;</div>
+      <div class="empty-text">Nenhum resultado para "<span id="noresults-term"></span>"</div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="results-section" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--accent);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C5; Agenda Semanal</a>
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Serviços</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatório</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retenção</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfação</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+console.log('Busca v1 carregado');
+
+// ── Estado ──────────────────────────────────────────────
+let shop = null;
+let currentFilter = 'todos';
+let debounceTimer = null;
+let abortController = null;
+const STORAGE_KEY = 'nalinha_recent_searches';
+const MAX_RECENT = 5;
+const STATUS_LABELS = {
+  pending: 'Pendente', confirmed: 'Confirmado', done: 'Concluído',
+  cancelled: 'Cancelado', no_show: 'Não veio'
+};
+
+// ── Init ────────────────────────────────────────────────
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+
+const db = sb;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Admin banner
+  if (isAdminViewing) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;';
+    banner.innerHTML = `<span style="font-size:11px;color:#e74c3c;font-weight:700;">ADMIN · Visualizando ${esc(shop.name)}</span>
+      <button onclick="sessionStorage.removeItem('admin_viewing_shop');location.href='admin.html'" style="background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">VOLTAR</button>`;
+    document.querySelector('.busca-container').insertBefore(banner, document.querySelector('.busca-header'));
+  }
+
+  // Setup
+  setupInput();
+  setupFilters();
+  showRecent();
+
+  // Auto-focus
+  document.getElementById('search-input').focus();
+
+  // Check URL param
+  const q = _params.get('q');
+  if (q) {
+    document.getElementById('search-input').value = q;
+    doSearch(q);
+  }
+});
+
+// ── Keyboard shortcut (Ctrl+K) ─────────────────────────
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+    document.getElementById('search-input').select();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('search-input').blur();
+  }
+});
+
+// ── Input handling ──────────────────────────────────────
+function setupInput() {
+  const input = document.getElementById('search-input');
+  const clearBtn = document.getElementById('btn-clear');
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    clearBtn.style.display = val ? 'block' : 'none';
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    if (val.length < 2) {
+      showInitialState();
+      return;
+    }
+
+    debounceTimer = setTimeout(() => doSearch(val), 300);
+  });
+}
+
+function clearSearch() {
+  const input = document.getElementById('search-input');
+  input.value = '';
+  document.getElementById('btn-clear').style.display = 'none';
+  showInitialState();
+  input.focus();
+}
+
+function showInitialState() {
+  document.getElementById('empty-initial').style.display = '';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('empty-noresults').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  showRecent();
+}
+
+// ── Filter chips ────────────────────────────────────────
+function setupFilters() {
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+
+      const val = document.getElementById('search-input').value.trim();
+      if (val.length >= 2) doSearch(val);
+    });
+  });
+}
+
+// ── Recent searches ─────────────────────────────────────
+function getRecent() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveRecent(term) {
+  let recent = getRecent().filter(t => t !== term);
+  recent.unshift(term);
+  if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(recent));
+}
+
+function removeRecent(term) {
+  const recent = getRecent().filter(t => t !== term);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(recent));
+  showRecent();
+}
+
+function showRecent() {
+  const recent = getRecent();
+  const section = document.getElementById('recent-section');
+  const list = document.getElementById('recent-list');
+
+  if (!recent.length) { section.style.display = 'none'; return; }
+
+  section.style.display = '';
+  list.innerHTML = recent.map(t => `
+    <div class="recent-item" onclick="reSearch('${esc(t)}')">
+      <span class="recent-icon">&#x1F552;</span>
+      <span class="recent-text">${esc(t)}</span>
+      <button class="recent-remove" onclick="event.stopPropagation();removeRecent('${esc(t)}')" title="Remover">&#x2715;</button>
+    </div>
+  `).join('');
+}
+
+function reSearch(term) {
+  const input = document.getElementById('search-input');
+  input.value = term;
+  document.getElementById('btn-clear').style.display = 'block';
+  doSearch(term);
+}
+
+// ── Search ──────────────────────────────────────────────
+async function doSearch(term) {
+  if (!shop) return;
+
+  // Cancel previous
+  if (abortController) abortController.abort();
+  abortController = new AbortController();
+
+  // Show loading
+  document.getElementById('empty-initial').style.display = 'none';
+  document.getElementById('recent-section').style.display = 'none';
+  document.getElementById('empty-noresults').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display = '';
+
+  saveRecent(term);
+
+  const pattern = `%${term}%`;
+  const sid = shop.id;
+  const filter = currentFilter;
+
+  try {
+    const queries = [];
+
+    // CLIENTES — busca em appointments por nome e telefone (agrupado)
+    if (filter === 'todos' || filter === 'clientes') {
+      queries.push(
+        db.from('appointments')
+          .select('client_name, client_phone, scheduled_at')
+          .eq('barbershop_id', sid)
+          .or(`client_name.ilike.${pattern},client_phone.ilike.${pattern}`)
+          .order('scheduled_at', { ascending: false })
+          .limit(100)
+          .then(r => ({ type: 'clientes', data: r.data || [] }))
+      );
+    }
+
+    // AGENDAMENTOS
+    if (filter === 'todos' || filter === 'agendamentos') {
+      queries.push(
+        db.from('appointments')
+          .select('id, client_name, client_phone, scheduled_at, status, service_id')
+          .eq('barbershop_id', sid)
+          .ilike('client_name', pattern)
+          .order('scheduled_at', { ascending: false })
+          .limit(filter === 'agendamentos' ? 20 : 5)
+          .then(r => ({ type: 'agendamentos', data: r.data || [] }))
+      );
+    }
+
+    // SERVICOS
+    if (filter === 'todos' || filter === 'servicos') {
+      queries.push(
+        db.from('services')
+          .select('id, name, price, duration_min, active')
+          .eq('barbershop_id', sid)
+          .ilike('name', pattern)
+          .order('name')
+          .limit(filter === 'servicos' ? 20 : 5)
+          .then(r => ({ type: 'servicos', data: r.data || [] }))
+      );
+    }
+
+    // PRODUTOS
+    if (filter === 'todos' || filter === 'produtos') {
+      queries.push(
+        db.from('products')
+          .select('id, name, sale_price, stock_qty, category')
+          .eq('barbershop_id', sid)
+          .ilike('name', pattern)
+          .order('name')
+          .limit(filter === 'produtos' ? 20 : 5)
+          .then(r => ({ type: 'produtos', data: r.data || [] }))
+      );
+    }
+
+    // PERSONALS
+    if (filter === 'todos' || filter === 'personals') {
+      queries.push(
+        db.from('barbers')
+          .select('id, name, commission_pct, active')
+          .eq('barbershop_id', sid)
+          .ilike('name', pattern)
+          .order('name')
+          .limit(filter === 'personals' ? 20 : 5)
+          .then(r => ({ type: 'personals', data: r.data || [] }))
+      );
+    }
+
+    const results = await Promise.all(queries);
+
+    // Check if search was cancelled
+    if (abortController.signal.aborted) return;
+
+    // Load services for appointment names
+    const { data: allServices } = await db.from('services').select('id, name').eq('barbershop_id', sid);
+    const svcMap = {};
+    (allServices || []).forEach(s => { svcMap[s.id] = s.name; });
+
+    renderResults(results, term, svcMap);
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    console.error('Busca erro:', e);
+  }
+}
+
+// ── Render ──────────────────────────────────────────────
+function highlight(text, term) {
+  if (!text || !term) return esc(text || '');
+  const escaped = esc(text);
+  const termEsc = esc(term);
+  const regex = new RegExp(`(${termEsc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return escaped.replace(regex, '<mark>$1</mark>');
+}
+
+function renderResults(results, term, svcMap) {
+  document.getElementById('loading').style.display = 'none';
+
+  let totalResults = 0;
+  let html = '';
+
+  results.forEach(group => {
+    if (group.type === 'clientes') {
+      // Agrupar clientes por telefone (pegar nome mais recente)
+      const clientMap = {};
+      group.data.forEach(a => {
+        const key = a.client_phone || a.client_name;
+        if (!clientMap[key]) {
+          clientMap[key] = { name: a.client_name, phone: a.client_phone, lastVisit: a.scheduled_at, visits: 0 };
+        }
+        clientMap[key].visits++;
+        if (a.scheduled_at > clientMap[key].lastVisit) {
+          clientMap[key].lastVisit = a.scheduled_at;
+          clientMap[key].name = a.client_name;
+        }
+      });
+
+      const clients = Object.values(clientMap).slice(0, currentFilter === 'clientes' ? 20 : 5);
+      if (!clients.length) return;
+      totalResults += clients.length;
+
+      html += `<div class="results-group">
+        <div class="group-header">
+          <span class="group-title">Clientes</span>
+          <span class="group-count">${clients.length}${Object.keys(clientMap).length > clients.length ? '+' : ''}</span>
+        </div>`;
+
+      clients.forEach(c => {
+        const phoneParam = c.phone ? encodeURIComponent(c.phone) : '';
+        html += `<a class="result-card" href="historico-cliente.html?phone=${phoneParam}">
+          <div class="result-top">
+            <div>
+              <div class="result-name">${highlight(c.name, term)}</div>
+              <div class="result-meta">${c.phone ? highlight(c.phone, term) : 'Sem telefone'}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:var(--texto-muted);">${c.visits} visita${c.visits !== 1 ? 's' : ''}</div>
+              <div style="font-size:10px;color:var(--texto-muted);">${formatDate(c.lastVisit)}</div>
+            </div>
+          </div>
+        </a>`;
+      });
+
+      if (Object.keys(clientMap).length > clients.length) {
+        html += `<button class="view-all" onclick="expandFilter('clientes')">Ver todos os clientes &#x2192;</button>`;
+      }
+      html += `</div>`;
+    }
+
+    if (group.type === 'agendamentos') {
+      if (!group.data.length) return;
+      totalResults += group.data.length;
+
+      html += `<div class="results-group">
+        <div class="group-header">
+          <span class="group-title">Agendamentos</span>
+          <span class="group-count">${group.data.length}</span>
+        </div>`;
+
+      group.data.forEach(a => {
+        const dt = new Date(a.scheduled_at);
+        const dateStr = dt.toISOString().slice(0, 10);
+        const statusCls = 'status-' + (a.status || 'pending');
+        const statusLabel = STATUS_LABELS[a.status] || a.status || 'Pendente';
+        const svcName = svcMap[a.service_id] || '';
+
+        html += `<a class="result-card" href="dashboard.html?date=${dateStr}">
+          <div class="result-top">
+            <div>
+              <div class="result-name">${highlight(a.client_name, term)}</div>
+              <div class="result-meta">${formatDate(a.scheduled_at)} &middot; ${formatTime(a.scheduled_at)}${svcName ? ' &middot; ' + esc(svcName) : ''}</div>
+            </div>
+            <span class="result-badge ${statusCls}">${statusLabel}</span>
+          </div>
+        </a>`;
+      });
+
+      if (currentFilter === 'todos' && group.data.length >= 5) {
+        html += `<button class="view-all" onclick="expandFilter('agendamentos')">Ver todos os agendamentos &#x2192;</button>`;
+      }
+      html += `</div>`;
+    }
+
+    if (group.type === 'servicos') {
+      if (!group.data.length) return;
+      totalResults += group.data.length;
+
+      html += `<div class="results-group">
+        <div class="group-header">
+          <span class="group-title">Serviços</span>
+          <span class="group-count">${group.data.length}</span>
+        </div>`;
+
+      group.data.forEach(s => {
+        const badge = s.active !== false
+          ? '<span class="result-badge badge-active">Ativo</span>'
+          : '<span class="result-badge badge-inactive">Inativo</span>';
+
+        html += `<a class="result-card" href="servicos.html">
+          <div class="result-top">
+            <div>
+              <div class="result-name">${highlight(s.name, term)}</div>
+              <div class="result-meta">${s.duration_min ? s.duration_min + ' min' : ''}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="result-price">${formatMoney(s.price)}</div>
+              ${badge}
+            </div>
+          </div>
+        </a>`;
+      });
+
+      if (currentFilter === 'todos' && group.data.length >= 5) {
+        html += `<button class="view-all" onclick="expandFilter('servicos')">Ver todos os serviços &#x2192;</button>`;
+      }
+      html += `</div>`;
+    }
+
+    if (group.type === 'produtos') {
+      if (!group.data.length) return;
+      totalResults += group.data.length;
+
+      html += `<div class="results-group">
+        <div class="group-header">
+          <span class="group-title">Produtos</span>
+          <span class="group-count">${group.data.length}</span>
+        </div>`;
+
+      group.data.forEach(p => {
+        const stockColor = (p.stock_qty || 0) <= 2 ? '#ef4444' : (p.stock_qty || 0) <= 5 ? '#f59e0b' : 'var(--verde-acao)';
+
+        html += `<a class="result-card" href="estoque.html">
+          <div class="result-top">
+            <div>
+              <div class="result-name">${highlight(p.name, term)}</div>
+              <div class="result-meta">${p.category ? esc(p.category) : 'Sem categoria'}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="result-price">${formatMoney(p.sale_price)}</div>
+              <div style="font-size:11px;color:${stockColor};font-weight:700;">${p.stock_qty || 0} un</div>
+            </div>
+          </div>
+        </a>`;
+      });
+
+      if (currentFilter === 'todos' && group.data.length >= 5) {
+        html += `<button class="view-all" onclick="expandFilter('produtos')">Ver todos os produtos &#x2192;</button>`;
+      }
+      html += `</div>`;
+    }
+
+    if (group.type === 'personals') {
+      if (!group.data.length) return;
+      totalResults += group.data.length;
+
+      html += `<div class="results-group">
+        <div class="group-header">
+          <span class="group-title">Personals</span>
+          <span class="group-count">${group.data.length}</span>
+        </div>`;
+
+      group.data.forEach(b => {
+        const badge = b.active !== false
+          ? '<span class="result-badge badge-active">Ativo</span>'
+          : '<span class="result-badge badge-inactive">Inativo</span>';
+
+        html += `<a class="result-card" href="comissoes.html">
+          <div class="result-top">
+            <div>
+              <div class="result-name">${highlight(b.name, term)}</div>
+              <div class="result-meta">Comissão: ${b.commission_pct || 0}%</div>
+            </div>
+            ${badge}
+          </div>
+        </a>`;
+      });
+
+      if (currentFilter === 'todos' && group.data.length >= 5) {
+        html += `<button class="view-all" onclick="expandFilter('personals')">Ver todos os personals &#x2192;</button>`;
+      }
+      html += `</div>`;
+    }
+  });
+
+  if (totalResults === 0) {
+    document.getElementById('noresults-term').textContent = term;
+    document.getElementById('empty-noresults').style.display = '';
+    document.getElementById('results').style.display = 'none';
+  } else {
+    document.getElementById('empty-noresults').style.display = 'none';
+    document.getElementById('results').innerHTML = html;
+    document.getElementById('results').style.display = '';
+  }
+}
+
+function expandFilter(filter) {
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === filter);
+  });
+  currentFilter = filter;
+  const val = document.getElementById('search-input').value.trim();
+  if (val.length >= 2) doSearch(val);
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

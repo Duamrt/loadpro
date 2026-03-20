@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Lista de Espera</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .le-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .le-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .le-header h1 { font-size:18px; font-weight:700; }
+    .le-header-left { display:flex; align-items:center; gap:8px; }
+    .le-count { font-size:11px; color:var(--texto-muted); font-weight:600; margin-left:8px; }
+
+    .btn-back {
+      background:none; border:none; color:var(--texto-secundario); font-size:20px;
+      cursor:pointer; padding:4px 8px 4px 0; font-family:inherit; transition:all .2s;
+    }
+    .btn-back:hover { color:var(--verde-acao); }
+
+    /* Stats */
+    .le-stats {
+      display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;
+    }
+    .le-stat {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:10px;
+      padding:10px; text-align:center;
+    }
+    .le-stat .num { font-size:18px; font-weight:800; }
+    .le-stat .lbl { font-size:8px; color:var(--texto-muted); font-weight:700; letter-spacing:0.5px; margin-top:2px; }
+
+    /* Queue cards */
+    .le-card {
+      background:var(--cinza-escuro); border:1px solid var(--borda); border-radius:12px;
+      padding:14px; margin-bottom:10px; transition:all .2s; position:relative;
+    }
+    .le-card:hover { border-color:var(--borda-hover); }
+    .le-card.chamado {
+      border-color:var(--verde-acao);
+      animation:pulseBorder 1.5s ease-in-out infinite;
+    }
+    .le-card.atendido { opacity:0.5; }
+    .le-card.desistiu { opacity:0.4; }
+
+    @keyframes pulseBorder {
+      0%,100% { border-color:var(--verde-acao); box-shadow:0 0 0 0 rgba(212,168,83,0.3); }
+      50% { border-color:#d4a853; box-shadow:0 0 12px 2px rgba(212,168,83,0.2); }
+    }
+
+    .le-card-top { display:flex; align-items:flex-start; gap:12px; }
+
+    .le-position {
+      min-width:40px; height:40px; border-radius:50%;
+      background:rgba(212,168,83,0.12); border:2px solid rgba(212,168,83,0.3);
+      display:flex; align-items:center; justify-content:center;
+      font-size:16px; font-weight:800; color:var(--verde-acao); flex-shrink:0;
+    }
+    .le-card.atendido .le-position,
+    .le-card.desistiu .le-position {
+      background:rgba(255,255,255,0.04); border-color:var(--borda); color:var(--texto-muted);
+    }
+
+    .le-card-info { flex:1; min-width:0; }
+    .le-card-name { font-size:14px; font-weight:700; }
+    .le-card-phone { font-size:11px; color:var(--texto-muted); margin-top:1px; }
+    .le-card-meta { font-size:11px; color:var(--texto-muted); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 12px; }
+    .le-card-meta span { white-space:nowrap; }
+
+    .le-card-right { text-align:right; flex-shrink:0; }
+    .le-card-wait { font-size:11px; color:var(--texto-muted); white-space:nowrap; }
+    .le-card-wait.warning { color:#f39c12; font-weight:700; }
+
+    .le-badge {
+      font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px;
+      display:inline-block; margin-top:4px; text-transform:uppercase; letter-spacing:0.3px;
+    }
+    .le-badge.aguardando { background:rgba(243,156,18,0.15); color:#f39c12; }
+    .le-badge.chamado { background:rgba(212,168,83,0.2); color:#d4a853; animation:pulseText 1.5s ease-in-out infinite; }
+    .le-badge.atendido { background:rgba(34,197,94,0.15); color:#22c55e; }
+    .le-badge.desistiu { background:rgba(239,68,68,0.15); color:#ef4444; }
+
+    @keyframes pulseText {
+      0%,100% { opacity:1; }
+      50% { opacity:0.6; }
+    }
+
+    .le-card-notes { font-size:10px; color:var(--texto-muted); margin-top:6px; font-style:italic; }
+    .le-card-chamado-warning {
+      font-size:10px; color:#e74c3c; font-weight:700; margin-top:4px;
+      display:flex; align-items:center; gap:4px;
+    }
+
+    /* Actions */
+    .le-card-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+    .le-btn {
+      padding:7px 12px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:10px;
+      font-weight:700; font-family:inherit; cursor:pointer; transition:all .2s;
+      white-space:nowrap;
+    }
+    .le-btn:hover { border-color:var(--borda-hover); transform:translateY(-1px); }
+    .le-btn.chamar { border-color:rgba(212,168,83,0.4); color:var(--verde-acao); background:rgba(212,168,83,0.08); }
+    .le-btn.chamar:hover { background:rgba(212,168,83,0.15); }
+    .le-btn.atendido { border-color:rgba(34,197,94,0.3); color:#22c55e; }
+    .le-btn.atendido:hover { background:rgba(34,197,94,0.08); }
+    .le-btn.desistiu { border-color:rgba(239,68,68,0.3); color:#ef4444; }
+    .le-btn.desistiu:hover { background:rgba(239,68,68,0.08); }
+    .le-btn.zap { border-color:rgba(37,211,102,0.3); color:#25d366; }
+    .le-btn.zap:hover { background:rgba(37,211,102,0.08); }
+
+    .le-reorder {
+      display:flex; flex-direction:column; gap:2px; margin-left:auto;
+    }
+    .le-reorder button {
+      width:28px; height:22px; border-radius:6px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-muted); font-size:12px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all .2s; font-family:inherit;
+    }
+    .le-reorder button:hover { border-color:var(--borda-hover); color:var(--texto-secundario); }
+
+    /* Modal */
+    .modal-overlay {
+      position:fixed; top:0; left:0; right:0; bottom:0; z-index:1000;
+      background:rgba(0,0,0,0.7); display:none; align-items:center;
+      justify-content:center; padding:16px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal {
+      background:var(--cinza-escuro); border:1px solid var(--borda);
+      border-radius:12px; width:100%; max-width:400px; max-height:90vh;
+      overflow-y:auto; padding:24px 20px; animation:fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    .modal-title {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:20px;
+    }
+    .modal-title h2 { font-size:16px; }
+    .modal-close {
+      background:none; border:none; color:var(--texto-muted); font-size:18px;
+      cursor:pointer; padding:4px 8px;
+    }
+
+    .empty-le {
+      text-align:center; padding:40px 20px; color:var(--texto-muted);
+    }
+
+    /* Filter tabs */
+    .le-filter {
+      display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;
+    }
+    .le-filter-btn {
+      padding:6px 12px; border-radius:8px; font-size:10px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .2s; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-muted);
+    }
+    .le-filter-btn.active { border-color:var(--verde-acao); background:rgba(212,168,83,0.15); color:var(--verde-acao); }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+  </style>
+</head>
+<body>
+
+<div class="le-container">
+
+  <div class="le-header">
+    <div class="le-header-left">
+      <button class="btn-back" onclick="history.back()" title="Voltar">&#x2190;</button>
+      <h1>Lista de Espera</h1>
+      <span class="le-count" id="le-count"></span>
+    </div>
+    <button class="btn btn-primary" onclick="abrirModal()" style="width:auto;padding:8px 16px;font-size:12px;">+ ADICIONAR</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="le-stats">
+    <div class="le-stat">
+      <div class="num" id="stat-fila">0</div>
+      <div class="lbl">NA FILA</div>
+    </div>
+    <div class="le-stat">
+      <div class="num" id="stat-tempo">—</div>
+      <div class="lbl">TEMPO MEDIO</div>
+    </div>
+    <div class="le-stat">
+      <div class="num" id="stat-atendidos">0</div>
+      <div class="lbl">ATENDIDOS HOJE</div>
+    </div>
+  </div>
+
+  <!-- Filtro -->
+  <div class="le-filter">
+    <button class="le-filter-btn active" data-filter="ativos" onclick="setFilter('ativos')">Ativos</button>
+    <button class="le-filter-btn" data-filter="todos" onclick="setFilter('todos')">Todos</button>
+    <button class="le-filter-btn" data-filter="atendido" onclick="setFilter('atendido')">Atendidos</button>
+    <button class="le-filter-btn" data-filter="desistiu" onclick="setFilter('desistiu')">Desistiu</button>
+  </div>
+
+  <div id="le-msg" class="msg"></div>
+  <div id="le-list"></div>
+
+</div>
+
+<!-- Modal Adicionar -->
+<div class="modal-overlay" id="modal-le">
+  <div class="modal">
+    <div class="modal-title">
+      <h2>Entrar na Fila</h2>
+      <button class="modal-close" onclick="fecharModal()">&#x2715;</button>
+    </div>
+    <div id="modal-le-msg" class="msg"></div>
+    <div class="field">
+      <label>NOME DO CLIENTE *</label>
+      <input type="text" id="le-nome" placeholder="Ex: Joao" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>TELEFONE (opcional)</label>
+      <input type="tel" id="le-phone" placeholder="(00) 00000-0000" inputmode="numeric" autocomplete="tel">
+    </div>
+    <div class="field">
+      <label>PERSONAL PREFERIDO</label>
+      <select id="le-barber"><option value="">Qualquer</option></select>
+    </div>
+    <div class="field">
+      <label>SERVICO</label>
+      <select id="le-service"><option value="">—</option></select>
+    </div>
+    <div class="field">
+      <label>OBSERVACAO</label>
+      <textarea id="le-notes" rows="2" placeholder="Ex: pediu pra esperar 10 min" style="resize:vertical;"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="salvar()" id="btn-le-save">
+      <span class="btn-label">ENTRAR NA FILA</span>
+      <div class="spinner" style="display:none;"></div>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Servicos</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:700;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatorio</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retencao</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfacao</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configuracoes</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+console.log('Lista de Espera v1 carregado');
+
+// Mascara telefone
+document.getElementById('le-phone').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.slice(0, 11);
+  if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+  else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+  else if (v.length > 0) v = '(' + v;
+  this.value = v;
+});
+
+// ── Estado ────────────────────────────────────────────────────
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+const db = sb;
+
+let shop = null;
+let fila = [];
+let barbers = [];
+let services = [];
+let currentFilter = 'ativos';
+let pollInterval = null;
+let lastCount = 0;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { alert('Sua sessao expirou. Entre de novo.'); window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shopData;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shopData = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shopData = data && data[0] ? data[0] : null;
+  }
+
+  if (!shopData) { window.location.href = isAdminViewing ? 'admin.html' : 'onboarding.html'; return; }
+  shop = shopData;
+
+  // Banner admin
+  if (isAdminViewing) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;';
+    banner.innerHTML = '<span style="font-size:11px;color:#e74c3c;font-weight:700;">ADMIN \u00B7 ' + esc(shop.name) + '</span>'
+      + '<button onclick="sessionStorage.removeItem(\'admin_viewing_shop\');location.href=\'admin.html\'" style="background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">VOLTAR</button>';
+    document.querySelector('.le-container').insertBefore(banner, document.querySelector('.le-header'));
+  }
+
+  // Carregar dados auxiliares
+  await Promise.all([loadBarbers(), loadServices()]);
+  populateSelects();
+  await loadFila();
+
+  // Poll a cada 15s
+  pollInterval = setInterval(async () => {
+    await loadFila();
+  }, 15000);
+});
+
+async function loadBarbers() {
+  const { data } = await db.from('barbers').select('id,name,active').eq('barbershop_id', shop.id).eq('active', true).order('name');
+  barbers = data || [];
+}
+
+async function loadServices() {
+  const { data } = await db.from('services').select('id,name,price,duration').eq('barbershop_id', shop.id).order('name');
+  services = data || [];
+}
+
+function populateSelects() {
+  const bSel = document.getElementById('le-barber');
+  bSel.innerHTML = '<option value="">Qualquer</option>';
+  barbers.forEach(b => {
+    bSel.innerHTML += '<option value="' + b.id + '">' + esc(b.name) + '</option>';
+  });
+
+  const sSel = document.getElementById('le-service');
+  sSel.innerHTML = '<option value="">\u2014</option>';
+  services.forEach(s => {
+    sSel.innerHTML += '<option value="' + s.id + '">' + esc(s.name) + (s.price ? ' \u00B7 ' + formatMoney(s.price) : '') + '</option>';
+  });
+}
+
+// ── Carregar fila ─────────────────────────────────────────────
+async function loadFila() {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await db.from('lista_espera')
+    .select('*')
+    .eq('barbershop_id', shop.id)
+    .gte('created_at', today + 'T00:00:00')
+    .lte('created_at', today + 'T23:59:59')
+    .order('position', { ascending: true });
+
+  if (error) { console.error('Erro ao carregar fila:', error); return; }
+  const newFila = data || [];
+
+  // Notificacao sonora se novo na fila
+  const aguardando = newFila.filter(f => f.status === 'aguardando' || f.status === 'chamado');
+  if (lastCount > 0 && aguardando.length > lastCount) {
+    playSound();
+  }
+  lastCount = aguardando.length;
+
+  fila = newFila;
+  updateStats();
+  renderFila();
+}
+
+function updateStats() {
+  const aguardando = fila.filter(f => f.status === 'aguardando' || f.status === 'chamado');
+  const atendidos = fila.filter(f => f.status === 'atendido');
+
+  document.getElementById('stat-fila').textContent = aguardando.length;
+  document.getElementById('stat-atendidos').textContent = atendidos.length;
+  document.getElementById('le-count').textContent = aguardando.length > 0 ? aguardando.length + ' na fila' : '';
+
+  // Tempo medio baseado nos atendidos hoje
+  if (atendidos.length > 0) {
+    let totalMin = 0;
+    let count = 0;
+    atendidos.forEach(a => {
+      if (a.entered_at && a.called_at) {
+        const diff = (new Date(a.called_at) - new Date(a.entered_at)) / 60000;
+        if (diff > 0 && diff < 300) { totalMin += diff; count++; }
+      }
+    });
+    if (count > 0) {
+      const avg = Math.round(totalMin / count);
+      document.getElementById('stat-tempo').textContent = avg + 'min';
+    } else {
+      document.getElementById('stat-tempo').textContent = '\u2014';
+    }
+  } else {
+    document.getElementById('stat-tempo').textContent = '\u2014';
+  }
+}
+
+// ── Renderizar ────────────────────────────────────────────────
+function renderFila() {
+  const el = document.getElementById('le-list');
+
+  let filtered = fila;
+  if (currentFilter === 'ativos') {
+    filtered = fila.filter(f => f.status === 'aguardando' || f.status === 'chamado');
+  } else if (currentFilter === 'atendido') {
+    filtered = fila.filter(f => f.status === 'atendido');
+  } else if (currentFilter === 'desistiu') {
+    filtered = fila.filter(f => f.status === 'desistiu');
+  }
+
+  if (!filtered.length) {
+    const msg = currentFilter === 'ativos' ? 'Nenhum cliente na fila.'
+      : currentFilter === 'atendido' ? 'Nenhum atendido hoje.'
+      : currentFilter === 'desistiu' ? 'Nenhuma desistencia hoje.'
+      : 'Fila vazia hoje.';
+    el.innerHTML = '<div class="empty-le"><div style="font-size:40px;margin-bottom:12px;">&#x23F3;</div><div>' + msg + '</div>'
+      + '<div style="font-size:12px;margin-top:8px;">Clique em <strong>+ ADICIONAR</strong> pra colocar alguem na fila</div></div>';
+    return;
+  }
+
+  const now = new Date();
+  el.innerHTML = filtered.map((item, idx) => {
+    const barberName = item.barber_id ? (barbers.find(b => b.id === item.barber_id)?.name || 'Personal') : 'Qualquer';
+    const serviceName = item.service_id ? (services.find(s => s.id === item.service_id)?.name || 'Servico') : '\u2014';
+    const phone = item.client_phone || '';
+    const phoneFormatted = phone ? formatPhone(phone) : '';
+
+    // Tempo esperando
+    const entered = new Date(item.entered_at || item.created_at);
+    const diffMin = Math.max(0, Math.round((now - entered) / 60000));
+    let waitText = '';
+    if (item.status === 'aguardando') {
+      waitText = 'ha ' + formatWait(diffMin);
+    } else if (item.status === 'chamado' && item.called_at) {
+      const calledDiff = Math.max(0, Math.round((now - new Date(item.called_at)) / 60000));
+      waitText = 'Chamado ha ' + formatWait(calledDiff);
+    }
+
+    // Warning se chamado ha mais de 5 min
+    const chamadoWarning = item.status === 'chamado' && item.called_at &&
+      (now - new Date(item.called_at)) / 60000 > 5;
+
+    const isActive = item.status === 'aguardando' || item.status === 'chamado';
+    const activeItems = fila.filter(f => f.status === 'aguardando' || f.status === 'chamado');
+    const posInActive = activeItems.findIndex(f => f.id === item.id);
+
+    let actions = '';
+    if (item.status === 'aguardando') {
+      actions = '<button class="le-btn chamar" onclick="chamar(\'' + item.id + '\')">CHAMAR</button>'
+        + '<button class="le-btn atendido" onclick="atender(\'' + item.id + '\')">ATENDIDO</button>'
+        + '<button class="le-btn desistiu" onclick="desistir(\'' + item.id + '\')">DESISTIU</button>';
+      if (phone) actions += '<button class="le-btn zap" onclick="zapChamar(\'' + phone + '\')">ZAP</button>';
+    } else if (item.status === 'chamado') {
+      actions = '<button class="le-btn atendido" onclick="atender(\'' + item.id + '\')">ATENDIDO</button>'
+        + '<button class="le-btn desistiu" onclick="desistir(\'' + item.id + '\')">DESISTIU</button>';
+      if (phone) actions += '<button class="le-btn zap" onclick="zapChamar(\'' + phone + '\')">ZAP</button>';
+    }
+
+    // Reorder arrows (only for active items)
+    let reorder = '';
+    if (isActive && activeItems.length > 1) {
+      reorder = '<div class="le-reorder">'
+        + (posInActive > 0 ? '<button onclick="mover(\'' + item.id + '\',-1)" title="Subir">&#x25B2;</button>' : '<button disabled style="opacity:0.2;">&#x25B2;</button>')
+        + (posInActive < activeItems.length - 1 ? '<button onclick="mover(\'' + item.id + '\',1)" title="Descer">&#x25BC;</button>' : '<button disabled style="opacity:0.2;">&#x25BC;</button>')
+      + '</div>';
+    }
+
+    return '<div class="le-card ' + item.status + '">'
+      + '<div style="display:flex;gap:12px;align-items:flex-start;">'
+        + '<div class="le-position">' + item.position + '</div>'
+        + '<div class="le-card-info">'
+          + '<div class="le-card-name">' + esc(item.client_name) + '</div>'
+          + (phoneFormatted ? '<div class="le-card-phone">&#x1F4F1; ' + esc(phoneFormatted) + '</div>' : '')
+          + '<div class="le-card-meta">'
+            + '<span>&#x1F488; ' + esc(barberName) + '</span>'
+            + '<span>&#x2702;&#xFE0F; ' + esc(serviceName) + '</span>'
+          + '</div>'
+          + (item.notes ? '<div class="le-card-notes">' + esc(item.notes) + '</div>' : '')
+          + (chamadoWarning ? '<div class="le-card-chamado-warning">&#x26A0; Chamado ha mais de 5 min sem atendimento</div>' : '')
+        + '</div>'
+        + '<div class="le-card-right">'
+          + '<div class="le-card-wait' + (chamadoWarning ? ' warning' : '') + '">' + waitText + '</div>'
+          + '<div><span class="le-badge ' + item.status + '">' + statusLabel(item.status) + '</span></div>'
+          + reorder
+        + '</div>'
+      + '</div>'
+      + (actions ? '<div class="le-card-actions">' + actions + '</div>' : '')
+    + '</div>';
+  }).join('');
+}
+
+function statusLabel(s) {
+  if (s === 'aguardando') return 'AGUARDANDO';
+  if (s === 'chamado') return 'CHAMADO';
+  if (s === 'atendido') return 'ATENDIDO';
+  if (s === 'desistiu') return 'DESISTIU';
+  return s.toUpperCase();
+}
+
+function formatWait(min) {
+  if (min < 1) return 'agora';
+  if (min < 60) return min + ' min';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h + 'h' + (m > 0 ? m + 'min' : '');
+}
+
+function formatPhone(p) {
+  const d = (p || '').replace(/\D/g, '');
+  if (d.length === 11) return '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+  if (d.length === 10) return '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+  return p;
+}
+
+// ── Filtro ────────────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.le-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === f);
+  });
+  renderFila();
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function abrirModal() {
+  document.getElementById('le-nome').value = '';
+  document.getElementById('le-phone').value = '';
+  document.getElementById('le-barber').value = '';
+  document.getElementById('le-service').value = '';
+  document.getElementById('le-notes').value = '';
+  document.getElementById('modal-le-msg').className = 'msg';
+  document.getElementById('modal-le').classList.add('show');
+  setTimeout(() => document.getElementById('le-nome').focus(), 100);
+}
+
+function fecharModal() {
+  document.getElementById('modal-le').classList.remove('show');
+}
+
+// ── Salvar na fila ────────────────────────────────────────────
+async function salvar() {
+  const btn = document.getElementById('btn-le-save');
+  const nome = document.getElementById('le-nome').value.trim();
+  if (!nome) { showModalMsg('Digite o nome do cliente.', 'error'); return; }
+
+  const phone = document.getElementById('le-phone').value.replace(/\D/g, '') || null;
+  const barberId = document.getElementById('le-barber').value || null;
+  const serviceId = document.getElementById('le-service').value || null;
+  const notes = document.getElementById('le-notes').value.trim() || null;
+
+  // Calcular proxima posicao
+  const activeItems = fila.filter(f => f.status === 'aguardando' || f.status === 'chamado');
+  const maxPos = activeItems.length > 0 ? Math.max(...activeItems.map(f => f.position)) : 0;
+  const nextPos = maxPos + 1;
+
+  btn.disabled = true;
+  btn.querySelector('.btn-label').style.display = 'none';
+  btn.querySelector('.spinner').style.display = 'inline-block';
+
+  try {
+    const now = new Date().toISOString();
+    const { error } = await db.from('lista_espera').insert({
+      barbershop_id: shop.id,
+      barber_id: barberId,
+      client_name: nome,
+      client_phone: phone,
+      service_id: serviceId,
+      position: nextPos,
+      status: 'aguardando',
+      notes: notes,
+      entered_at: now
+    });
+    if (error) throw error;
+
+    fecharModal();
+    await loadFila();
+    playSound();
+  } catch (e) {
+    console.error(e);
+    showModalMsg('Erro ao adicionar na fila.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.querySelector('.btn-label').style.display = 'inline';
+  btn.querySelector('.spinner').style.display = 'none';
+}
+
+// ── Acoes ─────────────────────────────────────────────────────
+async function chamar(id) {
+  const now = new Date().toISOString();
+  const { error } = await db.from('lista_espera').update({ status: 'chamado', called_at: now }).eq('id', id);
+  if (error) { console.error(error); return; }
+  playSound();
+  await loadFila();
+}
+
+async function atender(id) {
+  const { error } = await db.from('lista_espera').update({ status: 'atendido' }).eq('id', id);
+  if (error) { console.error(error); return; }
+  await loadFila();
+}
+
+async function desistir(id) {
+  if (!confirm('Marcar como desistiu?')) return;
+  const { error } = await db.from('lista_espera').update({ status: 'desistiu' }).eq('id', id);
+  if (error) { console.error(error); return; }
+  await loadFila();
+}
+
+function zapChamar(phone) {
+  const digits = phone.replace(/\D/g, '');
+  const num = digits.startsWith('55') ? digits : '55' + digits;
+  const shopName = shop?.name || 'academia';
+  const msg = encodeURIComponent('E sua vez na ' + shopName + '! Pode vir pro corte. \u2702\uFE0F');
+  window.open('https://wa.me/' + num + '?text=' + msg, '_blank');
+}
+
+// ── Reordenar ─────────────────────────────────────────────────
+async function mover(id, direction) {
+  const activeItems = fila.filter(f => f.status === 'aguardando' || f.status === 'chamado');
+  const idx = activeItems.findIndex(f => f.id === id);
+  if (idx < 0) return;
+
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= activeItems.length) return;
+
+  const itemA = activeItems[idx];
+  const itemB = activeItems[swapIdx];
+
+  // Trocar posicoes
+  const posA = itemA.position;
+  const posB = itemB.position;
+
+  try {
+    await Promise.all([
+      db.from('lista_espera').update({ position: posB }).eq('id', itemA.id),
+      db.from('lista_espera').update({ position: posA }).eq('id', itemB.id)
+    ]);
+    await loadFila();
+  } catch (e) {
+    console.error('Erro ao reordenar:', e);
+  }
+}
+
+// ── Som notificacao ───────────────────────────────────────────
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch (e) { /* Audio not supported */ }
+}
+
+function showModalMsg(text, type) {
+  const el = document.getElementById('modal-le-msg');
+  el.textContent = text;
+  el.className = 'msg msg-' + type + ' show';
+}
+</script>
+<script src="js/ajuda.js?v=03201128"></script>
+<script src="js/sw-update.js?v=03201128"></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>

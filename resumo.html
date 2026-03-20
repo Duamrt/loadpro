@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaLinha — Resumo</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NaLinha">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=03201128">
+  <link rel="stylesheet" href="css/layout.css?v=03201128">
+  <script src="js/theme.js?v=03201128"></script>
+  <style>
+    .res-container { max-width:480px; width:100%; margin:0 auto; padding:16px; min-height:100dvh; }
+
+    .res-header {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 0 16px; border-bottom:1px solid var(--borda); margin-bottom:16px;
+    }
+    .res-header h1 { font-size:18px; font-weight:700; flex:1; }
+    .btn-back {
+      width:36px; height:36px; border-radius:8px; border:1px solid var(--borda);
+      background:transparent; color:var(--texto-secundario); font-size:16px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      text-decoration:none; transition:all .2s;
+    }
+    .btn-back:hover { border-color:var(--borda-hover); }
+    .shop-label { font-size:11px; color:var(--texto-muted); font-weight:600; }
+
+    /* Loading */
+    .loading { text-align:center; padding:60px 0; }
+    .spinner { margin:0 auto 12px; width:24px; height:24px; border:2px solid rgba(255,255,255,0.1); border-top-color:var(--verde-acao); border-radius:50%; animation:spin .6s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;
+    }
+    @media (max-width:480px) {
+      .kpi-grid { grid-template-columns:1fr 1fr; }
+    }
+
+    .kpi-card {
+      border-radius:14px; padding:18px 14px; text-align:center;
+      cursor:pointer; transition:all .2s; text-decoration:none; display:block;
+      border:none;
+    }
+    .kpi-card:hover { transform:translateY(-2px); filter:brightness(1.1); }
+    .kpi-card:active { transform:scale(0.97); }
+    .kpi-num {
+      font-size:24px; font-weight:800; font-family:'Inter',sans-serif;
+      color:#fff; line-height:1.2; margin-bottom:6px;
+      text-shadow:0 1px 3px rgba(0,0,0,0.3);
+    }
+    .kpi-label {
+      font-size:9px; font-weight:700; letter-spacing:0.8px;
+      color:rgba(255,255,255,0.85); text-transform:uppercase;
+    }
+
+    /* Card colors */
+    .kpi-blue { background:linear-gradient(135deg,#2980b9,#3498db); }
+    .kpi-green { background:linear-gradient(135deg,#1e8449,#27ae60); }
+    .kpi-gold { background:linear-gradient(135deg,#b8860b,#d4a853); }
+    .kpi-darkgreen { background:linear-gradient(135deg,#145a32,#1e8449); }
+    .kpi-orange { background:linear-gradient(135deg,#d35400,#e67e22); }
+    .kpi-red { background:linear-gradient(135deg,#922b21,#e74c3c); }
+    .kpi-purple { background:linear-gradient(135deg,#6c3483,#9b59b6); }
+    .kpi-brown { background:linear-gradient(135deg,#6e4b3a,#a0522d); }
+    .kpi-profit-pos { background:linear-gradient(135deg,#1e8449,#2ecc71); }
+    .kpi-profit-neg { background:linear-gradient(135deg,#922b21,#e74c3c); }
+    .kpi-cyan { background:linear-gradient(135deg,#0e6655,#1abc9c); }
+    .kpi-pink { background:linear-gradient(135deg,#922b5e,#e91e8c); }
+    .kpi-teal { background:linear-gradient(135deg,#1a5276,#2e86c1); }
+    .kpi-amber { background:linear-gradient(135deg,#b7950b,#f1c40f); }
+
+    /* Updated label */
+    .updated-at {
+      text-align:center; font-size:10px; color:var(--texto-muted);
+      margin-top:16px; padding:8px 0;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--cinza-escuro); border-top:1px solid var(--borda);
+      display:flex; justify-content:center; gap:0; padding:8px 0;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      padding-left:max(0px, env(safe-area-inset-left));
+      padding-right:max(0px, env(safe-area-inset-right));
+    }
+    .nav-item {
+      flex:1; max-width:65px; display:flex; flex-direction:column;
+      align-items:center; gap:2px; padding:6px 0;
+      color:var(--texto-muted); font-size:8px; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; background:none;
+      font-family:inherit; transition:all .2s;
+    }
+    .nav-item.active { color:var(--verde-acao); }
+    .nav-item .nav-icon { font-size:16px; }
+
+    body { padding-bottom:70px; }
+  </style>
+</head>
+<body>
+
+<div class="res-container">
+
+  <!-- Loading -->
+  <div id="res-loading" class="loading">
+    <div class="spinner"></div>
+    <div style="font-size:13px;color:var(--texto-muted);">Carregando resumo...</div>
+  </div>
+
+  <!-- Header -->
+  <div class="res-header" id="res-header" style="display:none;">
+    <a class="btn-back" href="dashboard.html">&#x2190;</a>
+    <div>
+      <h1>Resumo</h1>
+      <div class="shop-label" id="shop-name"></div>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid" id="kpi-grid" style="display:none;"></div>
+
+  <div class="updated-at" id="updated-at" style="display:none;"></div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a class="nav-item" href="dashboard.html"><span class="nav-icon">&#x1F4C5;</span>AGENDA</a>
+  <a class="nav-item" href="equipe.html"><span class="nav-icon">&#x1F465;</span>EQUIPE</a>
+  <a class="nav-item" href="financeiro.html"><span class="nav-icon">&#x1F4B0;</span>CAIXA</a>
+  <button class="nav-item" onclick="toggleMore()" id="btn-more"><span class="nav-icon">&#x2630;</span>MAIS</button>
+</div>
+<div id="more-menu" style="display:none;position:fixed;bottom:56px;right:8px;background:var(--cinza-escuro);border:1px solid var(--borda);border-radius:12px;padding:8px;z-index:999;min-width:160px;">
+  <a href="servicos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2702;&#xFE0F; Serviços</a>
+  <a href="clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Clientes</a>
+  <a href="estoque.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Estoque</a>
+  <a href="relatorio.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Relatório</a>
+  <a href="resumo.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--verde-acao);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CA; Resumo</a>
+  <a href="comandas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DD; Comandas</a>
+  <a href="pacotes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E6; Pacotes</a>
+  <a href="assinaturas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F451; Assinaturas</a>
+  <a href="cupons.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AB; Cupons</a>
+  <a href="lembretes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Lembretes</a>
+  <a href="retencao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F504; Retenção</a>
+  <a href="satisfacao.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2B50; Satisfação</a>
+  <a href="agenda-semana.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F5D3; Agenda Semanal</a>
+  <a href="configuracoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x2699; Configurações</a>
+  <a href="lista-espera.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x23F3; Lista de Espera</a>
+  <a href="comissoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B5; Comissões</a>
+  <a href="promocoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E3; Promoções</a>
+  <a href="combos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F500; Combos</a>
+  <a href="busca.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F50D; Busca</a>
+  <a href="planos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4B3; Meu Plano</a>
+  <a href="qrcode.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F1; QR Code</a>
+  <a href="notificacoes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F514; Notificações</a>
+  <a href="galeria.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4F7; Galeria</a>
+  <a href="politicas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4DC; Políticas</a>
+  <a href="importar-clientes.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4E5; Importar Clientes</a>
+  <a href="recibo-personal.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F9FE; Recibo Comissão</a>
+  <a href="backup.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4BE; Backup</a>
+  <a href="atividades.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4CB; Atividades</a>
+  <a href="metas.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F3AF; Metas</a>
+  <a href="folha-pagamento.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C4; Folha Pagamento</a>
+  <a href="horarios-ociosos.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--texto-secundario);text-decoration:none;font-size:12px;font-weight:600;border-radius:8px;transition:all .2s;">&#x1F4C9; Horários Ociosos</a>
+</div>
+<script>
+function toggleMore(){var m=document.getElementById('more-menu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){if(!e.target.closest('#more-menu')&&!e.target.closest('#btn-more')){document.getElementById('more-menu').style.display='none';}});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js?v=03201128"></script>
+<script src="js/supabase.js?v=03201128"></script>
+<script src="js/utils.js?v=03201128"></script>
+<script>
+console.log('Resumo v1 carregado');
+
+const ADMIN_EMAILS = ['duam-rt@hotmail.com'];
+const _params = new URLSearchParams(window.location.search);
+const adminViewingShop = _params.get('shop') || sessionStorage.getItem('admin_viewing_shop');
+if (adminViewingShop) sessionStorage.setItem('admin_viewing_shop', adminViewingShop);
+const isAdminViewing = !!adminViewingShop;
+
+const db = sb;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'app.html'; return; }
+
+  if (!ADMIN_EMAILS.includes(session.user.email)) {
+    sessionStorage.removeItem('admin_viewing_shop');
+  }
+
+  if (ADMIN_EMAILS.includes(session.user.email) && !isAdminViewing) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  let shop;
+  if (isAdminViewing) {
+    const { data } = await db.from('barbershops').select('*').eq('id', adminViewingShop).single();
+    shop = data;
+  } else {
+    const { data } = await db.from('barbershops').select('*').eq('owner_id', session.user.id).order('created_at', { ascending: true }).limit(1);
+    shop = data;
+  }
+
+  if (!shop) { window.location.href = 'app.html'; return; }
+
+  document.getElementById('shop-name').textContent = shop.name || 'Minha Academia';
+
+  // Datas helpers
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const todayStart = todayStr + 'T00:00:00';
+  const todayEnd = todayStr + 'T23:59:59';
+
+  const monthStart = todayStr.slice(0, 7) + '-01T00:00:00';
+  const monthEnd = todayEnd;
+
+  // Inicio da semana (domingo)
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  const weekStartStr = weekStart.toISOString().slice(0, 10) + 'T00:00:00';
+
+  // 30 dias atras
+  const d30ago = new Date(now);
+  d30ago.setDate(now.getDate() - 30);
+  const d30agoStr = d30ago.toISOString().slice(0, 10) + 'T00:00:00';
+
+  const sid = shop.id;
+
+  // Fetch all data in parallel
+  // 7 dias a frente (pra assinaturas vencendo)
+  const d7ahead = new Date(now);
+  d7ahead.setDate(now.getDate() + 7);
+  const d7aheadStr = d7ahead.toISOString().slice(0, 10);
+
+  // 60 dias atras
+  const d7ago = new Date(now);
+  d7ago.setDate(now.getDate() - 7);
+  const d7agoStr = d7ago.toISOString();
+
+  const d60ago = new Date(now);
+  d60ago.setDate(now.getDate() - 60);
+  const d60agoStr = d60ago.toISOString().slice(0, 10) + 'T00:00:00';
+
+  const [
+    rTodayAppts,
+    rTodayDone,
+    rMonthDone,
+    rComandas,
+    rAllAppts,
+    rProducts,
+    rBarbers,
+    rExpenses,
+    rClients,
+    rCaixaAberto,
+    rAssinVencendo,
+    rAbandonos
+  ] = await Promise.all([
+    // 1. Agendamentos hoje (nao cancelados)
+    db.from('appointments').select('id', { count: 'exact', head: true })
+      .eq('barbershop_id', sid)
+      .gte('scheduled_at', todayStart).lte('scheduled_at', todayEnd)
+      .neq('status', 'cancelled'),
+
+    // 2+3. Atendidos hoje e faturamento hoje
+    db.from('appointments').select('price_paid, scheduled_at')
+      .eq('barbershop_id', sid).eq('status', 'done')
+      .gte('scheduled_at', todayStart).lte('scheduled_at', todayEnd),
+
+    // 4. Faturamento do mes
+    db.from('appointments').select('price_paid, barber_id')
+      .eq('barbershop_id', sid).eq('status', 'done')
+      .gte('scheduled_at', monthStart).lte('scheduled_at', monthEnd),
+
+    // 5. Comandas abertas
+    db.from('comandas').select('id', { count: 'exact', head: true })
+      .eq('barbershop_id', sid).eq('status', 'aberta'),
+
+    // 6+7. Todos os appointments pra calcular sem retorno e novos
+    db.from('appointments').select('client_phone, scheduled_at, status')
+      .eq('barbershop_id', sid)
+      .neq('status', 'cancelled'),
+
+    // 8. Produtos com estoque baixo
+    db.from('products').select('id, quantity, min_stock')
+      .eq('barbershop_id', sid),
+
+    // 9. Personals com comissao
+    db.from('barbers').select('id, commission_pct, active')
+      .eq('barbershop_id', sid).eq('active', true),
+
+    // 10. Despesas do mes
+    db.from('expenses').select('amount')
+      .eq('barbershop_id', sid)
+      .gte('date', todayStr.slice(0, 7) + '-01').lte('date', todayStr),
+
+    // 11. Clientes cadastrados (pra calcular sem cadastro)
+    db.from('clients').select('phone')
+      .eq('barbershop_id', sid),
+
+    // 12. Caixa aberto (fechamento pendente)
+    db.from('fechamentos_caixa').select('id', { count: 'exact', head: true })
+      .eq('barbershop_id', sid).eq('status', 'aberto'),
+
+    // 13. Assinaturas vencendo em 7 dias
+    db.from('assinatura_clientes').select('id, next_payment, status')
+      .eq('barbershop_id', sid).eq('status', 'ativa'),
+
+    // 14. Agendamentos abandonados (últimos 7 dias)
+    db.from('booking_attempts').select('id', { count: 'exact', head: true })
+      .eq('barbershop_id', sid).eq('completed', false).gte('step_reached', 3)
+      .gte('created_at', d7agoStr)
+  ]);
+
+  // ── Calculos ──────────────────────────────────────────────
+
+  // 1. Agendamentos hoje
+  const agendHoje = rTodayAppts.count || 0;
+
+  // 2. Atendidos hoje
+  const doneToday = rTodayDone.data || [];
+  const atendidosHoje = doneToday.length;
+
+  // 3. Faturamento hoje
+  const fatHoje = doneToday.reduce((s, a) => s + (a.price_paid || 0), 0);
+
+  // 4. Faturamento do mes
+  const monthDone = rMonthDone.data || [];
+  const fatMes = monthDone.reduce((s, a) => s + (a.price_paid || 0), 0);
+
+  // 5. Comandas abertas
+  const comandasAbertas = rComandas.count || 0;
+
+  // 6. Clientes sem retorno +30 dias
+  const allAppts = rAllAppts.data || [];
+  const lastVisitByPhone = {};
+  for (const a of allAppts) {
+    if (!a.client_phone) continue;
+    const dt = a.scheduled_at;
+    if (!lastVisitByPhone[a.client_phone] || dt > lastVisitByPhone[a.client_phone]) {
+      lastVisitByPhone[a.client_phone] = dt;
+    }
+  }
+  let semRetorno = 0;
+  for (const phone in lastVisitByPhone) {
+    if (lastVisitByPhone[phone] < d30agoStr) semRetorno++;
+  }
+
+  // 7. Novos clientes esta semana
+  const firstSeenByPhone = {};
+  for (const a of allAppts) {
+    if (!a.client_phone) continue;
+    const dt = a.scheduled_at;
+    if (!firstSeenByPhone[a.client_phone] || dt < firstSeenByPhone[a.client_phone]) {
+      firstSeenByPhone[a.client_phone] = dt;
+    }
+  }
+  let novosClientes = 0;
+  for (const phone in firstSeenByPhone) {
+    if (firstSeenByPhone[phone] >= weekStartStr) novosClientes++;
+  }
+
+  // 8. Produtos com estoque baixo
+  const products = rProducts.data || [];
+  const estoqueBaixo = products.filter(p => p.quantity != null && p.min_stock != null && p.quantity <= p.min_stock).length;
+
+  // 9. Comissoes do mes
+  const barbersMap = {};
+  for (const b of (rBarbers.data || [])) {
+    barbersMap[b.id] = b.commission_pct || 0;
+  }
+  let comissoesMes = 0;
+  for (const a of monthDone) {
+    const pct = barbersMap[a.barber_id] || 0;
+    comissoesMes += (a.price_paid || 0) * (pct / 100);
+  }
+
+  // 10. Despesas do mes
+  const despesasMes = (rExpenses.data || []).reduce((s, e) => s + (e.amount || 0), 0);
+
+  // 11. Lucro do mes
+  const lucroMes = fatMes - despesasMes - comissoesMes;
+
+  // 12. Clientes sem cadastro (telefone nos agendamentos mas não na tabela clients)
+  const clientPhones = new Set((rClients.data || []).map(c => (c.phone || '').replace(/\D/g, '')));
+  const apptPhones = new Set();
+  for (const a of allAppts) {
+    if (a.client_phone) apptPhones.add((a.client_phone || '').replace(/\D/g, ''));
+  }
+  let semCadastro = 0;
+  for (const p of apptPhones) {
+    if (p && !clientPhones.has(p)) semCadastro++;
+  }
+
+  // 13. Retorno previsto (clientes com frequência calculada que devem voltar esta semana)
+  const visitsByPhone = {};
+  for (const a of allAppts) {
+    if (!a.client_phone) continue;
+    const ph = (a.client_phone || '').replace(/\D/g, '');
+    if (!visitsByPhone[ph]) visitsByPhone[ph] = [];
+    visitsByPhone[ph].push(a.scheduled_at);
+  }
+  let retornoPrevisto = 0;
+  for (const ph in visitsByPhone) {
+    const visits = visitsByPhone[ph].sort();
+    if (visits.length < 2) continue;
+    // Calcular intervalo médio entre visitas
+    let totalDias = 0;
+    for (let i = 1; i < visits.length; i++) {
+      totalDias += (new Date(visits[i]) - new Date(visits[i - 1])) / (1000 * 60 * 60 * 24);
+    }
+    const intervaloMedio = totalDias / (visits.length - 1);
+    // Próximo retorno previsto = última visita + intervalo médio
+    const ultimaVisita = new Date(visits[visits.length - 1]);
+    const proximoRetorno = new Date(ultimaVisita);
+    proximoRetorno.setDate(proximoRetorno.getDate() + Math.round(intervaloMedio));
+    // Se o retorno previsto é entre hoje e 7 dias à frente
+    if (proximoRetorno >= now && proximoRetorno <= d7ahead) retornoPrevisto++;
+  }
+
+  // 14. Caixa aberto
+  const caixaAberto = rCaixaAberto.count || 0;
+
+  // 15. Assinaturas vencendo em 7 dias
+  const assinVencendo = (rAssinVencendo.data || []).filter(s =>
+    s.next_payment && s.next_payment >= todayStr && s.next_payment <= d7aheadStr
+  ).length;
+
+  // 16. Agendamentos abandonados (7 dias)
+  const abandonos = rAbandonos ? (rAbandonos.count || 0) : 0;
+
+  // ── Render Cards ──────────────────────────────────────────
+  const cards = [
+    { num: agendHoje, label: 'Agendamentos hoje', color: 'kpi-blue', link: 'dashboard.html' },
+    { num: atendidosHoje, label: 'Atendidos hoje', color: 'kpi-green', link: 'dashboard.html' },
+    { num: formatMoney(fatHoje), label: 'Faturamento hoje', color: 'kpi-gold', link: 'financeiro.html' },
+    { num: formatMoney(fatMes), label: 'Faturamento do mês', color: 'kpi-darkgreen', link: 'financeiro.html' },
+    { num: comandasAbertas, label: 'Comandas abertas', color: 'kpi-orange', link: 'financeiro.html' },
+    { num: semCadastro, label: 'Clientes sem cadastro', color: 'kpi-amber', link: 'importar-clientes.html' },
+    { num: retornoPrevisto, label: 'Retorno previsto (7 dias)', color: 'kpi-cyan', link: 'clientes.html' },
+    { num: semRetorno, label: 'Sem retorno +30 dias', color: 'kpi-red', link: 'retencao.html' },
+    { num: novosClientes, label: 'Novos clientes (semana)', color: 'kpi-green', link: 'clientes.html' },
+    { num: abandonos, label: 'Abandonos (7 dias)', color: abandonos > 0 ? 'kpi-red' : 'kpi-green', link: 'lembretes.html' },
+    { num: caixaAberto, label: 'Caixa aberto', color: caixaAberto > 0 ? 'kpi-orange' : 'kpi-green', link: 'financeiro.html' },
+    { num: assinVencendo, label: 'Assinaturas vencendo', color: assinVencendo > 0 ? 'kpi-pink' : 'kpi-green', link: 'assinaturas.html' },
+    { num: estoqueBaixo, label: 'Estoque baixo', color: 'kpi-purple', link: 'estoque.html' },
+    { num: formatMoney(comissoesMes), label: 'Comissões do mês', color: 'kpi-brown', link: 'equipe.html' },
+    { num: formatMoney(despesasMes), label: 'Despesas do mês', color: 'kpi-red', link: 'financeiro.html' },
+    { num: formatMoney(lucroMes), label: 'Lucro do mês', color: lucroMes >= 0 ? 'kpi-profit-pos' : 'kpi-profit-neg', link: 'relatorio.html' },
+  ];
+
+  const grid = document.getElementById('kpi-grid');
+  grid.innerHTML = cards.map(c => `
+    <a class="kpi-card ${c.color}" href="${c.link}">
+      <div class="kpi-num">${c.num}</div>
+      <div class="kpi-label">${esc(c.label)}</div>
+    </a>
+  `).join('');
+
+  // Show content
+  document.getElementById('res-loading').style.display = 'none';
+  document.getElementById('res-header').style.display = 'flex';
+  grid.style.display = 'grid';
+
+  const upd = document.getElementById('updated-at');
+  upd.textContent = 'Atualizado às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  upd.style.display = 'block';
+});
+</script>
+<script src="js/sw-update.js?v=03201128" defer></script>
+<script src="js/ajuda.js?v=03201128" defer></script>
+<script src="js/sidebar.js?v=03201128"></script>
+</body>
+</html>
