@@ -118,6 +118,9 @@ document.addEventListener('auth-ready', async () => {
   // Chat — carregar e escutar realtime
   carregarChat(alunoId);
 
+  // Fotos de progresso
+  carregarFotos(alunoId);
+
   // Enter pra enviar msg
   document.getElementById('chatInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') enviarMsg();
@@ -208,16 +211,30 @@ function appendMsg(m) {
 
 function msgHTML(m, myUserId) {
   const isMine = m.remetente_id === myUserId;
+  const hora = new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  let conteudo = '';
+  if (m.foto_url) {
+    conteudo += `<img src="${esc(m.foto_url)}" style="max-width:100%;max-width:min(100%,200px);border-radius:8px;margin-bottom:4px;cursor:pointer" onclick="abrirFotoDetalhe('${esc(m.foto_url)}')" loading="lazy">`;
+  }
+  if (m.texto) conteudo += esc(m.texto);
   return `
     <div style="display:flex;justify-content:${isMine ? 'flex-end' : 'flex-start'};margin-bottom:8px">
       <div style="max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;
         background:${isMine ? 'var(--primary)' : 'var(--bg-card-hover)'};
         color:${isMine ? '#fff' : 'var(--text)'}">
-        ${esc(m.texto)}
-        <div style="font-size:.7rem;margin-top:4px;opacity:.6">${new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+        ${conteudo}
+        <div style="font-size:.7rem;margin-top:4px;opacity:.6">${hora}</div>
       </div>
     </div>
   `;
+}
+
+function abrirFotoDetalhe(url) {
+  const lb = document.getElementById('lightbox');
+  if (lb) {
+    document.getElementById('lightboxImg').src = url;
+    lb.style.display = 'flex';
+  }
 }
 
 async function enviarMsg() {
@@ -232,4 +249,43 @@ async function enviarMsg() {
     remetente_id: window.currentUser.id,
     texto
   });
+}
+
+// ── Galeria de Fotos de Progresso ──
+async function carregarFotos(alunoId) {
+  const { data: fotos } = await supabase
+    .from('fotos_progresso')
+    .select('*')
+    .eq('aluno_id', alunoId)
+    .order('criado_em', { ascending: false });
+
+  const container = document.getElementById('galFotos');
+  if (!fotos?.length) return; // mantém empty state
+
+  // Agrupar por mês
+  const grupos = {};
+  fotos.forEach(f => {
+    const d = new Date(f.criado_em);
+    const key = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    if (!grupos[key]) grupos[key] = [];
+    grupos[key].push(f);
+  });
+
+  let html = '';
+  for (const [mes, lista] of Object.entries(grupos)) {
+    html += `<div style="margin-bottom:20px">
+      <h4 style="margin-bottom:12px;text-transform:capitalize;font-size:.9rem;color:var(--text-secondary)">${esc(mes)}</h4>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">`;
+    lista.forEach(f => {
+      const tipo = f.tipo ? `<span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.7rem;padding:2px 6px;border-radius:4px">${esc(f.tipo)}</span>` : '';
+      html += `
+        <div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer" onclick="abrirFotoDetalhe('${esc(f.url)}')">
+          <img src="${esc(f.url)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+          ${tipo}
+        </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  container.innerHTML = html;
 }

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat — LoadPro</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="../css/style.css?v=03281748">
+  <link rel="manifest" href="../manifest.json">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281748"></script>
+  <style>
+    .chat-container { display:flex; flex-direction:column; height:calc(100vh - 140px); height:calc(100dvh - 140px); }
+    .chat-msgs { flex:1; overflow-y:auto; padding:12px 16px; }
+    .chat-bar { display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--border); background:var(--bg-card); align-items:flex-end; }
+    .chat-bar input { flex:1; }
+    .msg-bubble { max-width:75%; padding:10px 14px; border-radius:12px; font-size:.9rem; word-break:break-word; }
+    .msg-mine { background:var(--primary); color:#fff; border-bottom-right-radius:4px; }
+    .msg-other { background:var(--bg-card-hover); color:var(--text); border-bottom-left-radius:4px; }
+    .msg-time { font-size:.7rem; margin-top:4px; opacity:.6; }
+    .msg-foto { max-width:100%; border-radius:8px; margin-bottom:4px; cursor:pointer; }
+    .foto-input { display:none; }
+    .btn-foto { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:8px; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
+    .btn-foto:hover { color:var(--primary); }
+    .foto-preview { position:relative; margin:8px 16px; }
+    .foto-preview img { max-height:120px; border-radius:8px; }
+    .foto-preview .remove { position:absolute; top:-8px; right:-8px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; font-size:.8rem; display:flex; align-items:center; justify-content:center; }
+    .personal-info { display:flex; align-items:center; gap:12px; padding:16px; border-bottom:1px solid var(--border); }
+    .uploading { opacity:.5; pointer-events:none; }
+    /* Lightbox */
+    .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; display:none; align-items:center; justify-content:center; cursor:pointer; }
+    .lightbox.active { display:flex; }
+    .lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <div class="aluno-main" style="padding-bottom:0">
+    <!-- Header com info do personal -->
+    <div class="personal-info" id="personalInfo">
+      <div class="avatar" style="width:40px;height:40px;font-size:.85rem" id="personalAvatar"></div>
+      <div>
+        <div style="font-weight:600;font-size:.95rem" id="personalNome">Meu Personal</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Personal Trainer</div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-container">
+      <div class="chat-msgs" id="chatMsgs"></div>
+
+      <!-- Preview foto selecionada -->
+      <div class="foto-preview" id="fotoPreview" style="display:none">
+        <img id="fotoPreviewImg" src="">
+        <button class="remove" onclick="limparFoto()">&times;</button>
+      </div>
+
+      <!-- Barra de input -->
+      <div class="chat-bar">
+        <button class="btn-foto" onclick="document.getElementById('fotoInput').click()" title="Enviar foto">
+          <i data-lucide="camera" style="width:22px;height:22px"></i>
+        </button>
+        <input type="file" id="fotoInput" class="foto-input" accept="image/jpeg,image/png,image/webp" capture="environment">
+        <input type="text" class="form-control" id="chatInput" placeholder="Digite...">
+        <button class="btn btn-primary btn-sm" onclick="enviar()" style="min-width:44px;min-height:44px">
+          <i data-lucide="send" style="width:18px;height:18px"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox pra ver foto grande -->
+  <div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+    <img id="lightboxImg" src="">
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" style="position:relative">
+    <a href="dashboard.html"><i data-lucide="home"></i>Inicio</a>
+    <a href="treino.html"><i data-lucide="dumbbell"></i>Treino</a>
+    <a href="dieta.html"><i data-lucide="utensils"></i>Dieta</a>
+    <a href="chat.html" class="active"><i data-lucide="message-circle"></i>Chat</a>
+    <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281748"></script>
+  <script src="../js/supabase.js?v=03281748"></script>
+  <script src="../js/auth.js?v=03281748"></script>
+  <script src="../js/utils.js?v=03281748"></script>
+  <script>
+    let personalId = null;
+    let subscription = null;
+    let fotoFile = null;
+
+    document.addEventListener('auth-ready', async () => {
+      const aluno = window.currentAluno;
+      if (!aluno) return;
+
+      personalId = aluno.personal_id;
+
+      // Info do personal
+      const { data: personal } = await supabase
+        .from('personals').select('*, users(nome)')
+        .eq('id', personalId).single();
+
+      if (personal?.users) {
+        document.getElementById('personalNome').textContent = personal.users.nome;
+        document.getElementById('personalAvatar').textContent = getInitials(personal.users.nome);
+      }
+
+      // Carregar mensagens
+      const { data: msgs } = await supabase
+        .from('mensagens').select('*')
+        .eq('aluno_id', aluno.id)
+        .order('criado_em', { ascending: true })
+        .limit(100);
+
+      renderMsgs(msgs || []);
+
+      // Marcar como lidas
+      await supabase.from('mensagens').update({ lida: true })
+        .eq('aluno_id', aluno.id).eq('lida', false)
+        .neq('remetente_id', window.currentUser.id);
+
+      // Realtime
+      subscription = supabase.channel('aluno-chat-' + aluno.id)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'mensagens',
+          filter: `aluno_id=eq.${aluno.id}`
+        }, payload => {
+          appendMsg(payload.new);
+          // Marcar como lida se não é minha
+          if (payload.new.remetente_id !== window.currentUser.id) {
+            supabase.from('mensagens').update({ lida: true }).eq('id', payload.new.id);
+          }
+        })
+        .subscribe();
+
+      // Enter envia
+      document.getElementById('chatInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') enviar();
+      });
+
+      // Foto selecionada
+      document.getElementById('fotoInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) { showToast('Foto muito grande (max 10MB)', 'error'); return; }
+        fotoFile = file;
+        const reader = new FileReader();
+        reader.onload = () => {
+          document.getElementById('fotoPreviewImg').src = reader.result;
+          document.getElementById('fotoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      });
+
+      lucide.createIcons();
+    });
+
+    function renderMsgs(msgs) {
+      const container = document.getElementById('chatMsgs');
+      container.innerHTML = msgs.map(m => msgHTML(m)).join('');
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function appendMsg(m) {
+      const container = document.getElementById('chatMsgs');
+      // Evitar duplicata (realtime + insert local)
+      if (document.getElementById('msg-' + m.id)) return;
+      container.insertAdjacentHTML('beforeend', msgHTML(m));
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function msgHTML(m) {
+      const mine = m.remetente_id === window.currentUser.id;
+      const cls = mine ? 'msg-mine' : 'msg-other';
+      const hora = new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+      let conteudo = '';
+      if (m.foto_url) {
+        conteudo += `<img src="${esc(m.foto_url)}" class="msg-foto" onclick="abrirFoto('${esc(m.foto_url)}')" loading="lazy">`;
+      }
+      if (m.texto) {
+        conteudo += esc(m.texto);
+      }
+
+      return `
+        <div id="msg-${m.id}" style="display:flex;justify-content:${mine ? 'flex-end' : 'flex-start'};margin-bottom:8px">
+          <div class="msg-bubble ${cls}">
+            ${conteudo}
+            <div class="msg-time">${hora}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function abrirFoto(url) {
+      document.getElementById('lightboxImg').src = url;
+      document.getElementById('lightbox').classList.add('active');
+    }
+
+    function limparFoto() {
+      fotoFile = null;
+      document.getElementById('fotoPreview').style.display = 'none';
+      document.getElementById('fotoInput').value = '';
+    }
+
+    async function enviar() {
+      const input = document.getElementById('chatInput');
+      const texto = input.value.trim();
+      if (!texto && !fotoFile) return;
+
+      const aluno = window.currentAluno;
+      const bar = document.querySelector('.chat-bar');
+      bar.classList.add('uploading');
+
+      let foto_url = null;
+
+      // Upload foto se tiver
+      if (fotoFile) {
+        const ext = fotoFile.name.split('.').pop().toLowerCase();
+        const path = `${window.currentSession.user.id}/${aluno.id}/${Date.now()}.${ext}`;
+        const { data, error } = await supabase.storage
+          .from('fotos-progresso')
+          .upload(path, fotoFile, { contentType: fotoFile.type });
+
+        if (error) {
+          showToast('Erro ao enviar foto', 'error');
+          bar.classList.remove('uploading');
+          return;
+        }
+
+        const { data: urlData } = supabase.storage.from('fotos-progresso').getPublicUrl(path);
+        foto_url = urlData.publicUrl;
+
+        // Salvar também na galeria de progresso
+        await supabase.from('fotos_progresso').insert({
+          aluno_id: aluno.id,
+          url: foto_url,
+          tipo: null,
+          observacoes: texto || null
+        });
+
+        limparFoto();
+      }
+
+      input.value = '';
+
+      // Inserir mensagem
+      await supabase.from('mensagens').insert({
+        personal_id: personalId,
+        aluno_id: aluno.id,
+        remetente_id: window.currentUser.id,
+        texto: texto || null,
+        foto_url
+      });
+
+      bar.classList.remove('uploading');
+    }
+  </script>
+</body>
+</html>
