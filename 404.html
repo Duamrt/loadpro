@@ -3,12 +3,14 @@
 <meta charset="UTF-8">
 <title>LoadPro</title>
 <script>
-  // Rota curta: /f/87096fc0 → /ficha.html?token=87096fc0...
+  // Rotas curtas: /f/codigo → ficha | /c/codigo → convite
   var path = location.pathname;
-  var match = path.match(/\/f\/([a-f0-9-]+)/i);
-  if (match) {
-    var code = match[1];
-    // Buscar token completo no banco
+  var matchFicha = path.match(/\/f\/([a-f0-9-]+)/i);
+  var matchConvite = path.match(/\/c\/([a-f0-9-]+)/i);
+  var code = matchFicha ? matchFicha[1] : matchConvite ? matchConvite[1] : null;
+  var destino = matchFicha ? '/ficha.html' : matchConvite ? '/convite.html' : null;
+
+  if (code && destino) {
     var s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js';
     s.onload = async function() {
@@ -17,15 +19,11 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjbHJjeHdpd2ZpcW54Z3V4dmJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjM2NzYsImV4cCI6MjA5MDAzOTY3Nn0._sH7CVQ38LO4RTQFHGmUPpZX4Js1SYmRwjau1Hc5cTM'
       );
       var { data } = await sb.from('alunos').select('convite_token').like('convite_token', code + '%').limit(1).single();
-      if (data?.convite_token) {
-        location.replace('/ficha.html?token=' + data.convite_token);
-      } else {
-        location.replace('/ficha.html?token=' + code);
-      }
+      var token = data?.convite_token || code;
+      location.replace(destino + '?token=' + token);
     };
     document.head.appendChild(s);
   } else {
-    // Página não encontrada de verdade
     document.getElementById('msg').style.display = 'block';
   }
 </script>
