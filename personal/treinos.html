@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281936">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281936"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03281947">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281947"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -88,6 +88,7 @@
         <button class="modal-close" onclick="closeModal('modalTemplates')"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-body">
+        <div id="templateInfo"></div>
         <p style="font-size:.9rem;color:var(--text-secondary);margin-bottom:16px">Escolha um template — cria as rotinas completas com exercícios, séries e descanso. Depois é só ajustar a carga.</p>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div class="card" style="cursor:pointer;padding:16px;border:2px solid var(--border);transition:border .2s" onclick="aplicarTemplate('ppl')" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
@@ -115,11 +116,11 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281936"></script>
-  <script src="../js/supabase.js?v=03281936"></script>
-  <script src="../js/auth.js?v=03281936"></script>
-  <script src="../js/sidebar.js?v=03281936"></script>
-  <script src="../js/utils.js?v=03281936"></script>
-  <script src="../js/personal/treinos.js?v=03281936"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281947"></script>
+  <script src="../js/supabase.js?v=03281947"></script>
+  <script src="../js/auth.js?v=03281947"></script>
+  <script src="../js/sidebar.js?v=03281947"></script>
+  <script src="../js/utils.js?v=03281947"></script>
+  <script src="../js/personal/treinos.js?v=03281947"></script>
 </body>
 </html>

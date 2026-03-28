@@ -341,9 +341,29 @@ async function duplicarRotina(id) {
 }
 
 // ── Templates de Treino ──
-function abrirTemplates() {
+async function abrirTemplates() {
   const alunoId = document.getElementById('seletorAluno').value;
   if (!alunoId) { showToast('Selecione um aluno primeiro', 'error'); return; }
+
+  // Buscar dias disponíveis da anamnese
+  const { data: anamnese } = await supabase.from('anamnese').select('dias_disponiveis').eq('aluno_id', alunoId).single();
+  const dias = anamnese?.dias_disponiveis || [];
+  const qtd = dias.length;
+
+  const infoEl = document.getElementById('templateInfo');
+  if (infoEl) {
+    if (qtd > 0) {
+      const diasLabel = dias.map(d => ({seg:'Seg',ter:'Ter',qua:'Qua',qui:'Qui',sex:'Sex',sab:'Sáb',dom:'Dom'}[d] || d)).join(', ');
+      let recomendacao = '';
+      if (qtd <= 3) recomendacao = 'ABC ou Full Body';
+      else if (qtd === 4) recomendacao = 'Upper/Lower';
+      else recomendacao = 'PPL';
+      infoEl.innerHTML = `<div style="background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:.85rem"><strong>${qtd} dias:</strong> ${diasLabel}<br><span style="color:var(--primary)">Sugestão: ${recomendacao}</span></div>`;
+    } else {
+      infoEl.innerHTML = '<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">Aluno não informou dias disponíveis</p>';
+    }
+  }
+
   openModal('modalTemplates');
 }
 
