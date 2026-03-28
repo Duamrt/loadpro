@@ -94,14 +94,14 @@ function enviarFichaWhatsApp(nomeAluno, telefone, link) {
   const primeiroNome = (nomeAluno || '').split(' ')[0];
 
   const msg = [
-    'Fala ' + primeiroNome + '! Aqui e o ' + nomePersonal + ', seu personal.',
+    'Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.',
     '',
-    'Pra eu montar seu treino e dieta, preciso que voce preencha uma ficha rapida com seus dados, saude e medidas.',
+    'Pra eu montar seu treino e dieta, preciso que você preencha uma ficha rápida com seus dados, saúde e medidas.',
     '',
     'Leva menos de 2 minutos:',
     link,
     '',
-    'Assim que voce preencher, eu ja comeco a montar tudo personalizado pra voce!'
+    'Assim que você preencher, eu já começo a montar tudo personalizado pra você!'
   ].join('\n');
 
   if (telefone) {
@@ -126,7 +126,7 @@ function enviarConviteWhatsApp(nomeAluno, telefone, link) {
   const msg = [
     abertura,
     '',
-    'Acabei de montar seu treino e dieta no app. Lá você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist, sua evolução.',
+    'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.',
     '',
     'Cria sua senha aqui pra acessar (é rapidinho):',
     link,

@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03281903">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281903"></script>
+  <link rel="stylesheet" href="css/style.css?v=03281907">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281907"></script>
   <style>
     .ficha-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
     .ficha-box { width:100%; max-width:520px; }
@@ -64,7 +64,7 @@
             </div>
           </div>
           <div class="step-title">Seus dados</div>
-          <div class="step-desc">Preencha pra seu personal montar o treino ideal pra voce.</div>
+          <div class="step-desc">Preencha pra seu personal montar o treino ideal pra você.</div>
           <div class="form-group">
             <label>Email *</label>
             <input type="email" class="form-control" id="fEmail" placeholder="seu@email.com">
@@ -91,7 +91,7 @@
               <option value="Hipertrofia">Ganho de massa</option>
               <option value="Condicionamento">Condicionamento</option>
               <option value="Qualidade de vida">Qualidade de vida</option>
-              <option value="Reabilitação">Reabilitacao</option>
+              <option value="Reabilitação">Reabilitação</option>
             </select>
           </div>
           <div class="form-group">
@@ -110,22 +110,22 @@
 
         <!-- STEP 2: Anamnese -->
         <div class="step" id="step2">
-          <div class="step-title">Saude e restricoes</div>
+          <div class="step-title">Saúde e restrições</div>
           <div class="step-desc">Isso ajuda seu personal a montar um treino seguro.</div>
           <div class="form-group">
-            <label>Tem algum problema de saude? (diabetes, hipertensao, etc)</label>
-            <textarea class="form-control" id="fSaude" rows="2" placeholder="Se nao tem, deixe em branco"></textarea>
+            <label>Tem algum problema de saúde? (diabetes, hipertensão, etc)</label>
+            <textarea class="form-control" id="fSaude" rows="2" placeholder="Se não tem, deixe em branco"></textarea>
           </div>
           <div class="form-group">
             <label>Lesoes ou dores? (joelho, ombro, coluna, etc)</label>
-            <textarea class="form-control" id="fLesoes" rows="2" placeholder="Se nao tem, deixe em branco"></textarea>
+            <textarea class="form-control" id="fLesoes" rows="2" placeholder="Se não tem, deixe em branco"></textarea>
           </div>
           <div class="form-group">
             <label>Toma algum medicamento?</label>
-            <textarea class="form-control" id="fMedicamentos" rows="2" placeholder="Se nao, deixe em branco"></textarea>
+            <textarea class="form-control" id="fMedicamentos" rows="2" placeholder="Se não, deixe em branco"></textarea>
           </div>
           <div class="form-group">
-            <label>Restricoes alimentares ou alergias?</label>
+            <label>Restrições alimentares ou alergias?</label>
             <textarea class="form-control" id="fRestricoes" rows="2" placeholder="Lactose, gluten, frutos do mar..."></textarea>
           </div>
           <div class="form-group">
@@ -149,7 +149,7 @@
         <!-- STEP 3: Medidas + Fotos -->
         <div class="step" id="step3">
           <div class="step-title">Medidas e fotos</div>
-          <div class="step-desc">Seu personal usa isso pra calcular dieta e acompanhar evolucao.</div>
+          <div class="step-desc">Seu personal usa isso pra calcular dieta e acompanhar evolução.</div>
           <div class="grid grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group">
               <label>Peso (kg) *</label>
@@ -198,18 +198,18 @@
           </div>
         </div>
 
-        <!-- Link invalido -->
+        <!-- Link inválido -->
         <div id="fichaInvalida" style="display:none;text-align:center;padding:40px 20px">
           <i data-lucide="alert-circle" style="width:48px;height:48px;color:var(--danger);margin-bottom:16px"></i>
-          <h3>Link invalido</h3>
-          <p style="font-size:.9rem;margin-top:8px;color:var(--text-secondary)">Este link nao e valido ou ja foi preenchido.</p>
+          <h3>Link inválido</h3>
+          <p style="font-size:.9rem;margin-top:8px;color:var(--text-secondary)">Este link não é válido ou já foi preenchido.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281903"></script>
-  <script src="js/supabase.js?v=03281903"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281907"></script>
+  <script src="js/supabase.js?v=03281907"></script>
   <script>
     const token = new URLSearchParams(location.search).get('token');
     let alunoData = null;
