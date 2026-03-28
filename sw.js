@@ -1,16 +1,11 @@
-const CACHE_NAME = 'loadpro-v20260328145048';
+const CACHE_NAME = 'loadpro-v20260328145532';
 const STATIC_ASSETS = [
   '/css/style.css',
   '/js/supabase.js',
   '/js/auth.js',
   '/js/utils.js',
   '/js/sidebar.js',
-  '/aluno/dashboard.html',
-  '/aluno/treino.html',
-  '/aluno/dieta.html',
-  '/aluno/medidas.html',
-  '/aluno/perfil.html',
-  '/personal/dashboard.html',
+  '/js/admin.js',
   '/img/icon-192.svg',
   '/img/logo.svg',
 ];
@@ -32,13 +27,27 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // API calls (Supabase): network only, don't cache
-  if (url.hostname.includes('supabase') || url.hostname.includes('unpkg') || url.hostname.includes('cdn.jsdelivr')) {
+  // API calls e CDNs: network only
+  if (url.hostname.includes('supabase') || url.hostname.includes('unpkg') || url.hostname.includes('cdn.jsdelivr') || url.hostname.includes('fonts.g')) {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // Static assets: stale-while-revalidate
+  // HTML pages: network first (sempre pega versão nova)
+  if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request).then(resp => {
+        if (resp.ok) {
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        }
+        return resp;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Static assets (CSS/JS/img): stale-while-revalidate
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(resp => {
