@@ -339,3 +339,31 @@ async function duplicarRotina(id) {
   showToast('Rotina duplicada!');
   await carregarRotinas();
 }
+
+// ── Templates de Treino ──
+function abrirTemplates() {
+  const alunoId = document.getElementById('seletorAluno').value;
+  if (!alunoId) { showToast('Selecione um aluno primeiro', 'error'); return; }
+  openModal('modalTemplates');
+}
+
+async function aplicarTemplate(template) {
+  const alunoId = document.getElementById('seletorAluno').value;
+  if (!alunoId) { showToast('Selecione um aluno primeiro', 'error'); return; }
+
+  const nomes = { ppl: 'PPL', abc: 'ABC', upper_lower: 'Upper/Lower', full_body: 'Full Body' };
+  closeModal('modalTemplates');
+  showToast('Aplicando ' + nomes[template] + '...');
+
+  const { data, error } = await supabase.rpc('aplicar_template_treino', {
+    p_aluno_id: alunoId,
+    p_personal_id: window.currentPersonal.id,
+    p_template: template
+  });
+
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  if (data?.error) { showToast(data.error, 'error'); return; }
+
+  showToast(nomes[template] + ' aplicado com sucesso!');
+  await carregarRotinas();
+}
