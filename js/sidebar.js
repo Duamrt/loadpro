@@ -7,7 +7,8 @@ function initSidebar() {
   if (!user) return;
 
   // ── Barra laranja de admin acessando como personal ──
-  if (window.adminViewingPersonal) {
+  const isAdminViewing = window.adminViewingPersonal;
+  if (isAdminViewing) {
     const adminBar = document.createElement('div');
     adminBar.id = 'adminBar';
     adminBar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998;background:#ea580c;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:.9rem;font-weight:600;';
@@ -17,12 +18,6 @@ function initSidebar() {
       <button onclick="voltarAdmin()" style="background:#fff;color:#ea580c;border:none;padding:6px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.8rem">Voltar ao Admin</button>
     `;
     document.body.insertBefore(adminBar, document.body.firstChild);
-
-    // Ajustar layout pra caber a barra
-    const barH = '44px';
-    document.querySelectorAll('.sidebar').forEach(s => s.style.top = barH);
-    document.querySelectorAll('.main-content').forEach(m => m.style.paddingTop = 'calc(32px + ' + barH + ')');
-    document.querySelectorAll('.mobile-header').forEach(h => h.style.top = barH);
   }
 
   const currentPage = location.pathname.split('/').pop();
@@ -96,6 +91,14 @@ function initSidebar() {
   document.body.insertBefore(mobileHeader, document.body.firstChild);
   document.body.insertBefore(sidebar, document.body.firstChild);
   document.body.insertBefore(backdrop, document.body.firstChild);
+
+  // Ajustar layout se admin está vendo como personal (barra laranja no topo)
+  if (isAdminViewing) {
+    const barH = '44px';
+    sidebar.style.top = barH;
+    mobileHeader.style.top = barH;
+    document.querySelectorAll('.main-content').forEach(m => m.style.paddingTop = 'calc(32px + ' + barH + ')');
+  }
 
   // Bottom nav personal (mobile)
   const bottomItems = [
