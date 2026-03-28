@@ -108,6 +108,7 @@ function renderRotinas() {
                 <div style="font-size:.8rem;color:var(--text-secondary);text-align:right">
                   <div>${re.series}×${re.reps_min}-${re.reps_max}</div>
                   ${re.carga_sugerida ? `<div>${re.carga_sugerida}kg</div>` : ''}
+                  <div style="color:var(--text-muted);font-size:.7rem">⏱️ ${re.descanso_seg >= 60 ? Math.floor(re.descanso_seg/60) + ':' + String(re.descanso_seg%60).padStart(2,'0') : re.descanso_seg + 's'}</div>
                 </div>
               </div>
             `).join('')}
@@ -227,9 +228,16 @@ function renderExerciciosModal() {
           <label style="font-size:.7rem;color:var(--text-muted)">Carga (kg)</label>
           <input type="number" class="form-control" value="${ex.carga_sugerida || ''}" style="padding:6px 8px;font-size:.85rem" onchange="exerciciosAdicionados[${i}].carga_sugerida=+this.value||null">
         </div>
-        <div style="flex:1;min-width:60px">
-          <label style="font-size:.7rem;color:var(--text-muted)">Descanso (s)</label>
-          <input type="number" class="form-control" value="${ex.descanso_seg}" style="padding:6px 8px;font-size:.85rem" onchange="exerciciosAdicionados[${i}].descanso_seg=+this.value">
+        <div style="flex:1;min-width:80px">
+          <label style="font-size:.7rem;color:var(--text-muted)">⏱️ Descanso</label>
+          <select class="form-control" style="padding:6px 8px;font-size:.85rem" onchange="exerciciosAdicionados[${i}].descanso_seg=+this.value">
+            <option value="30" ${ex.descanso_seg==30?'selected':''}>30s</option>
+            <option value="45" ${ex.descanso_seg==45?'selected':''}>45s</option>
+            <option value="60" ${ex.descanso_seg==60||!ex.descanso_seg?'selected':''}>1 min</option>
+            <option value="90" ${ex.descanso_seg==90?'selected':''}>1:30</option>
+            <option value="120" ${ex.descanso_seg==120?'selected':''}>2 min</option>
+            <option value="180" ${ex.descanso_seg==180?'selected':''}>3 min</option>
+          </select>
         </div>
       </div>
       <div style="margin-top:8px">
