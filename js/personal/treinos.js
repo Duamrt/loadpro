@@ -404,6 +404,13 @@ async function aplicarTemplate(template) {
   if (data?.error) { showToast(data.error, 'error'); return; }
 
   showToast(nomes[template] + ' aplicado!');
-  // Recarregar rotinas imediatamente
-  setTimeout(() => carregarRotinas(), 300);
+  await carregarRotinas();
+
+  // Perguntar se quer ir pra dieta
+  const alunoNome = document.getElementById('seletorAluno').options[document.getElementById('seletorAluno').selectedIndex]?.text || 'aluno';
+  setTimeout(() => {
+    if (confirm('Treino salvo! Ir pra Dieta de ' + alunoNome + '?')) {
+      window.location.href = 'dieta.html?aluno=' + alunoId;
+    }
+  }, 500);
 }
