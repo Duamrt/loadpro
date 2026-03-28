@@ -258,8 +258,21 @@ async function deletarRefeicao(id) {
 }
 
 // ── Template de Dieta ──
-function abrirTemplateDieta() {
+async function abrirTemplateDieta() {
   if (!alunoSelecionado?.id) { showToast('Selecione um aluno primeiro', 'error'); return; }
+
+  // Puxar peso/altura da última avaliação
+  const { data: aval } = await supabase
+    .from('avaliacoes')
+    .select('peso, altura')
+    .eq('aluno_id', alunoSelecionado.id)
+    .order('data', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (aval?.peso) document.getElementById('tplPeso').value = aval.peso;
+  if (aval?.altura) document.getElementById('tplAltura').value = aval.altura;
+
   openModal('modalTemplateDieta');
 }
 
