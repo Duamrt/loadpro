@@ -100,25 +100,62 @@ function initSidebar() {
     document.querySelectorAll('.main-content').forEach(m => m.style.paddingTop = 'calc(32px + ' + barH + ')');
   }
 
-  // Bottom nav personal (mobile)
+  // Bottom nav personal (mobile) — 5 itens diretos
   const bottomItems = [
     { href: 'dashboard.html', icon: 'layout-dashboard', label: 'Início' },
     { href: 'alunos.html', icon: 'users', label: 'Alunos' },
     { href: 'treinos.html', icon: 'clipboard-list', label: 'Treinos' },
     { href: 'agenda.html', icon: 'calendar', label: 'Agenda' },
-    { href: '#menu', icon: 'menu', label: 'Mais' },
+    { href: '#mais', icon: 'grid-2x2', label: 'Mais' },
   ];
   const bnav = document.createElement('nav');
   bnav.className = 'personal-bottom-nav';
   bnav.innerHTML = bottomItems.map(item => {
-    if (item.href === '#menu')
-      return `<a href="#" onclick="event.preventDefault();toggleSidebar(true)"><i data-lucide="${item.icon}"></i>${item.label}</a>`;
+    if (item.href === '#mais')
+      return `<a href="#" onclick="event.preventDefault();toggleBottomSheet()"><i data-lucide="${item.icon}"></i>${item.label}</a>`;
     const active = currentPage === item.href ? 'active' : '';
     return `<a href="${item.href}" class="${active}"><i data-lucide="${item.icon}"></i>${item.label}</a>`;
   }).join('');
   document.body.appendChild(bnav);
 
+  // Bottom sheet — grid rápido de acesso às demais páginas
+  const sheetItems = [
+    { href: 'exercicios.html', icon: 'dumbbell', label: 'Exercícios' },
+    { href: 'dieta.html', icon: 'utensils', label: 'Dieta' },
+    { href: 'medidas.html', icon: 'ruler', label: 'Medidas' },
+    { href: 'chat.html', icon: 'message-circle', label: 'Chat' },
+    { href: 'configuracoes.html', icon: 'settings', label: 'Configurações' },
+  ];
+  if (isAdminViewing) sheetItems.push({ href: 'admin.html', icon: 'shield', label: 'Voltar Admin', onclick: 'voltarAdmin()' });
+
+  const sheet = document.createElement('div');
+  sheet.id = 'bottomSheet';
+  sheet.className = 'bottom-sheet';
+  sheet.innerHTML = `
+    <div class="bottom-sheet-backdrop" onclick="toggleBottomSheet(false)"></div>
+    <div class="bottom-sheet-content">
+      <div class="bottom-sheet-handle"></div>
+      <div class="bottom-sheet-grid">
+        ${sheetItems.map(item => {
+          const active = currentPage === item.href ? 'active' : '';
+          if (item.onclick) return `<a href="#" onclick="event.preventDefault();${item.onclick}" class="${active}"><i data-lucide="${item.icon}"></i><span>${item.label}</span></a>`;
+          return `<a href="${item.href}" class="${active}"><i data-lucide="${item.icon}"></i><span>${item.label}</span></a>`;
+        }).join('')}
+      </div>
+      <button class="btn btn-danger btn-sm btn-block" onclick="logout()" style="margin-top:12px"><i data-lucide="log-out"></i> Sair</button>
+    </div>
+  `;
+  document.body.appendChild(sheet);
+
   lucide.createIcons();
+}
+
+function toggleBottomSheet(force) {
+  const sheet = document.getElementById('bottomSheet');
+  if (!sheet) return;
+  const isOpen = force !== undefined ? force : !sheet.classList.contains('open');
+  sheet.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 
 function toggleSidebar(force) {
