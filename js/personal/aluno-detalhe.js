@@ -99,16 +99,16 @@ document.addEventListener('auth-ready', async () => {
     document.getElementById('resumoTreinos').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhuma rotina criada</p>';
   }
 
-  // Carregar resumo de medidas
-  const { data: medidas } = await supabase.from('medidas').select('*').eq('aluno_id', alunoId).order('data', { ascending: false }).limit(3);
-  if (medidas?.length) {
-    document.getElementById('resumoMedidas').innerHTML = medidas.map(m => `
+  // Carregar resumo de avaliações
+  const { data: avaliacoes } = await supabase.from('avaliacoes').select('*').eq('aluno_id', alunoId).order('data', { ascending: false }).limit(3);
+  if (avaliacoes?.length) {
+    document.getElementById('resumoMedidas').innerHTML = avaliacoes.map(m => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
         <div>
           <div style="font-weight:500">${formatDate(m.data)}</div>
-          <div style="font-size:.8rem;color:var(--text-muted)">${m.peso_kg ? m.peso_kg + 'kg' : ''} ${m.gordura_pct ? '· ' + m.gordura_pct + '% gordura' : ''}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">${m.peso ? m.peso + 'kg' : ''} ${m.bf_percent ? '· ' + m.bf_percent.toFixed(1) + '% gordura' : ''} ${m.altura ? '· ' + m.altura + 'cm' : ''}</div>
         </div>
-        ${m.imc ? `<span class="badge badge-primary">IMC ${m.imc}</span>` : ''}
+        ${m.imc ? `<span class="badge badge-primary">IMC ${m.imc.toFixed(1)}</span>` : ''}
       </div>
     `).join('');
   } else {
