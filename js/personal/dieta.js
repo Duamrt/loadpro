@@ -55,6 +55,8 @@ async function carregarPlano() {
 function renderPlano() {
   const container = document.getElementById('planoContainer');
   const empty = document.getElementById('emptyState');
+  const btnLimpar = document.getElementById('btnLimparDieta');
+  if (btnLimpar) btnLimpar.style.display = planoAtivo ? 'inline-flex' : 'none';
 
   if (!planoAtivo) {
     container.innerHTML = '';
@@ -257,6 +259,36 @@ async function deletarRefeicao(id) {
   await carregarPlano();
 }
 
+async function limparDieta() {
+  if (!alunoSelecionado?.id) return;
+  if (!confirm('Apagar o plano alimentar desse aluno?')) return;
+  await supabase.from('planos_dieta').delete().eq('aluno_id', alunoSelecionado.id);
+  planoAtivo = null;
+  showToast('Dieta apagada');
+  await carregarPlano();
+}
+
+async function enviarConviteAluno() {
+  if (!alunoSelecionado?.id) return;
+  const { data: al } = await supabase.from('alunos').select('nome, telefone, convite_token').eq('id', alunoSelecionado.id).single();
+  if (!al?.convite_token) { showToast('Token não encontrado', 'error'); return; }
+
+  const link = window.location.origin + '/convite.html?token=' + al.convite_token;
+  const nomePersonal = (window.currentUser?.nome || '').split(' ')[0];
+  const primeiroNome = (al.nome || '').split(' ')[0];
+  const msg = ['Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.', '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', 'Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal].join('\n');
+
+  if (al.telefone) {
+    const num = al.telefone.replace(/\D/g, '');
+    const fone = num.startsWith('55') ? num : '55' + num;
+    window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    try { navigator.clipboard.writeText(msg); } catch(e) {}
+    showToast('Link copiado! Cole no WhatsApp do aluno.');
+  }
+  document.getElementById('bannerConvite')?.remove();
+}
+
 // ── Template de Dieta ──
 async function abrirTemplateDieta() {
   if (!alunoSelecionado?.id) { showToast('Selecione um aluno primeiro', 'error'); return; }
@@ -302,27 +334,18 @@ async function aplicarTemplateDieta(objetivo) {
   showToast('Dieta montada! ' + data.meta_kcal + ' kcal/dia');
   await carregarPlano();
 
-  // Oferecer enviar convite pro aluno
-  setTimeout(async () => {
-    if (confirm('Dieta salva! Enviar convite pro aluno criar a conta?')) {
-      // Buscar dados do aluno pra montar link
-      const { data: al } = await supabase.from('alunos').select('nome, telefone, convite_token').eq('id', alunoSelecionado.id).single();
-      if (al?.convite_token) {
-        const link = window.location.origin + '/convite.html?token=' + al.convite_token;
-        const nomePersonal = (window.currentUser?.nome || '').split(' ')[0];
-        const primeiroNome = (al.nome || '').split(' ')[0];
-        const msg = ['Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.', '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', 'Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal].join('\n');
-        if (al.telefone) {
-          const num = al.telefone.replace(/\D/g, '');
-          const fone = num.startsWith('55') ? num : '55' + num;
-          window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
-        } else {
-          try { navigator.clipboard.writeText(msg); } catch(e) {}
-          showToast('Link copiado! Cole no WhatsApp do aluno.');
-        }
-      } else {
-        showToast('Token de convite não encontrado', 'warning');
-      }
-    }
-  }, 500);
+  // Banner: confere e envia convite quando quiser
+  const old = document.getElementById('bannerConvite');
+  if (old) old.remove();
+  const banner = document.createElement('div');
+  banner.id = 'bannerConvite';
+  banner.style.cssText = 'position:sticky;top:0;z-index:50;background:var(--success);color:#fff;padding:14px 20px;border-radius:var(--radius);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
+  banner.innerHTML = `
+    <span style="font-weight:600">Dieta pronta! Confira abaixo e quando estiver ok:</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="document.getElementById('bannerConvite').remove()">Ficar aqui</button>
+      <button class="btn btn-sm" style="background:#fff;color:var(--success);font-weight:700" onclick="enviarConviteAluno()">Enviar convite WhatsApp →</button>
+    </div>`;
+  const container = document.getElementById('planoContainer');
+  container.parentNode.insertBefore(banner, container);
 }
