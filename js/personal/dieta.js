@@ -57,6 +57,9 @@ function renderPlano() {
   const empty = document.getElementById('emptyState');
   const btnLimpar = document.getElementById('btnLimparDieta');
   if (btnLimpar) btnLimpar.style.display = planoAtivo ? 'inline-flex' : 'none';
+  // Travar seletor enquanto tem plano
+  const select = document.getElementById('seletorAluno');
+  if (select) select.disabled = !!planoAtivo;
 
   if (!planoAtivo) {
     container.innerHTML = '';
