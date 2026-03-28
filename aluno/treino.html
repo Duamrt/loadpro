@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281600">
+  <link rel="stylesheet" href="../css/style.css?v=03281602">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281600"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281602"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -72,10 +72,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281600"></script>
-  <script src="../js/supabase.js?v=03281600"></script>
-  <script src="../js/auth.js?v=03281600"></script>
-  <script src="../js/utils.js?v=03281600"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281602"></script>
+  <script src="../js/supabase.js?v=03281602"></script>
+  <script src="../js/auth.js?v=03281602"></script>
+  <script src="../js/utils.js?v=03281602"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -184,7 +184,7 @@
               ${ex?.gif_url ? `<img src="${esc(ex.gif_url)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover">` : ''}
               <div>
                 <div style="font-weight:600">${esc(ex?.nome || 'Exercício')}</div>
-                <div style="font-size:.8rem;color:var(--text-muted)">${esc(ex?.grupo_muscular || '')} · ${re.series}×${re.reps_min}-${re.reps_max} ${re.carga_sugerida ? `· ${re.carga_sugerida}kg` : ''}</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">${esc(ex?.grupo_muscular || '')} · ${re.series}×${re.reps_min}-${re.reps_max} ${re.carga_sugerida ? `· ${re.carga_sugerida}kg` : ''} · ⏱️ ${re.descanso_seg >= 60 ? Math.floor(re.descanso_seg/60) + ':' + String(re.descanso_seg%60).padStart(2,'0') : re.descanso_seg + 's'}</div>
               </div>
             </div>
             ${re.observacoes ? `<div style="font-size:.8rem;color:var(--warning);margin-bottom:8px"><i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i> ${esc(re.observacoes)}</div>` : ''}
