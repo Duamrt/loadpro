@@ -276,11 +276,14 @@ async function enviarConviteAluno() {
   const { data: al } = await supabase.from('alunos').select('nome, telefone, convite_token').eq('id', alunoSelecionado.id).single();
   if (!al?.convite_token) { showToast('Token não encontrado', 'error'); return; }
 
-  const link = window.location.origin + '/convite.html?token=' + al.convite_token;
-  const nomePersonal = (window.currentUser?.nome || '').split(' ')[0];
+  const shortCode = al.convite_token.split('-')[0];
+  const link = window.location.origin + '/c/' + shortCode;
+  const personal = window.currentPersonal;
+  const nomePersonal = (window.currentUser?.nome || '').split(' ')[0] || 'seu personal';
   const primeiroNome = (al.nome || '').split(' ')[0];
-  const linkCurto = window.location.origin + '/c/' + al.convite_token;
-  const msg = ['Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.', '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', linkCurto, '', 'Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal].join('\n');
+  const abertura = personal?.msg_convite_abertura || ('Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.');
+  const fechamento = personal?.msg_convite_fechamento || ('Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal);
+  const msg = [abertura, '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', fechamento].join('\n');
 
   if (al.telefone) {
     const num = al.telefone.replace(/\D/g, '');
