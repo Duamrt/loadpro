@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Treinos — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="manifest" href="../manifest.json">
+  <style>
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border); display:flex; z-index:100; }
+    .bottom-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0; font-size:.7rem; color:var(--text-muted); text-decoration:none; transition:color .2s; }
+    .bottom-nav a.active { color:var(--primary); }
+    .bottom-nav a i { width:20px; height:20px; }
+    .aluno-main { padding-bottom:80px; }
+  </style>
+</head>
+<body>
+  <div style="padding:16px" class="aluno-main">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div>
+        <div style="font-size:.85rem;color:var(--text-muted)" id="greeting"></div>
+        <h2 id="userName" style="margin-top:4px"></h2>
+      </div>
+      <div class="avatar" id="userAvatar" style="width:44px;height:44px"></div>
+    </div>
+
+    <!-- Treino de hoje -->
+    <div class="card" style="margin-bottom:16px;border-left:3px solid var(--primary)">
+      <h4 style="margin-bottom:12px"><i data-lucide="dumbbell" style="width:18px;height:18px;color:var(--primary);vertical-align:-3px"></i> Treino de Hoje</h4>
+      <div id="treinoHoje">
+        <div class="skeleton" style="height:60px"></div>
+      </div>
+    </div>
+
+    <!-- Resumo rápido -->
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card stat-card" style="padding:16px">
+        <div class="stat-value" style="font-size:1.5rem" id="streak">0</div>
+        <div class="stat-label">Dias seguidos</div>
+      </div>
+      <div class="card stat-card" style="padding:16px">
+        <div class="stat-value" style="font-size:1.5rem;color:var(--success)" id="semana">0</div>
+        <div class="stat-label">Treinos esta semana</div>
+      </div>
+    </div>
+
+    <!-- Dieta resumo -->
+    <div class="card" style="margin-bottom:16px">
+      <h4 style="margin-bottom:12px"><i data-lucide="utensils" style="width:18px;height:18px;color:var(--success);vertical-align:-3px"></i> Dieta de Hoje</h4>
+      <div id="dietaHoje">
+        <p style="font-size:.9rem;color:var(--text-muted)">Nenhum plano alimentar ativo</p>
+      </div>
+    </div>
+
+    <!-- Água -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h4><i data-lucide="droplets" style="width:18px;height:18px;color:#3b82f6;vertical-align:-3px"></i> Água</h4>
+        <span id="aguaLabel" style="font-size:.9rem;color:var(--text-secondary)">0 / 3000 ml</span>
+      </div>
+      <div class="progress-bar" style="height:12px;margin-bottom:12px">
+        <div class="progress-bar-fill" id="aguaBar" style="width:0%;background:#3b82f6"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-sm btn-secondary" onclick="addAgua(200)">+200ml</button>
+        <button class="btn btn-sm btn-secondary" onclick="addAgua(300)">+300ml</button>
+        <button class="btn btn-sm btn-secondary" onclick="addAgua(500)">+500ml</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="active"><i data-lucide="home"></i>Início</a>
+    <a href="treino.html"><i data-lucide="dumbbell"></i>Treino</a>
+    <a href="dieta.html"><i data-lucide="utensils"></i>Dieta</a>
+    <a href="medidas.html"><i data-lucide="ruler"></i>Medidas</a>
+    <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    document.addEventListener('auth-ready', async () => {
+      const user = window.currentUser;
+      const aluno = window.currentAluno;
+      if (!aluno) return;
+
+      const hora = new Date().getHours();
+      document.getElementById('greeting').textContent = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+      document.getElementById('userName').textContent = user.nome.split(' ')[0];
+      document.getElementById('userAvatar').textContent = getInitials(user.nome);
+
+      const hoje = new Date().toISOString().split('T')[0];
+      const diaSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'][new Date().getDay()];
+
+      // Treino de hoje (rotina ativa com dia de hoje)
+      const { data: rotinas } = await supabase
+        .from('rotinas')
+        .select('*, rotina_exercicios(*, exercicios(nome, grupo_muscular))')
+        .eq('aluno_id', aluno.id)
+        .eq('ativa', true)
+        .contains('dias_semana', [diaSemana]);
+
+      if (rotinas?.length) {
+        const r = rotinas[0];
+        const exs = (r.rotina_exercicios || []).sort((a, b) => a.ordem - b.ordem);
+        document.getElementById('treinoHoje').innerHTML = `
+          <div style="font-weight:600;font-size:1.1rem;margin-bottom:8px">${r.nome}</div>
+          <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">${exs.length} exercícios</div>
+          <a href="treino.html?rotina=${r.id}" class="btn btn-primary btn-block"><i data-lucide="play"></i> Iniciar Treino</a>
+        `;
+      } else {
+        document.getElementById('treinoHoje').innerHTML = '<p style="font-size:.9rem;color:var(--text-muted)">Sem treino programado para hoje. Descanse!</p>';
+      }
+
+      // Treinos da semana
+      const inicioSemana = new Date();
+      inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+      const { count } = await supabase
+        .from('treino_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('aluno_id', aluno.id)
+        .gte('data', inicioSemana.toISOString().split('T')[0]);
+      document.getElementById('semana').textContent = count || 0;
+
+      // Água
+      const { data: agua } = await supabase
+        .from('agua_log')
+        .select('*')
+        .eq('aluno_id', aluno.id)
+        .eq('data', hoje)
+        .single();
+
+      if (agua) updateAgua(agua.consumido_ml, agua.meta_ml);
+
+      // Dieta checklist
+      const { data: plano } = await supabase
+        .from('planos_dieta')
+        .select('*, refeicoes(*)')
+        .eq('aluno_id', aluno.id)
+        .eq('ativo', true)
+        .single();
+
+      if (plano?.refeicoes?.length) {
+        const { data: checks } = await supabase
+          .from('dieta_checklist')
+          .select('*')
+          .eq('aluno_id', aluno.id)
+          .eq('data', hoje);
+
+        const feitas = new Set((checks || []).filter(c => c.feita).map(c => c.refeicao_id));
+        const total = plano.refeicoes.length;
+        const done = feitas.size;
+
+        document.getElementById('dietaHoje').innerHTML = `
+          <div class="progress-bar" style="margin-bottom:8px">
+            <div class="progress-bar-fill" style="width:${(done/total*100)}%;background:var(--success)"></div>
+          </div>
+          <div style="font-size:.85rem;color:var(--text-secondary)">${done} de ${total} refeições feitas</div>
+        `;
+      }
+
+      lucide.createIcons();
+    });
+
+    function updateAgua(consumido, meta) {
+      document.getElementById('aguaLabel').textContent = `${consumido} / ${meta} ml`;
+      document.getElementById('aguaBar').style.width = `${Math.min(100, consumido / meta * 100)}%`;
+    }
+
+    async function addAgua(ml) {
+      const aluno = window.currentAluno;
+      const hoje = new Date().toISOString().split('T')[0];
+
+      const { data: existing } = await supabase
+        .from('agua_log')
+        .select('*')
+        .eq('aluno_id', aluno.id)
+        .eq('data', hoje)
+        .single();
+
+      if (existing) {
+        const novo = existing.consumido_ml + ml;
+        await supabase.from('agua_log').update({ consumido_ml: novo }).eq('id', existing.id);
+        updateAgua(novo, existing.meta_ml);
+      } else {
+        await supabase.from('agua_log').insert({ aluno_id: aluno.id, data: hoje, consumido_ml: ml });
+        updateAgua(ml, 3000);
+      }
+      showToast(`+${ml}ml de água!`);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Treino — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border); display:flex; z-index:100; }
+    .bottom-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0; font-size:.7rem; color:var(--text-muted); text-decoration:none; }
+    .bottom-nav a.active { color:var(--primary); }
+    .bottom-nav a i { width:20px; height:20px; }
+    .aluno-main { padding:16px; padding-bottom:80px; }
+    .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+    .serie-row input { width:70px; padding:8px; text-align:center; }
+    .serie-check { width:36px; height:36px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
+    .serie-check.done { background:var(--success); border-color:var(--success); }
+    .timer-display { font-size:2rem; font-weight:800; color:var(--primary); text-align:center; font-variant-numeric:tabular-nums; }
+  </style>
+</head>
+<body>
+  <div class="aluno-main">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <a href="dashboard.html" style="color:var(--text-muted)"><i data-lucide="arrow-left"></i></a>
+      <h2 id="rotinaTitle">Treino</h2>
+      <div id="timerSmall" style="font-size:.9rem;font-weight:700;color:var(--primary)">00:00</div>
+    </div>
+
+    <!-- Timer de descanso -->
+    <div class="card" id="restTimer" style="display:none;margin-bottom:16px;text-align:center;padding:20px">
+      <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:8px">Descanso</div>
+      <div class="timer-display" id="restDisplay">01:00</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button class="btn btn-sm btn-secondary" onclick="adjustRest(-15)">-15s</button>
+        <button class="btn btn-sm btn-primary" onclick="skipRest()">Pular</button>
+        <button class="btn btn-sm btn-secondary" onclick="adjustRest(15)">+15s</button>
+      </div>
+    </div>
+
+    <!-- Exercícios -->
+    <div id="exerciciosContainer"></div>
+
+    <!-- Botão finalizar -->
+    <button class="btn btn-success btn-block btn-lg" id="btnFinalizar" style="margin-top:20px;display:none" onclick="finalizarTreino()">
+      <i data-lucide="check-circle"></i> Finalizar Treino
+    </button>
+
+    <!-- Selecionar rotina (se não veio da URL) -->
+    <div id="seletorRotina" style="display:none">
+      <h3 style="margin-bottom:16px">Suas rotinas</h3>
+      <div id="listaRotinas"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="dashboard.html"><i data-lucide="home"></i>Início</a>
+    <a href="treino.html" class="active"><i data-lucide="dumbbell"></i>Treino</a>
+    <a href="dieta.html"><i data-lucide="utensils"></i>Dieta</a>
+    <a href="medidas.html"><i data-lucide="ruler"></i>Medidas</a>
+    <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    let rotinaAtual = null;
+    let treinoLogId = null;
+    let startTime = null;
+    let timerInterval = null;
+    let restInterval = null;
+    let seriesState = [];
+
+    document.addEventListener('auth-ready', async () => {
+      const aluno = window.currentAluno;
+      if (!aluno) return;
+
+      const params = new URLSearchParams(location.search);
+      const rotinaId = params.get('rotina');
+
+      if (rotinaId) {
+        await iniciarTreino(rotinaId);
+      } else {
+        // Mostrar lista de rotinas
+        document.getElementById('seletorRotina').style.display = 'block';
+        const { data: rotinas } = await supabase
+          .from('rotinas')
+          .select('*, rotina_exercicios(id)')
+          .eq('aluno_id', aluno.id)
+          .eq('ativa', true);
+
+        document.getElementById('listaRotinas').innerHTML = (rotinas || []).map(r => `
+          <div class="card card-clickable" style="margin-bottom:12px" onclick="iniciarTreino('${r.id}')">
+            <div style="font-weight:600;font-size:1.1rem">${r.nome}</div>
+            <div style="font-size:.85rem;color:var(--text-muted)">${(r.rotina_exercicios || []).length} exercícios · ${(r.dias_semana || []).join(', ')}</div>
+          </div>
+        `).join('') || '<p style="color:var(--text-muted)">Nenhuma rotina ativa. Peça ao seu personal.</p>';
+      }
+
+      lucide.createIcons();
+    });
+
+    async function iniciarTreino(rotinaId) {
+      document.getElementById('seletorRotina').style.display = 'none';
+
+      const { data: rotina } = await supabase
+        .from('rotinas')
+        .select('*, rotina_exercicios(*, exercicios(nome, grupo_muscular, gif_url))')
+        .eq('id', rotinaId)
+        .single();
+
+      if (!rotina) { showToast('Rotina não encontrada', 'error'); return; }
+      rotinaAtual = rotina;
+
+      document.getElementById('rotinaTitle').textContent = rotina.nome;
+
+      // Criar treino_log
+      const { data: log } = await supabase.from('treino_logs').insert({
+        aluno_id: window.currentAluno.id,
+        rotina_id: rotinaId,
+        data: new Date().toISOString().split('T')[0]
+      }).select().single();
+      treinoLogId = log.id;
+
+      // Buscar último treino pra carregar cargas anteriores
+      const { data: ultimosSeries } = await supabase
+        .from('treino_series')
+        .select('exercicio_id, serie_num, carga, reps')
+        .eq('treino_log_id', treinoLogId);
+
+      // Iniciar timer
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const sec = String(elapsed % 60).padStart(2, '0');
+        document.getElementById('timerSmall').textContent = `${min}:${sec}`;
+      }, 1000);
+
+      // Renderizar exercícios
+      const exercicios = (rotina.rotina_exercicios || []).sort((a, b) => a.ordem - b.ordem);
+      seriesState = [];
+
+      document.getElementById('exerciciosContainer').innerHTML = exercicios.map((re, exIdx) => {
+        const ex = re.exercicios;
+        const series = [];
+        for (let s = 1; s <= re.series; s++) {
+          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: re.carga_sugerida || '', reps: re.reps_min || 10, done: false });
+        }
+        seriesState.push(...series.map((s, i) => ({ ...s, globalIdx: seriesState.length + i, descanso: re.descanso_seg || 60 })));
+
+        return `
+          <div class="card" style="margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+              ${ex?.gif_url ? `<img src="${ex.gif_url}" style="width:48px;height:48px;border-radius:8px;object-fit:cover">` : ''}
+              <div>
+                <div style="font-weight:600">${ex?.nome || 'Exercício'}</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">${ex?.grupo_muscular || ''} · ${re.series}×${re.reps_min}-${re.reps_max} ${re.carga_sugerida ? `· ${re.carga_sugerida}kg` : ''}</div>
+              </div>
+            </div>
+            ${re.observacoes ? `<div style="font-size:.8rem;color:var(--warning);margin-bottom:8px"><i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i> ${re.observacoes}</div>` : ''}
+            <div style="display:flex;gap:8px;padding:4px 0;font-size:.75rem;font-weight:600;color:var(--text-muted)">
+              <div style="width:36px">Série</div>
+              <div style="width:70px;text-align:center">Carga</div>
+              <div style="width:70px;text-align:center">Reps</div>
+              <div style="width:36px"></div>
+            </div>
+            ${series.map((s, sIdx) => {
+              const gIdx = seriesState.findIndex(ss => ss.exercicio_id === s.exercicio_id && ss.serie_num === s.serie_num);
+              return `
+                <div class="serie-row" id="serie-${gIdx}">
+                  <div style="width:36px;text-align:center;font-weight:600;font-size:.85rem">${s.serie_num}</div>
+                  <input type="number" class="form-control" value="${s.carga}" style="width:70px" onchange="seriesState[${gIdx}].carga=+this.value">
+                  <input type="number" class="form-control" value="${s.reps}" style="width:70px" onchange="seriesState[${gIdx}].reps=+this.value">
+                  <div class="serie-check" id="check-${gIdx}" onclick="completarSerie(${gIdx})">
+                    <i data-lucide="check" style="width:16px;height:16px;color:#fff"></i>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }).join('');
+
+      // Atualizar seriesState indices
+      let idx = 0;
+      exercicios.forEach(re => {
+        for (let s = 1; s <= re.series; s++) {
+          if (seriesState[idx]) seriesState[idx].descanso = re.descanso_seg || 60;
+          idx++;
+        }
+      });
+
+      document.getElementById('btnFinalizar').style.display = 'block';
+      lucide.createIcons();
+    }
+
+    function completarSerie(idx) {
+      const s = seriesState[idx];
+      if (s.done) return;
+      s.done = true;
+
+      const check = document.getElementById(`check-${idx}`);
+      check.classList.add('done');
+
+      // Salvar série no banco
+      supabase.from('treino_series').insert({
+        treino_log_id: treinoLogId,
+        exercicio_id: s.exercicio_id,
+        serie_num: s.serie_num,
+        reps: s.reps,
+        carga: s.carga || 0,
+        concluida: true
+      });
+
+      // Iniciar timer de descanso
+      startRestTimer(s.descanso);
+    }
+
+    function startRestTimer(seconds) {
+      clearInterval(restInterval);
+      let remaining = seconds;
+      const timerEl = document.getElementById('restTimer');
+      const displayEl = document.getElementById('restDisplay');
+      timerEl.style.display = 'block';
+
+      const update = () => {
+        const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const s = String(remaining % 60).padStart(2, '0');
+        displayEl.textContent = `${m}:${s}`;
+        if (remaining <= 0) { skipRest(); return; }
+        remaining--;
+      };
+      update();
+      restInterval = setInterval(update, 1000);
+    }
+
+    function adjustRest(delta) {
+      // Simple adjust — just restart with modified time
+      const current = document.getElementById('restDisplay').textContent.split(':');
+      let sec = parseInt(current[0]) * 60 + parseInt(current[1]) + delta;
+      if (sec < 0) sec = 0;
+      startRestTimer(sec);
+    }
+
+    function skipRest() {
+      clearInterval(restInterval);
+      document.getElementById('restTimer').style.display = 'none';
+    }
+
+    async function finalizarTreino() {
+      clearInterval(timerInterval);
+      clearInterval(restInterval);
+
+      const duracao = Math.floor((Date.now() - startTime) / 60000);
+      const totalDone = seriesState.filter(s => s.done).length;
+      const total = seriesState.length;
+
+      await supabase.from('treino_logs').update({
+        duracao_min: duracao,
+        completo: totalDone === total
+      }).eq('id', treinoLogId);
+
+      // Verificar PRs (maior carga por exercício)
+      const exercicioIds = [...new Set(seriesState.map(s => s.exercicio_id))];
+      for (const exId of exercicioIds) {
+        const melhores = seriesState.filter(s => s.exercicio_id === exId && s.done);
+        if (!melhores.length) continue;
+
+        const melhorCarga = Math.max(...melhores.map(s => s.carga || 0));
+        if (melhorCarga <= 0) continue;
+
+        // Buscar PR anterior
+        const { data: prAnterior } = await supabase
+          .from('treino_series')
+          .select('carga')
+          .eq('exercicio_id', exId)
+          .eq('concluida', true)
+          .neq('treino_log_id', treinoLogId)
+          .order('carga', { ascending: false })
+          .limit(1);
+
+        if (!prAnterior?.length || melhorCarga > prAnterior[0].carga) {
+          // Marcar como PR
+          await supabase.from('treino_series')
+            .update({ pr: true })
+            .eq('treino_log_id', treinoLogId)
+            .eq('exercicio_id', exId)
+            .eq('carga', melhorCarga);
+        }
+      }
+
+      showToast(`Treino finalizado! ${duracao}min · ${totalDone}/${total} séries`);
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+    }
+  </script>
+</body>
+</html>

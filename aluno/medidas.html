@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medidas — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border); display:flex; z-index:100; }
+    .bottom-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0; font-size:.7rem; color:var(--text-muted); text-decoration:none; }
+    .bottom-nav a.active { color:var(--primary); }
+    .bottom-nav a i { width:20px; height:20px; }
+    .aluno-main { padding:16px; padding-bottom:80px; }
+  </style>
+</head>
+<body>
+  <div class="aluno-main">
+    <h2 style="margin-bottom:20px"><i data-lucide="ruler" style="width:22px;height:22px;color:var(--primary);vertical-align:-3px"></i> Minhas Medidas</h2>
+
+    <!-- Último peso -->
+    <div class="card" style="text-align:center;margin-bottom:16px">
+      <div style="font-size:.85rem;color:var(--text-muted)">Último peso</div>
+      <div style="font-size:2.5rem;font-weight:900;color:var(--primary)" id="ultimoPeso">—</div>
+      <div style="font-size:.9rem" id="diffPeso"></div>
+    </div>
+
+    <!-- Registrar peso rápido -->
+    <div class="card" style="margin-bottom:16px" id="registroPesoCard" style="display:none">
+      <h4 style="margin-bottom:12px">Registrar Peso</h4>
+      <div style="display:flex;gap:8px">
+        <input type="number" class="form-control" id="novoPeso" step="0.1" placeholder="Ex: 75.3" style="flex:1">
+        <button class="btn btn-primary" onclick="registrarPeso()"><i data-lucide="save"></i></button>
+      </div>
+    </div>
+
+    <!-- Gráfico de peso -->
+    <div class="card" style="margin-bottom:16px">
+      <h4 style="margin-bottom:12px">Evolução do Peso</h4>
+      <canvas id="chartPeso"></canvas>
+    </div>
+
+    <!-- Timeline -->
+    <h3 style="margin-bottom:12px">Histórico</h3>
+    <div id="timeline"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="dashboard.html"><i data-lucide="home"></i>Início</a>
+    <a href="treino.html"><i data-lucide="dumbbell"></i>Treino</a>
+    <a href="dieta.html"><i data-lucide="utensils"></i>Dieta</a>
+    <a href="medidas.html" class="active"><i data-lucide="ruler"></i>Medidas</a>
+    <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    document.addEventListener('auth-ready', async () => {
+      const aluno = window.currentAluno;
+      if (!aluno) return;
+
+      // Verificar permissão de registro
+      const { data: alunoData } = await supabase.from('alunos').select('aluno_registra_medidas').eq('id', aluno.id).single();
+      if (alunoData?.aluno_registra_medidas) {
+        document.getElementById('registroPesoCard').style.display = 'block';
+      }
+
+      // Carregar medidas
+      const { data: medidas } = await supabase
+        .from('medidas').select('*')
+        .eq('aluno_id', aluno.id)
+        .order('data', { ascending: false });
+
+      if (!medidas?.length) {
+        document.getElementById('timeline').innerHTML = '<p style="color:var(--text-muted)">Nenhuma avaliação registrada ainda.</p>';
+        lucide.createIcons();
+        return;
+      }
+
+      // Último peso
+      document.getElementById('ultimoPeso').textContent = medidas[0].peso_kg ? medidas[0].peso_kg + ' kg' : '—';
+      if (medidas.length > 1 && medidas[0].peso_kg && medidas[1].peso_kg) {
+        const diff = +(medidas[0].peso_kg - medidas[1].peso_kg).toFixed(1);
+        document.getElementById('diffPeso').innerHTML = `<span style="color:${diff <= 0 ? 'var(--success)' : 'var(--danger)'}">${diff > 0 ? '+' : ''}${diff}kg desde ${formatDate(medidas[1].data)}</span>`;
+      }
+
+      // Gráfico
+      const sorted = [...medidas].reverse();
+      new Chart(document.getElementById('chartPeso'), {
+        type: 'line',
+        data: {
+          labels: sorted.map(m => formatDate(m.data)),
+          datasets: [{
+            data: sorted.map(m => m.peso_kg),
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249,115,22,0.1)',
+            fill: true, tension: .3, pointRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#71717a', font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: '#71717a' }, grid: { color: '#2a2a2a' } }
+          }
+        }
+      });
+
+      // Timeline
+      document.getElementById('timeline').innerHTML = medidas.map(m => `
+        <div class="card" style="margin-bottom:8px;padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">${formatDate(m.data)}</div>
+              <div style="font-size:.85rem;color:var(--text-secondary)">
+                ${m.peso_kg ? m.peso_kg + 'kg' : ''} ${m.gordura_pct ? '· ' + m.gordura_pct + '% gordura' : ''} ${m.imc ? '· IMC ' + m.imc : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    });
+
+    async function registrarPeso() {
+      const peso = +document.getElementById('novoPeso').value;
+      if (!peso) { showToast('Informe o peso', 'error'); return; }
+
+      const aluno = window.currentAluno;
+      const { data: lastMedida } = await supabase
+        .from('medidas').select('altura_cm')
+        .eq('aluno_id', aluno.id).order('data', { ascending: false }).limit(1).single();
+
+      const altura = lastMedida?.altura_cm;
+      const imc = calcIMC(peso, altura);
+
+      const { error } = await supabase.from('medidas').insert({
+        aluno_id: aluno.id,
+        registrado_por: window.currentUser.id,
+        data: new Date().toISOString().split('T')[0],
+        peso_kg: peso,
+        altura_cm: altura,
+        imc
+      });
+
+      if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+      showToast('Peso registrado!');
+      location.reload();
+    }
+  </script>
+</body>
+</html>

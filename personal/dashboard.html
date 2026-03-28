@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="greeting"></p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <a href="alunos.html" class="btn btn-sm btn-primary"><i data-lucide="user-plus"></i> Novo Aluno</a>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-4" id="statsGrid">
+        <div class="card stat-card">
+          <div class="stat-value" id="totalAlunos">-</div>
+          <div class="stat-label">Alunos ativos</div>
+          <div id="limiteLabel" style="font-size:.7rem;color:var(--text-muted);margin-top:4px"></div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" id="treinosHoje" style="color:var(--success)">-</div>
+          <div class="stat-label">Treinaram hoje</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" id="semTreinar" style="color:var(--warning)">-</div>
+          <div class="stat-label">Sem treinar (+5 dias)</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" id="prsRecentes" style="color:var(--primary)">-</div>
+          <div class="stat-label">PRs esta semana</div>
+        </div>
+      </div>
+
+      <!-- Assinatura alert -->
+      <div id="trialAlert" class="alert alert-warning" style="display:none;margin-top:20px">
+        <i data-lucide="clock" style="width:18px;height:18px;flex-shrink:0"></i>
+        <span id="trialMsg"></span>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:24px">
+        <!-- Quem treinou hoje -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i data-lucide="check-circle" style="width:18px;height:18px;color:var(--success);vertical-align:-3px"></i> Treinaram hoje</h3>
+          </div>
+          <div id="listaTreinouHoje">
+            <div class="empty-state" style="padding:30px">
+              <p style="font-size:.9rem">Nenhum aluno treinou ainda hoje</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sem treinar -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i data-lucide="alert-triangle" style="width:18px;height:18px;color:var(--warning);vertical-align:-3px"></i> Sem treinar (+5 dias)</h3>
+          </div>
+          <div id="listaSemTreinar">
+            <div class="empty-state" style="padding:30px">
+              <p style="font-size:.9rem">Todos os alunos estão em dia!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRs recentes -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <h3 class="card-title"><i data-lucide="trophy" style="width:18px;height:18px;color:var(--primary);vertical-align:-3px"></i> Records Pessoais Recentes</h3>
+        </div>
+        <div id="listaPRs">
+          <div class="empty-state" style="padding:30px">
+            <p style="font-size:.9rem">Nenhum PR registrado recentemente</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de volume semanal -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <h3 class="card-title"><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--primary);vertical-align:-3px"></i> Volume da Semana</h3>
+        </div>
+        <div style="height:240px">
+          <canvas id="chartVolume"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/personal/dashboard.js"></script>
+</body>
+</html>

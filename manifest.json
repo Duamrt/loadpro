@@ -1,16 +1,13 @@
 {
-  "name": "NaLinha — Gestão de Treinos",
-  "short_name": "NaLinha",
-  "description": "Gestão completa para personal trainers — treinos, dietas, evolução, agenda e financeiro.",
-  "start_url": "/",
+  "name": "LoadPro",
+  "short_name": "LoadPro",
+  "description": "Gestão profissional para Personal Trainers",
+  "start_url": "/aluno/dashboard.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
-  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#f97316",
   "icons": [
-    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ],
-  "categories": ["business", "productivity"],
-  "lang": "pt-BR"
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }

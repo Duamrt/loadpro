@@ -1,162 +1,99 @@
-/* NaLinha — Sidebar (Desktop) — Injetada via JS, sem wrapper */
-(function () {
-  'use strict';
+// LoadPro — Sidebar (Personal)
+// Gera sidebar + mobile header automaticamente
 
-  var NAV = [
-    { group: 'PRINCIPAL', open: true, items: [
-      { icon: '📅', label: 'Agenda', href: 'dashboard.html' },
-      { icon: '🗓', label: 'Agenda Semanal', href: 'agenda-semana.html' },
-      { icon: '📊', label: 'Resumo', href: 'resumo.html' }
-    ]},
-    { group: 'GESTÃO', open: true, items: [
-      { icon: '👥', label: 'Equipe', href: 'equipe.html' },
-      { icon: '✂️', label: 'Serviços', href: 'servicos.html' },
-      { icon: '🔀', label: 'Combos', href: 'combos.html' },
-      { icon: '📋', label: 'Clientes', href: 'clientes.html' },
-      { icon: '📦', label: 'Estoque', href: 'estoque.html' }
-    ]},
-    { group: 'FINANCEIRO', open: true, items: [
-      { icon: '💰', label: 'Caixa', href: 'financeiro.html' },
-      { icon: '📝', label: 'Comandas', href: 'comandas.html' },
-      { icon: '💵', label: 'Comissões', href: 'comissoes.html' },
-      { icon: '📄', label: 'Folha Pagamento', href: 'folha-pagamento.html' },
-      { icon: '🎯', label: 'Metas', href: 'metas.html' }
-    ]},
-    { group: 'COMERCIAL', open: false, items: [
-      { icon: '📦', label: 'Pacotes', href: 'pacotes.html' },
-      { icon: '👑', label: 'Assinaturas', href: 'assinaturas.html' },
-      { icon: '🎫', label: 'Cupons', href: 'cupons.html' },
-      { icon: '📣', label: 'Promoções', href: 'promocoes.html' }
-    ]},
-    { group: 'CLIENTES', open: false, items: [
-      { icon: '🔔', label: 'Lembretes', href: 'lembretes.html' },
-      { icon: '🔄', label: 'Retenção', href: 'retencao.html' },
-      { icon: '⭐', label: 'Satisfação', href: 'satisfacao.html' },
-      { icon: '⏳', label: 'Lista de Espera', href: 'lista-espera.html' },
-      { icon: '📥', label: 'Importar', href: 'importar-clientes.html' }
-    ]},
-    { group: 'ANÁLISE', open: false, items: [
-      { icon: '📊', label: 'Relatório', href: 'relatorio.html' },
-      { icon: '📉', label: 'Horários Ociosos', href: 'horarios-ociosos.html' },
-      { icon: '📋', label: 'Atividades', href: 'atividades.html' }
-    ]},
-    { group: 'CONFIGURAR', open: false, items: [
-      { icon: '⚙', label: 'Configurações', href: 'configuracoes.html' },
-      { icon: '📱', label: 'QR Code', href: 'qrcode.html' },
-      { icon: '📷', label: 'Galeria', href: 'galeria.html' },
-      { icon: '📜', label: 'Políticas', href: 'politicas.html' },
-      { icon: '💾', label: 'Backup', href: 'backup.html' },
-      { icon: '💳', label: 'Meu Plano', href: 'planos.html' },
-      { icon: '🔍', label: 'Busca', href: 'busca.html' },
-      { icon: '🔔', label: 'Notificações', href: 'notificacoes.html' }
-    ]}
+function initSidebar() {
+  const user = window.currentUser;
+  const personal = window.currentPersonal;
+  if (!user) return;
+
+  const currentPage = location.pathname.split('/').pop();
+
+  const menuItems = [
+    { href: 'dashboard.html', icon: 'layout-dashboard', label: 'Dashboard' },
+    { href: 'alunos.html', icon: 'users', label: 'Alunos' },
+    { href: 'exercicios.html', icon: 'dumbbell', label: 'Exercícios' },
+    { href: 'treinos.html', icon: 'clipboard-list', label: 'Treinos' },
+    { href: 'dieta.html', icon: 'utensils', label: 'Dieta' },
+    { href: 'medidas.html', icon: 'ruler', label: 'Medidas' },
+    { href: 'agenda.html', icon: 'calendar', label: 'Agenda' },
+    { section: 'Comunicação' },
+    { href: 'chat.html', icon: 'message-circle', label: 'Chat' },
+    { section: 'Conta' },
+    { href: 'configuracoes.html', icon: 'settings', label: 'Configurações' },
   ];
 
-  var currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
-  var STORAGE_KEY = 'nr_sidebar_state';
-  var sidebar = null;
+  const navHTML = menuItems.map(item => {
+    if (item.section) return `<div class="sidebar-section">${item.section}</div>`;
+    const active = currentPage === item.href ? 'active' : '';
+    return `<a href="${item.href}" class="${active}"><i data-lucide="${item.icon}"></i><span>${item.label}</span></a>`;
+  }).join('');
 
-  function loadState() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-    catch (e) { return {}; }
-  }
-  function saveState(s) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) {}
-  }
+  const initials = (user.nome || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const planBadge = personal?.plano === 'pro'
+    ? '<span class="badge badge-primary" style="font-size:.65rem">PRO</span>'
+    : '<span class="badge badge-warning" style="font-size:.65rem">STARTER</span>';
 
-  function buildSidebar() {
-    if (sidebar) return;
-    var state = loadState();
+  // Sidebar
+  const sidebar = document.createElement('aside');
+  sidebar.className = 'sidebar';
+  sidebar.id = 'sidebar';
+  sidebar.innerHTML = `
+    <div class="sidebar-brand">
+      <i data-lucide="dumbbell" style="width:28px;height:28px;color:var(--primary)"></i>
+      <span>LoadPro</span>
+    </div>
+    <nav class="sidebar-nav">${navHTML}</nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar">${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : initials}</div>
+        <div class="sidebar-user-info">
+          <div class="name">${user.nome} ${planBadge}</div>
+          <div class="role">Personal Trainer</div>
+        </div>
+        <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px" title="Sair">
+          <i data-lucide="log-out" style="width:18px;height:18px"></i>
+        </button>
+      </div>
+    </div>
+  `;
 
-    sidebar = document.createElement('aside');
-    sidebar.className = 'nr-sidebar';
-    var segLabels = { academia:'Gestão para academias', estetica:'Gestão para estética', sobrancelha:'Gestão para sobrancelhas', unha:'Gestão para nail designers', salao:'Gestão para salões' };
-    var segKey = localStorage.getItem('nalinha_segment') || 'academia';
-    sidebar.innerHTML = '<div class="nr-sidebar-brand"><div class="nr-logo">Na<span>Regua</span></div><div class="nr-logo-sub">' + (segLabels[segKey] || segLabels.academia) + '</div></div>';
+  // Mobile header
+  const mobileHeader = document.createElement('header');
+  mobileHeader.className = 'mobile-header';
+  mobileHeader.innerHTML = `
+    <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+    <div style="display:flex;align-items:center;gap:8px;font-weight:700">
+      <i data-lucide="dumbbell" style="width:22px;height:22px;color:var(--primary)"></i> LoadPro
+    </div>
+    <div style="width:40px"></div>
+  `;
 
-    var nav = document.createElement('nav');
-    nav.className = 'nr-sidebar-nav';
+  // Backdrop
+  const backdrop = document.createElement('div');
+  backdrop.className = 'sidebar-backdrop';
+  backdrop.id = 'sidebarBackdrop';
+  backdrop.onclick = () => toggleSidebar(false);
 
-    NAV.forEach(function (group) {
-      var g = document.createElement('div');
-      g.className = 'nr-sidebar-group';
-      var isFirstVisit = Object.keys(state).length === 0;
-      var saved = state[group.group];
-      if (saved !== undefined ? saved : (isFirstVisit ? false : !group.open)) g.classList.add('collapsed');
+  // Inserir no DOM (apenas novos elementos)
+  document.body.insertBefore(mobileHeader, document.body.firstChild);
+  document.body.insertBefore(sidebar, document.body.firstChild);
+  document.body.insertBefore(backdrop, document.body.firstChild);
 
-      var header = document.createElement('div');
-      header.className = 'nr-sidebar-group-header';
-      header.innerHTML = '<span class="nr-sidebar-group-label">' + group.group + '</span><span class="nr-sidebar-group-chevron">▼</span>';
-      header.addEventListener('click', function () {
-        g.classList.toggle('collapsed');
-        var s = loadState(); s[group.group] = g.classList.contains('collapsed'); saveState(s);
-      });
-      g.appendChild(header);
+  lucide.createIcons();
+}
 
-      var items = document.createElement('div');
-      items.className = 'nr-sidebar-group-items';
-      group.items.forEach(function (item) {
-        var a = document.createElement('a');
-        a.className = 'nr-sidebar-link' + (item.href === currentPage ? ' active' : '');
-        a.href = item.href;
-        a.innerHTML = '<span class="nr-icon">' + item.icon + '</span><span class="nr-label">' + item.label + '</span>';
-        items.appendChild(a);
-      });
-      g.appendChild(items);
-      nav.appendChild(g);
-    });
+function toggleSidebar(force) {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isOpen = force !== undefined ? force : !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', isOpen);
+  backdrop.classList.toggle('active', isOpen);
+}
 
-    sidebar.appendChild(nav);
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = '../login.html';
+}
 
-    // Footer
-    var footer = document.createElement('div');
-    footer.className = 'nr-sidebar-footer';
-    footer.innerHTML = '<div class="nr-sidebar-shop">Minha Academia</div><button class="nr-sidebar-logout" onclick="if(typeof logout===\'function\')logout();else{window.location.href=\'app.html\';}">Sair</button>';
-    sidebar.appendChild(footer);
-
-    // Inserir no body SEM mover nada
-    document.body.insertBefore(sidebar, document.body.firstChild);
-    document.body.classList.add('nr-has-sidebar');
-
-    // Atualizar nome da academia quando carregar
-    updateShopName();
-  }
-
-  function updateShopName() {
-    if (!sidebar) return;
-    var el = document.querySelector('#shop-name, .shop-name');
-    var shopDiv = sidebar.querySelector('.nr-sidebar-shop');
-    if (el && shopDiv && el.textContent.trim()) {
-      shopDiv.textContent = el.textContent.trim();
-    }
-  }
-
-  function removeSidebar() {
-    if (!sidebar) return;
-    sidebar.remove();
-    sidebar = null;
-    document.body.classList.remove('nr-has-sidebar');
-  }
-
-  function handleResize() {
-    if (window.innerWidth >= 768) {
-      if (!sidebar) buildSidebar();
-    } else {
-      if (sidebar) removeSidebar();
-    }
-  }
-
-  function init() {
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    // Atualizar nome da academia após 2s (tempo pro async carregar)
-    setTimeout(updateShopName, 2000);
-    setTimeout(updateShopName, 5000);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+// Init quando auth estiver pronto
+document.addEventListener('auth-ready', () => initSidebar());

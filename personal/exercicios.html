@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca de Exercícios — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1>Biblioteca de Exercícios</h1>
+          <p id="subtitulo"></p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" class="form-control" id="busca" placeholder="Buscar exercício...">
+          </div>
+          <select class="form-control" id="filtroGrupo" style="width:auto">
+            <option value="">Todos os grupos</option>
+          </select>
+          <select class="form-control" id="filtroEquip" style="width:auto">
+            <option value="">Todos equipamentos</option>
+          </select>
+          <button class="btn btn-primary" onclick="openModal('modalExercicio')">
+            <i data-lucide="plus"></i> Criar Exercício
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-3" id="exerciciosGrid"></div>
+      <div id="emptyState" class="empty-state" style="display:none">
+        <i data-lucide="dumbbell"></i>
+        <h3>Nenhum exercício encontrado</h3>
+        <p>Tente alterar os filtros ou crie um exercício personalizado.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Exercício -->
+  <div class="modal-overlay" id="modalExercicio">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Criar Exercício</h3>
+        <button class="modal-close" onclick="closeModal('modalExercicio')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="formExercicio">
+          <div class="form-group">
+            <label>Nome *</label>
+            <input type="text" class="form-control" id="exNome" required>
+          </div>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label>Grupo muscular principal *</label>
+              <select class="form-control" id="exGrupo" required></select>
+            </div>
+            <div class="form-group">
+              <label>Equipamento</label>
+              <select class="form-control" id="exEquip"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Grupos secundários (separar por vírgula)</label>
+            <input type="text" class="form-control" id="exSecundarios" placeholder="Tríceps, Ombro Anterior">
+          </div>
+          <div class="form-group">
+            <label>Descrição da execução</label>
+            <textarea class="form-control" id="exDescricao" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>URL da imagem / GIF</label>
+            <input type="url" class="form-control" id="exGif" placeholder="https://...">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalExercicio')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarExercicio()"><i data-lucide="save"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhe -->
+  <div class="modal-overlay" id="modalDetalhe">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="detalheNome"></h3>
+        <button class="modal-close" onclick="closeModal('modalDetalhe')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="detalheBody"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/personal/exercicios.js"></script>
+</body>
+</html>

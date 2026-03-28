@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aceitar Convite — LoadPro</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .auth-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .auth-box { width:100%; max-width:420px; }
+    .auth-logo { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:32px; font-size:1.4rem; font-weight:800; }
+    .auth-logo span { color:var(--primary); }
+    .auth-card { padding:32px; }
+    .pwd-wrap { position:relative; }
+    .pwd-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <i data-lucide="dumbbell" style="width:32px;height:32px;color:var(--primary)"></i>
+        Load<span>Pro</span>
+      </div>
+      <div class="card auth-card">
+        <h2 style="text-align:center;margin-bottom:8px">Bem-vindo ao LoadPro!</h2>
+        <p style="text-align:center;margin-bottom:24px;font-size:.9rem" id="conviteMsg">Seu personal te convidou. Crie uma senha para acessar seus treinos.</p>
+
+        <div id="alert" class="alert alert-danger" style="display:none;margin-bottom:16px"></div>
+
+        <div id="conviteValido">
+          <div class="card" style="background:var(--bg-card-hover);margin-bottom:20px;padding:16px;text-align:center">
+            <div style="font-size:.85rem;color:var(--text-muted)">Personal</div>
+            <div style="font-weight:600;font-size:1.1rem" id="personalNome">—</div>
+          </div>
+
+          <form id="formConvite">
+            <div class="form-group">
+              <label>Seu email</label>
+              <input type="email" class="form-control" id="email" disabled>
+            </div>
+            <div class="form-group">
+              <label>Crie uma senha</label>
+              <div class="pwd-wrap">
+                <input type="password" class="form-control" id="senha" minlength="6" placeholder="Mínimo 6 caracteres" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnAceitar">
+              <i data-lucide="check-circle"></i> Acessar meus treinos
+            </button>
+          </form>
+        </div>
+
+        <div id="conviteInvalido" style="display:none;text-align:center">
+          <i data-lucide="alert-circle" style="width:48px;height:48px;color:var(--danger);margin-bottom:16px"></i>
+          <h3>Convite inválido</h3>
+          <p style="font-size:.9rem;margin-top:8px">Este link de convite não é válido ou já foi usado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+
+    (async () => {
+      if (!token) { mostrarInvalido(); return; }
+
+      // Buscar aluno pelo token
+      const { data: aluno } = await supabase
+        .from('alunos')
+        .select('*, personals(*, users(nome))')
+        .eq('convite_token', token)
+        .eq('status', 'pendente')
+        .single();
+
+      if (!aluno) { mostrarInvalido(); return; }
+
+      document.getElementById('personalNome').textContent = aluno.personals?.users?.nome || 'Seu Personal';
+
+      // Se aluno já tiver email cadastrado (via personal), preencher
+      // Buscar na tabela users se já existe
+      document.getElementById('email').value = 'Será vinculado ao aceitar';
+
+      document.getElementById('formConvite').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnAceitar');
+        const alertEl = document.getElementById('alert');
+        alertEl.style.display = 'none';
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Criando acesso...';
+
+        try {
+          // Gerar email baseado no token (ou usar email do cadastro)
+          const email = `aluno_${token.substring(0, 8)}@loadpro.app`;
+
+          // Criar auth user
+          const { data: authData, error: authErr } = await supabase.auth.signUp({
+            email,
+            password: document.getElementById('senha').value,
+            options: { data: { nome: aluno.nome || 'Aluno', tipo: 'aluno' } }
+          });
+          if (authErr) throw authErr;
+
+          // Criar user record
+          const { data: userData, error: userErr } = await supabase.from('users').insert({
+            auth_id: authData.user.id,
+            email,
+            nome: aluno.nome || 'Aluno',
+            tipo: 'aluno'
+          }).select().single();
+          if (userErr) throw userErr;
+
+          // Vincular aluno
+          await supabase.from('alunos').update({
+            user_id: userData.id,
+            status: 'ativo',
+            convite_token: null
+          }).eq('id', aluno.id);
+
+          window.location.href = 'aluno/dashboard.html';
+        } catch (err) {
+          alertEl.textContent = err.message;
+          alertEl.style.display = 'flex';
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="check-circle"></i> Acessar meus treinos';
+        }
+        lucide.createIcons();
+      });
+    })();
+
+    function mostrarInvalido() {
+      document.getElementById('conviteValido').style.display = 'none';
+      document.getElementById('conviteInvalido').style.display = 'block';
+    }
+
+    lucide.createIcons();
+  </script>
+  <style>.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform:rotate(360deg); } }</style>
+</body>
+</html>

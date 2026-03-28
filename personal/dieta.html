@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dieta — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1>Dieta e Nutrição</h1>
+          <p>Planos alimentares dos alunos</p>
+        </div>
+        <button class="btn btn-primary" onclick="novoPlano()"><i data-lucide="plus"></i> Novo Plano</button>
+      </div>
+
+      <!-- Seletor de aluno -->
+      <div class="card" style="margin-bottom:24px;padding:16px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <label style="font-weight:600;white-space:nowrap">Aluno:</label>
+          <select class="form-control" id="seletorAluno" style="max-width:300px">
+            <option value="">Selecione um aluno</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Calculadora TMB -->
+      <div class="card" id="calcCard" style="display:none;margin-bottom:24px">
+        <div class="card-header">
+          <h3 class="card-title"><i data-lucide="calculator" style="width:18px;height:18px;color:var(--primary);vertical-align:-3px"></i> Cálculo Metabólico</h3>
+          <button class="btn btn-sm btn-primary" onclick="calcularTMB()"><i data-lucide="refresh-cw"></i> Calcular</button>
+        </div>
+        <div class="grid grid-3" style="margin-top:12px">
+          <div class="form-group">
+            <label>Fator de atividade</label>
+            <select class="form-control" id="fatorAtividade">
+              <option value="1.2">Sedentário (×1.2)</option>
+              <option value="1.375">Leve — 1-3 dias (×1.375)</option>
+              <option value="1.55" selected>Moderado — 3-5 dias (×1.55)</option>
+              <option value="1.725">Muito ativo — 6-7 dias (×1.725)</option>
+              <option value="1.9">Extremo — 2× dia (×1.9)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Objetivo calórico</label>
+            <select class="form-control" id="objDieta">
+              <option value="deficit">Emagrecimento (déficit)</option>
+              <option value="manutencao">Manutenção</option>
+              <option value="superavit">Ganho de massa (superávit)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-4" id="resultadoCalc" style="margin-top:16px;display:none">
+          <div class="card stat-card" style="padding:16px;background:var(--bg-card-hover)">
+            <div class="stat-value" style="font-size:1.5rem" id="resTMB">—</div>
+            <div class="stat-label">TMB (kcal)</div>
+          </div>
+          <div class="card stat-card" style="padding:16px;background:var(--bg-card-hover)">
+            <div class="stat-value" style="font-size:1.5rem" id="resGET">—</div>
+            <div class="stat-label">GET (kcal)</div>
+          </div>
+          <div class="card stat-card" style="padding:16px;background:var(--bg-card-hover)">
+            <div class="stat-value" style="font-size:1.5rem;color:var(--primary)" id="resMeta">—</div>
+            <div class="stat-label">Meta (kcal)</div>
+          </div>
+          <div class="card" style="padding:16px;background:var(--bg-card-hover)">
+            <div style="display:flex;gap:12px;justify-content:center">
+              <div style="text-align:center"><div style="font-weight:700;color:var(--success)" id="resProt">—</div><div style="font-size:.7rem;color:var(--text-muted)">Proteína (g)</div></div>
+              <div style="text-align:center"><div style="font-weight:700;color:var(--warning)" id="resCarb">—</div><div style="font-size:.7rem;color:var(--text-muted)">Carbo (g)</div></div>
+              <div style="text-align:center"><div style="font-weight:700;color:var(--danger)" id="resGord">—</div><div style="font-size:.7rem;color:var(--text-muted)">Gordura (g)</div></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-primary" id="btnUsarCalc" style="margin-top:12px;display:none" onclick="usarCalculoNoPlano()">
+          <i data-lucide="arrow-down"></i> Usar no plano
+        </button>
+      </div>
+
+      <!-- Plano ativo -->
+      <div id="planoContainer"></div>
+      <div id="emptyState" class="empty-state" style="display:none">
+        <i data-lucide="utensils"></i>
+        <h3>Nenhum plano alimentar</h3>
+        <p>Selecione um aluno e crie o plano alimentar dele.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Refeição -->
+  <div class="modal-overlay" id="modalRefeicao">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="refModalTitle">Nova Refeição</h3>
+        <button class="modal-close" onclick="closeModal('modalRefeicao')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="refId">
+        <input type="hidden" id="refPlanoId">
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label>Nome da refeição *</label>
+            <input type="text" class="form-control" id="refNome" placeholder="Ex: Café da Manhã">
+          </div>
+          <div class="form-group">
+            <label>Horário</label>
+            <input type="time" class="form-control" id="refHorario">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descrição / alimentos</label>
+          <textarea class="form-control" id="refDescricao" rows="4" placeholder="Liste os alimentos e quantidades..."></textarea>
+        </div>
+        <div class="grid grid-4">
+          <div class="form-group"><label>Calorias</label><input type="number" class="form-control" id="refKcal"></div>
+          <div class="form-group"><label>Proteína (g)</label><input type="number" class="form-control" id="refProt"></div>
+          <div class="form-group"><label>Carbo (g)</label><input type="number" class="form-control" id="refCarb"></div>
+          <div class="form-group"><label>Gordura (g)</label><input type="number" class="form-control" id="refGord"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalRefeicao')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarRefeicao()"><i data-lucide="save"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/personal/dieta.js"></script>
+</body>
+</html>

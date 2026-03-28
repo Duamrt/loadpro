@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border); display:flex; z-index:100; }
+    .bottom-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0; font-size:.7rem; color:var(--text-muted); text-decoration:none; }
+    .bottom-nav a.active { color:var(--primary); }
+    .bottom-nav a i { width:20px; height:20px; }
+    .aluno-main { padding:16px; padding-bottom:80px; }
+  </style>
+</head>
+<body>
+  <div class="aluno-main">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="avatar avatar-lg" style="margin:0 auto 12px;width:80px;height:80px;font-size:2rem" id="perfilAvatar"></div>
+      <h2 id="perfilNome"></h2>
+      <p style="font-size:.9rem" id="perfilObj"></p>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h4 style="margin-bottom:12px">Meus Dados</h4>
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" class="form-control" id="pNome">
+      </div>
+      <div class="form-group">
+        <label>WhatsApp</label>
+        <input type="tel" class="form-control" id="pTelefone">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="salvarPerfil()"><i data-lucide="save"></i> Salvar</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h4 style="margin-bottom:12px">Alterar Senha</h4>
+      <div class="form-group">
+        <label>Nova senha</label>
+        <input type="password" class="form-control" id="pSenha" minlength="6">
+      </div>
+      <button class="btn btn-secondary btn-block" onclick="alterarSenha()"><i data-lucide="lock"></i> Alterar</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h4 style="margin-bottom:12px">Meu Personal</h4>
+      <div id="meuPersonal" style="font-size:.9rem;color:var(--text-secondary)">Carregando...</div>
+    </div>
+
+    <button class="btn btn-danger btn-block" onclick="sair()"><i data-lucide="log-out"></i> Sair</button>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="dashboard.html"><i data-lucide="home"></i>Início</a>
+    <a href="treino.html"><i data-lucide="dumbbell"></i>Treino</a>
+    <a href="dieta.html"><i data-lucide="utensils"></i>Dieta</a>
+    <a href="medidas.html"><i data-lucide="ruler"></i>Medidas</a>
+    <a href="perfil.html" class="active"><i data-lucide="user"></i>Perfil</a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    document.addEventListener('auth-ready', async () => {
+      const user = window.currentUser;
+      const aluno = window.currentAluno;
+
+      document.getElementById('perfilAvatar').textContent = getInitials(user.nome);
+      document.getElementById('perfilNome').textContent = user.nome;
+      document.getElementById('perfilObj').textContent = aluno?.objetivo || '';
+      document.getElementById('pNome').value = user.nome;
+      document.getElementById('pTelefone').value = aluno?.telefone || '';
+      maskPhone(document.getElementById('pTelefone'));
+
+      // Personal info
+      if (aluno?.personal_id) {
+        const { data: personal } = await supabase
+          .from('personals')
+          .select('*, users(nome)')
+          .eq('id', aluno.personal_id)
+          .single();
+        if (personal) {
+          document.getElementById('meuPersonal').textContent = personal.users?.nome || 'Personal Trainer';
+        }
+      }
+
+      lucide.createIcons();
+    });
+
+    async function salvarPerfil() {
+      const nome = document.getElementById('pNome').value.trim();
+      const telefone = document.getElementById('pTelefone').value.trim();
+      await supabase.from('users').update({ nome }).eq('id', window.currentUser.id);
+      await supabase.from('alunos').update({ telefone, nome }).eq('id', window.currentAluno.id);
+      showToast('Perfil atualizado!');
+    }
+
+    async function alterarSenha() {
+      const nova = document.getElementById('pSenha').value;
+      if (nova.length < 6) { showToast('Mínimo 6 caracteres', 'error'); return; }
+      const { error } = await supabase.auth.updateUser({ password: nova });
+      if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+      showToast('Senha alterada!');
+      document.getElementById('pSenha').value = '';
+    }
+
+    async function sair() {
+      await supabase.auth.signOut();
+      window.location.href = '../login.html';
+    }
+  </script>
+</body>
+</html>

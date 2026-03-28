@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medidas — LoadPro</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1>Avaliação Física</h1>
+          <p>Medidas e evolução dos alunos</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modalMedida')"><i data-lucide="plus"></i> Nova Avaliação</button>
+      </div>
+
+      <!-- Seletor de aluno -->
+      <div class="card" style="margin-bottom:24px;padding:16px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <label style="font-weight:600;white-space:nowrap">Aluno:</label>
+          <select class="form-control" id="seletorAluno" style="max-width:300px">
+            <option value="">Selecione um aluno</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Timeline de avaliações -->
+      <div id="timelineContainer"></div>
+
+      <!-- Gráficos -->
+      <div class="grid grid-2" style="margin-top:24px" id="chartsContainer" style="display:none">
+        <div class="card">
+          <h4 style="margin-bottom:12px">Peso Corporal</h4>
+          <canvas id="chartPeso"></canvas>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px">% Gordura</h4>
+          <canvas id="chartGordura"></canvas>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px">IMC</h4>
+          <canvas id="chartIMC"></canvas>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px">
+            <select class="form-control" id="seletorCirc" style="display:inline;width:auto;padding:4px 8px;font-size:.85rem">
+              <option value="cintura_cm">Cintura</option>
+              <option value="quadril_cm">Quadril</option>
+              <option value="biceps_d_cm">Bíceps D</option>
+              <option value="biceps_e_cm">Bíceps E</option>
+              <option value="coxa_d_cm">Coxa D</option>
+              <option value="coxa_e_cm">Coxa E</option>
+              <option value="peitoral_cm">Peitoral</option>
+              <option value="abdomen_cm">Abdômen</option>
+              <option value="ombro_cm">Ombro</option>
+            </select>
+          </h4>
+          <canvas id="chartCirc"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Nova Avaliação -->
+  <div class="modal-overlay" id="modalMedida">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <h3>Nova Avaliação Física</h3>
+        <button class="modal-close" onclick="closeModal('modalMedida')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" class="form-control" id="mData">
+        </div>
+        <h4 style="margin:16px 0 12px">Dados Gerais</h4>
+        <div class="grid grid-3">
+          <div class="form-group">
+            <label>Peso (kg)</label>
+            <input type="number" class="form-control" id="mPeso" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Altura (cm)</label>
+            <input type="number" class="form-control" id="mAltura">
+          </div>
+          <div class="form-group">
+            <label>IMC</label>
+            <input type="text" class="form-control" id="mIMC" disabled>
+          </div>
+          <div class="form-group">
+            <label>Gordura (%)</label>
+            <input type="number" class="form-control" id="mGordura" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Massa muscular (kg)</label>
+            <input type="number" class="form-control" id="mMassa" step="0.1">
+          </div>
+        </div>
+
+        <h4 style="margin:16px 0 12px">Circunferências (cm)</h4>
+        <div class="grid grid-3">
+          <div class="form-group"><label>Pescoço</label><input type="number" class="form-control" id="mPescoco" step="0.1"></div>
+          <div class="form-group"><label>Ombro</label><input type="number" class="form-control" id="mOmbro" step="0.1"></div>
+          <div class="form-group"><label>Peitoral</label><input type="number" class="form-control" id="mPeitoral" step="0.1"></div>
+          <div class="form-group"><label>Cintura</label><input type="number" class="form-control" id="mCintura" step="0.1"></div>
+          <div class="form-group"><label>Abdômen</label><input type="number" class="form-control" id="mAbdomen" step="0.1"></div>
+          <div class="form-group"><label>Quadril</label><input type="number" class="form-control" id="mQuadril" step="0.1"></div>
+          <div class="form-group"><label>Coxa D</label><input type="number" class="form-control" id="mCoxaD" step="0.1"></div>
+          <div class="form-group"><label>Coxa E</label><input type="number" class="form-control" id="mCoxaE" step="0.1"></div>
+          <div class="form-group"><label>Panturrilha D</label><input type="number" class="form-control" id="mPantD" step="0.1"></div>
+          <div class="form-group"><label>Panturrilha E</label><input type="number" class="form-control" id="mPantE" step="0.1"></div>
+          <div class="form-group"><label>Bíceps D</label><input type="number" class="form-control" id="mBicepsD" step="0.1"></div>
+          <div class="form-group"><label>Bíceps E</label><input type="number" class="form-control" id="mBicepsE" step="0.1"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea class="form-control" id="mObs" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalMedida')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarMedida()"><i data-lucide="save"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/personal/medidas.js"></script>
+</body>
+</html>
