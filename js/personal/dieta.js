@@ -256,3 +256,29 @@ async function deletarRefeicao(id) {
   showToast('Refeição removida');
   await carregarPlano();
 }
+
+// ── Template de Dieta ──
+function abrirTemplateDieta() {
+  if (!alunoSelecionado?.id) { showToast('Selecione um aluno primeiro', 'error'); return; }
+  openModal('modalTemplateDieta');
+}
+
+async function aplicarTemplateDieta(objetivo) {
+  if (!alunoSelecionado?.id) return;
+  const fator = +(document.getElementById('tplFator')?.value || 1.55);
+  closeModal('modalTemplateDieta');
+  showToast('Calculando e montando dieta...');
+
+  const { data, error } = await supabase.rpc('aplicar_template_dieta', {
+    p_aluno_id: alunoSelecionado.id,
+    p_personal_id: window.currentPersonal.id,
+    p_objetivo: objetivo,
+    p_fator: fator
+  });
+
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  if (data?.error) { showToast(data.error, 'warning'); return; }
+
+  showToast('Dieta montada! ' + data.meta_kcal + ' kcal/dia');
+  setTimeout(() => carregarPlano(), 300);
+}
