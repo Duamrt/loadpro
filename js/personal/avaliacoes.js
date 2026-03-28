@@ -217,10 +217,13 @@ function renderAvalCharts() {
   var chartOpts = {
     responsive: true,
     maintainAspectRatio: true,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y?.toFixed(1); } } }
+    },
     scales: {
       x: { ticks: { color: '#71717a', font: { size: 10 } }, grid: { display: false } },
-      y: { ticks: { color: '#71717a' }, grid: { color: '#2a2a2a' } }
+      y: { ticks: { color: '#71717a' }, grid: { color: '#2a2a2a' }, beginAtZero: false }
     }
   };
 
