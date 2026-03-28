@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03281803">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281803"></script>
+  <link rel="stylesheet" href="css/style.css?v=03281806">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281806"></script>
 </head>
 <body>
   <div class="auth-page">
@@ -55,8 +55,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281803"></script>
-  <script src="js/supabase.js?v=03281803"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281806"></script>
+  <script src="js/supabase.js?v=03281806"></script>
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
@@ -64,25 +64,12 @@
     (async () => {
       if (!token) { mostrarInvalido(); return; }
 
-      // Buscar aluno pelo token (query simples, sem join — evita falha de RLS)
-      const { data: aluno } = await supabase
-        .from('alunos')
-        .select('id, nome, email, personal_id, user_id, convite_token')
-        .eq('convite_token', token)
-        .single();
+      // Buscar convite via RPC (SECURITY DEFINER, sem problema de RLS)
+      const { data: aluno } = await supabase.rpc('buscar_convite', { p_token: token });
 
       if (!aluno || aluno.user_id) { mostrarInvalido(); return; }
 
-      // Buscar nome do personal separado (pode falhar sem quebrar)
-      let nomePersonal = 'Seu Personal';
-      try {
-        const { data: p } = await supabase.from('personals').select('user_id').eq('id', aluno.personal_id).single();
-        if (p?.user_id) {
-          const { data: u } = await supabase.from('users').select('nome').eq('id', p.user_id).single();
-          if (u?.nome) nomePersonal = u.nome;
-        }
-      } catch(e) {}
-      document.getElementById('personalNome').textContent = nomePersonal;
+      document.getElementById('personalNome').textContent = aluno.personal_nome || 'Seu Personal';
 
       // Mostrar email real do aluno (cadastrado pelo personal)
       const emailAluno = aluno.email;
