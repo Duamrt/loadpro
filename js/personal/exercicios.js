@@ -82,7 +82,10 @@ function verDetalhe(id) {
 
   document.getElementById('detalheNome').textContent = e.nome;
   document.getElementById('detalheBody').innerHTML = `
-    ${e.gif_url ? `<div style="text-align:center;margin-bottom:16px"><img src="${esc(e.gif_url)}" alt="${esc(e.nome)}" style="max-width:100%;border-radius:8px;max-height:300px"></div>` : ''}
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+      ${e.gif_url ? `<div style="flex:1;min-width:200px;text-align:center"><img src="${esc(e.gif_url)}" alt="${esc(e.nome)}" style="max-width:100%;border-radius:8px;max-height:250px"></div>` : ''}
+      <div id="muscleMapDetalhe" style="flex:1;min-width:180px;max-width:280px"></div>
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
       <span class="badge badge-primary">${esc(e.grupo_muscular)}</span>
       ${(e.grupos_secundarios || []).map(g => `<span class="badge" style="background:var(--bg-card-hover);color:var(--text-secondary)">${esc(g)}</span>`).join('')}
@@ -90,6 +93,10 @@ function verDetalhe(id) {
     </div>
     ${e.descricao ? `<div style="font-size:.9rem;color:var(--text-secondary);line-height:1.6">${esc(e.descricao)}</div>` : '<p style="color:var(--text-muted)">Sem descrição cadastrada.</p>'}
   `;
+  // Renderizar mapa muscular
+  if (typeof renderMuscleMap === 'function') {
+    renderMuscleMap('muscleMapDetalhe', e.grupo_muscular, e.grupos_secundarios || []);
+  }
   openModal('modalDetalhe');
 }
 
