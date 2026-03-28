@@ -141,19 +141,29 @@
         const h = horariosData[d.key];
         const ativo = h ? h.ativo : ['seg','ter','qua','qui','sex'].includes(d.key);
         const abertura = h?.abertura?.substring(0,5) || '06:00';
-        const fechamento = h?.fechamento?.substring(0,5) || '20:00';
+        const fechamento = h?.fechamento?.substring(0,5) || '12:00';
+        const abertura2 = h?.abertura_tarde?.substring(0,5) || '13:00';
+        const fechamento2 = h?.fechamento_tarde?.substring(0,5) || '20:00';
+        const temTarde = h ? !!h.abertura_tarde : true;
         return `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-            <label style="display:flex;align-items:center;gap:8px;min-width:140px;cursor:pointer">
-              <input type="checkbox" id="dia_${d.key}" ${ativo ? 'checked' : ''} style="accent-color:var(--primary);width:18px;height:18px">
-              <span style="font-weight:500;font-size:.9rem">${d.label}</span>
-            </label>
-            <div style="display:flex;align-items:center;gap:8px;flex:1">
-              <input type="time" class="form-control" id="abre_${d.key}" value="${abertura}" style="width:auto;padding:8px 12px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
-              <span style="color:var(--text-muted)">até</span>
-              <input type="time" class="form-control" id="fecha_${d.key}" value="${fechamento}" style="width:auto;padding:8px 12px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+          <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:8px;min-width:140px;cursor:pointer">
+                <input type="checkbox" id="dia_${d.key}" ${ativo ? 'checked' : ''} style="accent-color:var(--primary);width:18px;height:18px">
+                <span style="font-weight:500;font-size:.9rem">${d.label}</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;flex:1;flex-wrap:wrap">
+                <span style="font-size:.75rem;color:var(--text-muted);min-width:45px">Manhã</span>
+                <input type="time" class="form-control" id="abre_${d.key}" value="${abertura}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+                <span style="color:var(--text-muted);font-size:.8rem">-</span>
+                <input type="time" class="form-control" id="fecha_${d.key}" value="${fechamento}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+                <span style="font-size:.75rem;color:var(--text-muted);min-width:40px;margin-left:8px">Tarde</span>
+                <input type="time" class="form-control" id="abre2_${d.key}" value="${abertura2}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+                <span style="color:var(--text-muted);font-size:.8rem">-</span>
+                <input type="time" class="form-control" id="fecha2_${d.key}" value="${fechamento2}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+              </div>
+              <div style="font-size:.8rem;color:var(--text-muted);min-width:80px;text-align:right" id="vagas_${d.key}"></div>
             </div>
-            <div style="font-size:.8rem;color:var(--text-muted);min-width:80px;text-align:right" id="vagas_${d.key}"></div>
           </div>
         `;
       }).join('');
@@ -161,14 +171,12 @@
       // Toggle enable/disable dos inputs ao clicar no checkbox
       DIAS_CONFIG.forEach(d => {
         const cb = document.getElementById(`dia_${d.key}`);
+        const inputs = [`abre_${d.key}`, `fecha_${d.key}`, `abre2_${d.key}`, `fecha2_${d.key}`];
         cb.addEventListener('change', () => {
-          document.getElementById(`abre_${d.key}`).disabled = !cb.checked;
-          document.getElementById(`fecha_${d.key}`).disabled = !cb.checked;
+          inputs.forEach(id => document.getElementById(id).disabled = !cb.checked);
           calcVagas(d.key);
         });
-        // Calcular vagas ao mudar horário
-        document.getElementById(`abre_${d.key}`).addEventListener('change', () => calcVagas(d.key));
-        document.getElementById(`fecha_${d.key}`).addEventListener('change', () => calcVagas(d.key));
+        inputs.forEach(id => document.getElementById(id).addEventListener('change', () => calcVagas(d.key)));
         calcVagas(d.key);
       });
     }
@@ -177,14 +185,20 @@
       const cb = document.getElementById(`dia_${dia}`);
       const el = document.getElementById(`vagas_${dia}`);
       if (!cb.checked) { el.textContent = 'Folga'; return; }
-      const abre = document.getElementById(`abre_${dia}`).value;
-      const fecha = document.getElementById(`fecha_${dia}`).value;
-      if (!abre || !fecha) { el.textContent = ''; return; }
-      const [h1,m1] = abre.split(':').map(Number);
-      const [h2,m2] = fecha.split(':').map(Number);
-      const minTotal = (h2*60+m2) - (h1*60+m1);
       const duracao = parseInt(document.getElementById('cfgDuracaoSessao').value) || 60;
-      const vagas = Math.floor(minTotal / duracao);
+
+      function minEntre(abreId, fechaId) {
+        const a = document.getElementById(abreId).value;
+        const f = document.getElementById(fechaId).value;
+        if (!a || !f) return 0;
+        const [h1,m1] = a.split(':').map(Number);
+        const [h2,m2] = f.split(':').map(Number);
+        return Math.max(0, (h2*60+m2) - (h1*60+m1));
+      }
+
+      const minManha = minEntre(`abre_${dia}`, `fecha_${dia}`);
+      const minTarde = minEntre(`abre2_${dia}`, `fecha2_${dia}`);
+      const vagas = Math.floor(minManha / duracao) + Math.floor(minTarde / duracao);
       el.innerHTML = `<span style="color:var(--primary);font-weight:600">${vagas}</span> vagas`;
     }
 
@@ -202,23 +216,27 @@
         duracao_sessao_min: parseInt(document.getElementById('cfgDuracaoSessao').value) || 60
       }).eq('id', personal.id);
 
-      // Upsert cada dia
+      // Upsert cada dia (manhã + tarde)
       for (const d of DIAS_CONFIG) {
         const ativo = document.getElementById(`dia_${d.key}`).checked;
         const abertura = document.getElementById(`abre_${d.key}`).value || '06:00';
-        const fechamento = document.getElementById(`fecha_${d.key}`).value || '20:00';
+        const fechamento = document.getElementById(`fecha_${d.key}`).value || '12:00';
+        const abertura_tarde = document.getElementById(`abre2_${d.key}`).value || '13:00';
+        const fechamento_tarde = document.getElementById(`fecha2_${d.key}`).value || '20:00';
+
+        const dados = { abertura, fechamento, abertura_tarde, fechamento_tarde, ativo };
 
         const { data: existing } = await supabase
           .from('horario_funcionamento')
           .select('id')
           .eq('personal_id', personal.id)
           .eq('dia_semana', d.key)
-          .single();
+          .maybeSingle();
 
         if (existing) {
-          await supabase.from('horario_funcionamento').update({ abertura, fechamento, ativo }).eq('id', existing.id);
+          await supabase.from('horario_funcionamento').update(dados).eq('id', existing.id);
         } else {
-          await supabase.from('horario_funcionamento').insert({ personal_id: personal.id, dia_semana: d.key, abertura, fechamento, ativo });
+          await supabase.from('horario_funcionamento').insert({ personal_id: personal.id, dia_semana: d.key, ...dados });
         }
       }
 

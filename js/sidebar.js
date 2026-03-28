@@ -58,8 +58,7 @@ function initSidebar() {
   sidebar.id = 'sidebar';
   sidebar.innerHTML = `
     <div class="sidebar-brand">
-      <i data-lucide="dumbbell" style="width:28px;height:28px;color:var(--primary)"></i>
-      <span>LoadPro</span>
+      <img src="../img/logo.svg" alt="LoadPro" style="height:28px">
     </div>
     <nav class="sidebar-nav">${navHTML}</nav>
     <div class="sidebar-footer">

@@ -168,7 +168,17 @@ function renderPersonals(lista) {
         <td><span class="status-dot status-${statusClass}"></span>${esc(statusLabel)}</td>
         <td style="font-weight:600">${p.total_alunos}</td>
         <td style="color:var(--text-muted);font-size:.8rem">${formatDate(p.criado_em?.split('T')[0])}</td>
-        <td>
+        <td style="display:flex;gap:6px">
+          <select class="form-control" style="width:auto;padding:4px 8px;font-size:.75rem" onchange="mudarPlano('${p.id}', this.value)" title="Mudar plano">
+            <option value="starter" ${p.plano === 'starter' ? 'selected' : ''}>Starter</option>
+            <option value="pro" ${p.plano === 'pro' ? 'selected' : ''}>Pro</option>
+          </select>
+          <select class="form-control" style="width:auto;padding:4px 8px;font-size:.75rem" onchange="mudarStatus('${p.id}', this.value)" title="Mudar status">
+            <option value="trial" ${p.status_assinatura === 'trial' ? 'selected' : ''}>Trial</option>
+            <option value="ativo" ${p.status_assinatura === 'ativo' ? 'selected' : ''}>Ativo</option>
+            <option value="vencido" ${p.status_assinatura === 'vencido' ? 'selected' : ''}>Vencido</option>
+            <option value="bloqueado" ${p.status_assinatura === 'bloqueado' ? 'selected' : ''}>Bloqueado</option>
+          </select>
           <button class="btn btn-sm btn-primary" onclick="acessarPersonal('${p.id}', '${esc(p.nome)}')">
             <i data-lucide="log-in" style="width:14px;height:14px"></i> Acessar
           </button>
@@ -192,6 +202,17 @@ function filtrarPersonals() {
   });
 
   renderPersonals(filtrados);
+}
+
+// ── Mudar plano/status (admin) ──
+async function mudarPlano(personalId, plano) {
+  await supabase.rpc('admin_atualizar_personal', { p_personal_id: personalId, p_campo: 'plano', p_valor: plano });
+  showToast(`Plano alterado para ${plano.toUpperCase()}`);
+}
+
+async function mudarStatus(personalId, status) {
+  await supabase.rpc('admin_atualizar_personal', { p_personal_id: personalId, p_campo: 'status_assinatura', p_valor: status });
+  showToast(`Status alterado para ${status}`);
 }
 
 // ── Acessar como personal ──
