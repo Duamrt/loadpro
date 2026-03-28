@@ -265,7 +265,12 @@ function abrirTemplateDieta() {
 
 async function aplicarTemplateDieta(objetivo) {
   if (!alunoSelecionado?.id) return;
+  const peso = +(document.getElementById('tplPeso')?.value || 0);
+  const altura = +(document.getElementById('tplAltura')?.value || 0);
   const fator = +(document.getElementById('tplFator')?.value || 1.55);
+
+  if (!peso || !altura) { showToast('Preencha peso e altura', 'error'); return; }
+
   closeModal('modalTemplateDieta');
   showToast('Calculando e montando dieta...');
 
@@ -273,7 +278,9 @@ async function aplicarTemplateDieta(objetivo) {
     p_aluno_id: alunoSelecionado.id,
     p_personal_id: window.currentPersonal.id,
     p_objetivo: objetivo,
-    p_fator: fator
+    p_fator: fator,
+    p_peso: peso,
+    p_altura: altura
   });
 
   if (error) { showToast('Erro: ' + error.message, 'error'); return; }
