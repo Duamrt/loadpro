@@ -173,10 +173,11 @@ async function salvarAnamnese() {
 function enviarConviteWhatsApp(nomeAluno, telefone, link) {
   const personal = window.currentPersonal;
   const user = window.currentUser;
-  const nomePersonal = user?.nome || 'seu personal';
-  const abertura = personal?.msg_convite_abertura || 'E aí! Bem-vindo(a) ao time! \u{1F525}';
-  const fechamento = personal?.msg_convite_fechamento || 'Agora é só foco e consistência que o shape vem! Qualquer dúvida tô aqui. Bora pra cima! \u{1F4AA}\u{1F680}';
-  const msg = [abertura, '', 'Montei seu treino e sua dieta no *LoadPro* — é o app onde você vai acompanhar tudo: treino do dia, dieta, evolução, tudo na palma da mão.', '', 'Cria sua conta aqui (30 segundos e já tá dentro):', link, '', fechamento].join('\n');
+  const nomePersonal = user?.nome?.split(' ')[0] || 'seu personal';
+  const primeiroNome = (nomeAluno || '').split(' ')[0];
+  const abertura = personal?.msg_convite_abertura || ('Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.');
+  const fechamento = personal?.msg_convite_fechamento || ('Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal);
+  const msg = [abertura, '', 'Acabei de montar seu treino e dieta no app. Lá você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist, sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', fechamento].join('\n');
   if (telefone) {
     const num = telefone.replace(/\D/g, '');
     const fone = num.startsWith('55') ? num : '55' + num;
