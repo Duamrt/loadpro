@@ -57,8 +57,8 @@ function initSidebar() {
   sidebar.className = 'sidebar';
   sidebar.id = 'sidebar';
   sidebar.innerHTML = `
-    <div class="sidebar-brand">
-      <img src="../img/logo.svg" alt="LoadPro" style="height:28px">
+    <div class="sidebar-brand" style="padding:20px 20px 16px">
+      <h1 style="font-size:24px;font-weight:900;letter-spacing:-1px"><span style="color:var(--primary)">LOAD</span><span style="color:#fff">PRO</span></h1>
     </div>
     <nav class="sidebar-nav">${navHTML}</nav>
     <div class="sidebar-footer">
@@ -81,7 +81,7 @@ function initSidebar() {
   mobileHeader.innerHTML = `
     <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
     <div style="display:flex;align-items:center;gap:8px;font-weight:700">
-      <i data-lucide="dumbbell" style="width:22px;height:22px;color:var(--primary)"></i> LoadPro
+      <span style="font-weight:900;letter-spacing:-1px"><span style="color:var(--primary)">LOAD</span><span>PRO</span></span>
     </div>
     <div style="width:40px"></div>
   `;
