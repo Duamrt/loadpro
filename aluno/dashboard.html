@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281840">
+  <link rel="stylesheet" href="../css/style.css?v=03281848">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281840"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281848"></script>
 </head>
 <body>
   <div style="padding:16px" class="aluno-main">
@@ -77,10 +77,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281840"></script>
-  <script src="../js/supabase.js?v=03281840"></script>
-  <script src="../js/auth.js?v=03281840"></script>
-  <script src="../js/utils.js?v=03281840"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281848"></script>
+  <script src="../js/supabase.js?v=03281848"></script>
+  <script src="../js/auth.js?v=03281848"></script>
+  <script src="../js/utils.js?v=03281848"></script>
   <script>
     document.addEventListener('auth-ready', async () => {
       const user = window.currentUser;
@@ -125,6 +125,13 @@
         .gte('data', inicioSemana.toISOString().split('T')[0]);
       document.getElementById('semana').textContent = count || 0;
 
+      // Calcular meta de água baseado no peso (35ml × kg)
+      let metaAgua = 3000;
+      const { data: avalAgua } = await supabase
+        .from('avaliacoes').select('peso')
+        .eq('aluno_id', aluno.id).order('data', { ascending: false }).limit(1).single();
+      if (avalAgua?.peso) metaAgua = Math.round(avalAgua.peso * 50);
+
       // Água
       const { data: agua } = await supabase
         .from('agua_log')
@@ -133,7 +140,8 @@
         .eq('data', hoje)
         .single();
 
-      if (agua) updateAgua(agua.consumido_ml, agua.meta_ml);
+      if (agua) updateAgua(agua.consumido_ml, agua.meta_ml || metaAgua);
+      else updateAgua(0, metaAgua);
 
       // Dieta checklist
       const { data: plano } = await supabase
@@ -186,8 +194,12 @@
         await supabase.from('agua_log').update({ consumido_ml: novo }).eq('id', existing.id);
         updateAgua(novo, existing.meta_ml);
       } else {
-        await supabase.from('agua_log').insert({ aluno_id: aluno.id, data: hoje, consumido_ml: ml });
-        updateAgua(ml, 3000);
+        // Calcular meta baseado no peso
+        let meta = 3000;
+        const { data: av } = await supabase.from('avaliacoes').select('peso').eq('aluno_id', aluno.id).order('data', { ascending: false }).limit(1).single();
+        if (av?.peso) meta = Math.round(av.peso * 50);
+        await supabase.from('agua_log').insert({ aluno_id: aluno.id, data: hoje, consumido_ml: ml, meta_ml: meta });
+        updateAgua(ml, meta);
       }
       showToast(`+${ml}ml de água!`);
     }
