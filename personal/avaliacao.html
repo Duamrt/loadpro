@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avaliacao Fisica — LoadPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="../css/style.css?v=03281605">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281605"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    .wizard-progress { width:100%; height:4px; background:var(--border); border-radius:2px; margin-bottom:20px; }
+    .wizard-progress-bar { height:100%; background:var(--primary); border-radius:2px; transition:width .3s ease; }
+    .wizard-step-label { font-size:.8rem; color:var(--text-muted); margin-bottom:12px; text-align:center; }
+    .stat-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; text-align:center; }
+    .hint-anterior, .hint-anterior-dobra { display:block; font-size:.75rem; color:var(--text-muted); margin-top:2px; min-height:16px; }
+    .wizard-nav { display:flex; justify-content:space-between; gap:12px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+    @media (max-width:768px) {
+      .modal { max-height:90vh; margin:16px; }
+      .modal-body { max-height:calc(90vh - 140px); overflow-y:auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1>Avaliacao Fisica</h1>
+          <p>Composicao corporal, dobras e bioimpedancia</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirNovaAvaliacao()"><i data-lucide="plus"></i> Nova Avaliacao</button>
+      </div>
+
+      <!-- Seletor de aluno -->
+      <div class="card" style="margin-bottom:24px;padding:16px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <label style="font-weight:600;white-space:nowrap">Aluno:</label>
+          <select class="form-control" id="seletorAluno" style="max-width:300px">
+            <option value="">Selecione um aluno</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Timeline de avaliacoes -->
+      <div id="timelineContainer"></div>
+
+      <!-- Graficos -->
+      <div class="grid grid-2" style="margin-top:24px;display:none" id="chartsContainer">
+        <div class="card">
+          <h4 style="margin-bottom:12px">Peso Corporal</h4>
+          <canvas id="chartPesoAval"></canvas>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px">% Gordura</h4>
+          <canvas id="chartBFAval"></canvas>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px">IMC</h4>
+          <canvas id="chartIMCAval"></canvas>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px">
+            <select class="form-control" id="seletorCircAval" style="display:inline;width:auto;padding:4px 8px;font-size:.85rem" onchange="renderAvalCharts()">
+              <option value="cintura">Cintura</option>
+              <option value="quadril">Quadril</option>
+              <option value="braco_d">Braco D</option>
+              <option value="braco_e">Braco E</option>
+              <option value="coxa_d">Coxa D</option>
+              <option value="coxa_e">Coxa E</option>
+              <option value="ombro">Ombro</option>
+              <option value="abdomen">Abdomen</option>
+              <option value="torax">Torax</option>
+            </select>
+          </h4>
+          <canvas id="chartCircAval"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Nova/Editar Avaliacao (Wizard) -->
+  <div class="modal-overlay" id="modalAvaliacao">
+    <div class="modal" style="max-width:680px">
+      <div class="modal-header">
+        <h3>Avaliacao Fisica</h3>
+        <button class="modal-close" onclick="closeModal('modalAvaliacao')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <!-- Progress -->
+        <div class="wizard-step-label" id="wizardStepLabel">Etapa 1 de 6</div>
+        <div class="wizard-progress"><div class="wizard-progress-bar" id="wizardProgress" style="width:16.6%"></div></div>
+
+        <form id="formAvaliacao" onsubmit="return false">
+          <!-- Hidden calculados -->
+          <input type="hidden" id="calcIMC">
+          <input type="hidden" id="calcRCQ">
+          <input type="hidden" id="calcTMB">
+          <input type="hidden" id="calcBF">
+          <input type="hidden" id="calcBFFormula">
+
+          <!-- STEP 1: Dados Basicos -->
+          <div id="step1">
+            <h4 style="margin-bottom:12px">Dados Basicos</h4>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label>Data</label>
+                <input type="date" class="form-control" id="avalData">
+              </div>
+              <div class="form-group">
+                <label>Tipo</label>
+                <select class="form-control" id="avalTipo">
+                  <option value="completa">Completa</option>
+                  <option value="rapida">Rapida</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-3">
+              <div class="form-group">
+                <label>Peso (kg)</label>
+                <input type="number" class="form-control" id="avalPeso" step="0.1" placeholder="75.0">
+              </div>
+              <div class="form-group">
+                <label>Altura (cm)</label>
+                <input type="number" class="form-control" id="avalAltura" step="0.1" placeholder="175">
+              </div>
+              <div class="form-group">
+                <label>Idade</label>
+                <input type="number" class="form-control" id="avalIdade" placeholder="30">
+              </div>
+            </div>
+            <div id="previewIMC" style="font-size:.9rem;margin-top:4px"></div>
+            <div class="form-group" style="margin-top:12px">
+              <label>Observacoes</label>
+              <textarea class="form-control" id="avalObs" rows="2" placeholder="Notas gerais da avaliacao..."></textarea>
+            </div>
+          </div>
+
+          <!-- STEP 2: Circunferencias -->
+          <div id="step2" style="display:none">
+            <h4 style="margin-bottom:12px">Circunferencias (cm)</h4>
+            <div class="grid grid-3">
+              <div class="form-group">
+                <label>Pescoco</label>
+                <input type="number" class="form-control" id="cPescoco" step="0.1">
+                <span class="hint-anterior" data-campo="pescoco"></span>
+              </div>
+              <div class="form-group">
+                <label>Torax</label>
+                <input type="number" class="form-control" id="cTorax" step="0.1">
+                <span class="hint-anterior" data-campo="torax"></span>
+              </div>
+              <div class="form-group">
+                <label>Ombro</label>
+                <input type="number" class="form-control" id="cOmbro" step="0.1">
+                <span class="hint-anterior" data-campo="ombro"></span>
+              </div>
+              <div class="form-group">
+                <label>Cintura</label>
+                <input type="number" class="form-control" id="cCintura" step="0.1">
+                <span class="hint-anterior" data-campo="cintura"></span>
+              </div>
+              <div class="form-group">
+                <label>Abdomen</label>
+                <input type="number" class="form-control" id="cAbdomen" step="0.1">
+                <span class="hint-anterior" data-campo="abdomen"></span>
+              </div>
+              <div class="form-group">
+                <label>Quadril</label>
+                <input type="number" class="form-control" id="cQuadril" step="0.1">
+                <span class="hint-anterior" data-campo="quadril"></span>
+              </div>
+              <div class="form-group">
+                <label>Braco D</label>
+                <input type="number" class="form-control" id="cBracoD" step="0.1">
+                <span class="hint-anterior" data-campo="braco_d"></span>
+              </div>
+              <div class="form-group">
+                <label>Braco E</label>
+                <input type="number" class="form-control" id="cBracoE" step="0.1">
+                <span class="hint-anterior" data-campo="braco_e"></span>
+              </div>
+              <div class="form-group">
+                <label>Antebraco D</label>
+                <input type="number" class="form-control" id="cAntebracoD" step="0.1">
+                <span class="hint-anterior" data-campo="antebraco_d"></span>
+              </div>
+              <div class="form-group">
+                <label>Antebraco E</label>
+                <input type="number" class="form-control" id="cAntebracoE" step="0.1">
+                <span class="hint-anterior" data-campo="antebraco_e"></span>
+              </div>
+              <div class="form-group">
+                <label>Coxa D</label>
+                <input type="number" class="form-control" id="cCoxaD" step="0.1">
+                <span class="hint-anterior" data-campo="coxa_d"></span>
+              </div>
+              <div class="form-group">
+                <label>Coxa E</label>
+                <input type="number" class="form-control" id="cCoxaE" step="0.1">
+                <span class="hint-anterior" data-campo="coxa_e"></span>
+              </div>
+              <div class="form-group">
+                <label>Panturrilha D</label>
+                <input type="number" class="form-control" id="cPantD" step="0.1">
+                <span class="hint-anterior" data-campo="panturrilha_d"></span>
+              </div>
+              <div class="form-group">
+                <label>Panturrilha E</label>
+                <input type="number" class="form-control" id="cPantE" step="0.1">
+                <span class="hint-anterior" data-campo="panturrilha_e"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: Dobras Cutaneas -->
+          <div id="step3" style="display:none">
+            <h4 style="margin-bottom:4px">Dobras Cutaneas (mm)</h4>
+            <p style="font-size:.8rem;margin-bottom:12px">7 pontos — Jackson & Pollock</p>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label>Triceps</label>
+                <input type="number" class="form-control" id="dTriceps" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="triceps"></span>
+              </div>
+              <div class="form-group">
+                <label>Peitoral</label>
+                <input type="number" class="form-control" id="dPeitoral" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="peitoral"></span>
+              </div>
+              <div class="form-group">
+                <label>Axilar Media</label>
+                <input type="number" class="form-control" id="dAxilar" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="axilar_media"></span>
+              </div>
+              <div class="form-group">
+                <label>Subescapular</label>
+                <input type="number" class="form-control" id="dSubescapular" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="subescapular"></span>
+              </div>
+              <div class="form-group">
+                <label>Abdominal</label>
+                <input type="number" class="form-control" id="dAbdominal" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="abdominal"></span>
+              </div>
+              <div class="form-group">
+                <label>Suprailiaca</label>
+                <input type="number" class="form-control" id="dSuprailiaca" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="suprailiaca"></span>
+              </div>
+              <div class="form-group">
+                <label>Coxa</label>
+                <input type="number" class="form-control" id="dCoxa" step="0.1">
+                <span class="hint-anterior-dobra" data-campo="coxa"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: Bioimpedancia -->
+          <div id="step4" style="display:none">
+            <h4 style="margin-bottom:4px">Bioimpedancia</h4>
+            <p style="font-size:.8rem;margin-bottom:12px">Dados da balanca de bioimpedancia (manual)</p>
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label>Massa Muscular (kg)</label>
+                <input type="number" class="form-control" id="bioMassaMuscKg" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Massa Muscular (%)</label>
+                <input type="number" class="form-control" id="bioMassaMuscPct" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Massa Gorda (kg)</label>
+                <input type="number" class="form-control" id="bioMassaGordaKg" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Massa Gorda (%)</label>
+                <input type="number" class="form-control" id="bioMassaGordaPct" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Massa Ossea (kg)</label>
+                <input type="number" class="form-control" id="bioMassaOssea" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Agua (%)</label>
+                <input type="number" class="form-control" id="bioAgua" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Proteina (%)</label>
+                <input type="number" class="form-control" id="bioProteina" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Gordura Visceral</label>
+                <input type="number" class="form-control" id="bioGordVisceral" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Gordura Subcutanea</label>
+                <input type="number" class="form-control" id="bioGordSubcutanea" step="0.1">
+              </div>
+              <div class="form-group">
+                <label>Idade Corporal</label>
+                <input type="number" class="form-control" id="bioIdadeCorporal">
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 5: Fotos (placeholder — upload futuro) -->
+          <div id="step5" style="display:none">
+            <h4 style="margin-bottom:12px">Fotos de Evolucao</h4>
+            <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px">Upload de fotos sera implementado em breve. Por enquanto, pule esta etapa.</p>
+            <div class="grid grid-3" style="gap:12px">
+              <div style="background:var(--bg);border:2px dashed var(--border);border-radius:var(--radius);padding:40px 16px;text-align:center">
+                <i data-lucide="camera" style="width:32px;height:32px;color:var(--text-muted);margin-bottom:8px"></i>
+                <div style="font-size:.85rem;color:var(--text-muted)">Frente</div>
+              </div>
+              <div style="background:var(--bg);border:2px dashed var(--border);border-radius:var(--radius);padding:40px 16px;text-align:center">
+                <i data-lucide="camera" style="width:32px;height:32px;color:var(--text-muted);margin-bottom:8px"></i>
+                <div style="font-size:.85rem;color:var(--text-muted)">Lateral</div>
+              </div>
+              <div style="background:var(--bg);border:2px dashed var(--border);border-radius:var(--radius);padding:40px 16px;text-align:center">
+                <i data-lucide="camera" style="width:32px;height:32px;color:var(--text-muted);margin-bottom:8px"></i>
+                <div style="font-size:.85rem;color:var(--text-muted)">Costas</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 6: Resultados -->
+          <div id="step6" style="display:none">
+            <h4 style="margin-bottom:12px">Resultados Calculados</h4>
+            <div id="resultadosContainer"></div>
+          </div>
+        </form>
+
+        <!-- Wizard Nav -->
+        <div class="wizard-nav">
+          <button class="btn btn-secondary" id="btnAnterior" onclick="stepAnterior()" style="display:none"><i data-lucide="arrow-left"></i> Anterior</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-primary" id="btnProximo" onclick="stepProximo()">Proximo <i data-lucide="arrow-right"></i></button>
+          <button class="btn btn-primary" id="btnSalvar" onclick="salvarAvaliacao()" style="display:none"><i data-lucide="save"></i> Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhe -->
+  <div class="modal-overlay" id="modalDetalhe">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <h3 id="detalheTitle">Avaliacao</h3>
+        <button class="modal-close" onclick="closeModal('modalDetalhe')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="detalheConteudo"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalDetalhe')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281605"></script>
+  <script src="../js/supabase.js?v=03281605"></script>
+  <script src="../js/auth.js?v=03281605"></script>
+  <script src="../js/sidebar.js?v=03281605"></script>
+  <script src="../js/utils.js?v=03281605"></script>
+  <script src="../js/personal/avaliacoes.js?v=03281605"></script>
+</body>
+</html>
