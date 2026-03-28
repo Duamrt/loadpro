@@ -341,10 +341,40 @@ tr:hover td { background: var(--bg-card); }
 .landing-footer { padding: 40px 20px; border-top: 1px solid var(--border); text-align: center; }
 .landing-footer p { font-size: .85rem; }
 
+/* Hamburger mobile */
+.landing-hamburger { display:none; background:none; border:none; color:var(--text); cursor:pointer; padding:8px; }
+
+/* Bottom nav (aluno) */
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border); display:flex; z-index:100; }
+.bottom-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0; font-size:.7rem; color:var(--text-muted); text-decoration:none; transition:color .2s; }
+.bottom-nav a.active { color:var(--primary); }
+.bottom-nav a i { width:20px; height:20px; }
+.aluno-main { padding:16px; padding-bottom:80px; }
+
+/* Auth pages */
+.auth-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+.auth-box { width:100%; max-width:420px; }
+.auth-logo { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:32px; font-size:1.4rem; font-weight:800; }
+.auth-logo span { color:var(--primary); }
+.auth-card { padding:32px; }
+.auth-card h2 { text-align:center; margin-bottom:8px; }
+.auth-card p { text-align:center; margin-bottom:24px; font-size:.9rem; }
+.auth-footer { text-align:center; margin-top:20px; font-size:.9rem; }
+.pwd-wrap { position:relative; }
+.pwd-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; }
+.trial-badge { text-align:center; margin-bottom:24px; }
+.trial-badge span { background:var(--success-light); color:var(--success); padding:6px 16px; border-radius:100px; font-size:.85rem; font-weight:600; }
+
+/* Spinner */
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
 @media (max-width: 768px) {
   .hero h1 { font-size: 2.2rem; }
   .hero p { font-size: 1rem; }
   .feature-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
   .landing-nav-links { display: none; }
+  .landing-nav-links.open { display:flex; flex-direction:column; position:absolute; top:100%; left:0; right:0; background:var(--bg-card); border-bottom:1px solid var(--border); padding:16px; gap:12px; }
+  .landing-hamburger { display:block; }
 }

@@ -5,21 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criar Conta — LoadPro</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .auth-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-    .auth-box { width:100%; max-width:460px; }
-    .auth-logo { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:32px; font-size:1.4rem; font-weight:800; }
-    .auth-logo span { color:var(--primary); }
-    .auth-card { padding:32px; }
-    .auth-card h2 { text-align:center; margin-bottom:8px; }
-    .auth-card p { text-align:center; margin-bottom:24px; font-size:.9rem; }
-    .auth-footer { text-align:center; margin-top:20px; font-size:.9rem; }
-    .pwd-wrap { position:relative; }
-    .pwd-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; }
-    .trial-badge { text-align:center; margin-bottom:24px; }
-    .trial-badge span { background:var(--success-light); color:var(--success); padding:6px 16px; border-radius:100px; font-size:.85rem; font-weight:600; }
-  </style>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
 </head>
 <body>
   <div class="auth-page">
@@ -132,34 +118,15 @@
         });
         if (authErr) throw authErr;
 
-        // 2. Criar registro na tabela users
-        const { error: userErr } = await supabase.from('users').insert({
-          auth_id: authData.user.id,
-          email,
-          nome,
-          tipo: 'personal'
+        // 2. Criar user + personal numa transação atômica (RPC)
+        const { data: personalId, error: rpcErr } = await supabase.rpc('criar_conta_personal', {
+          p_auth_id: authData.user.id,
+          p_email: email,
+          p_nome: nome,
+          p_telefone: telefone || null,
+          p_plano: plano
         });
-        if (userErr) throw userErr;
-
-        // 3. Buscar user_id criado
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id')
-          .eq('auth_id', authData.user.id)
-          .single();
-
-        // 4. Criar registro do personal com trial 7 dias
-        const vencimento = new Date();
-        vencimento.setDate(vencimento.getDate() + 7);
-
-        const { error: personalErr } = await supabase.from('personals').insert({
-          user_id: userData.id,
-          telefone,
-          plano,
-          status_assinatura: 'trial',
-          data_vencimento: vencimento.toISOString().split('T')[0]
-        });
-        if (personalErr) throw personalErr;
+        if (rpcErr) throw rpcErr;
 
         // Redirecionar ao dashboard
         window.location.href = 'personal/dashboard.html';
@@ -176,6 +143,5 @@
     });
   </script>
   <script>lucide.createIcons();</script>
-  <style>.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform:rotate(360deg); } }</style>
 </body>
 </html>

@@ -5,13 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Treino — LoadPro</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
   <style>
-    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border); display:flex; z-index:100; }
-    .bottom-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0; font-size:.7rem; color:var(--text-muted); text-decoration:none; }
-    .bottom-nav a.active { color:var(--primary); }
-    .bottom-nav a i { width:20px; height:20px; }
-    .aluno-main { padding:16px; padding-bottom:80px; }
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-row input { width:70px; padding:8px; text-align:center; }
     .serie-check { width:36px; height:36px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
@@ -124,11 +119,26 @@
       }).select().single();
       treinoLogId = log.id;
 
-      // Buscar último treino pra carregar cargas anteriores
-      const { data: ultimosSeries } = await supabase
-        .from('treino_series')
-        .select('exercicio_id, serie_num, carga, reps')
-        .eq('treino_log_id', treinoLogId);
+      // Buscar cargas do ÚLTIMO treino desta rotina (não do atual que está vazio)
+      const { data: logAnterior } = await supabase
+        .from('treino_logs')
+        .select('id')
+        .eq('aluno_id', window.currentAluno.id)
+        .eq('rotina_id', rotinaId)
+        .neq('id', treinoLogId)
+        .order('data', { ascending: false })
+        .limit(1);
+
+      let cargasAnteriores = {};
+      if (logAnterior?.length) {
+        const { data: seriesAnt } = await supabase
+          .from('treino_series')
+          .select('exercicio_id, serie_num, carga, reps')
+          .eq('treino_log_id', logAnterior[0].id);
+        (seriesAnt || []).forEach(s => {
+          cargasAnteriores[`${s.exercicio_id}_${s.serie_num}`] = { carga: s.carga, reps: s.reps };
+        });
+      }
 
       // Iniciar timer
       startTime = Date.now();
@@ -147,7 +157,8 @@
         const ex = re.exercicios;
         const series = [];
         for (let s = 1; s <= re.series; s++) {
-          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: re.carga_sugerida || '', reps: re.reps_min || 10, done: false });
+          const ant = cargasAnteriores[`${re.exercicio_id}_${s}`];
+          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: ant?.carga || re.carga_sugerida || '', reps: ant?.reps || re.reps_min || 10, done: false });
         }
         seriesState.push(...series.map((s, i) => ({ ...s, globalIdx: seriesState.length + i, descanso: re.descanso_seg || 60 })));
 

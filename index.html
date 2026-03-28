@@ -10,7 +10,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://loadpro.com.br">
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
 </head>
 <body class="landing-body">
 
@@ -20,12 +20,15 @@
       <i data-lucide="dumbbell" style="width:28px;height:28px;color:var(--primary)"></i>
       Load<span>Pro</span>
     </div>
-    <div class="landing-nav-links">
+    <div class="landing-nav-links" id="navLinks">
       <a href="#funcionalidades">Funcionalidades</a>
       <a href="#planos">Planos</a>
       <a href="login.html" class="btn btn-sm btn-secondary">Entrar</a>
       <a href="cadastro.html" class="btn btn-sm btn-primary">Começar Grátis</a>
     </div>
+    <button class="landing-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+      <i data-lucide="menu"></i>
+    </button>
   </nav>
 
   <!-- Hero -->

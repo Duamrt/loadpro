@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha — LoadPro</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <i data-lucide="dumbbell" style="width:32px;height:32px;color:var(--primary)"></i>
+        Load<span>Pro</span>
+      </div>
+      <div class="card auth-card">
+        <h2>Recuperar senha</h2>
+        <p>Digite seu email e enviaremos um link para redefinir sua senha.</p>
+
+        <div id="alert" class="alert alert-danger" style="display:none;margin-bottom:16px"></div>
+        <div id="success" class="alert alert-success" style="display:none;margin-bottom:16px"></div>
+
+        <form id="formRecuperar">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-control" id="email" placeholder="seu@email.com" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnRecuperar">
+            <i data-lucide="mail"></i> Enviar link de recuperação
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Lembrou a senha? <a href="login.html">Voltar ao login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('formRecuperar').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnRecuperar');
+      const alertEl = document.getElementById('alert');
+      const successEl = document.getElementById('success');
+      alertEl.style.display = 'none';
+      successEl.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Enviando...';
+      lucide.createIcons();
+
+      const email = document.getElementById('email').value.trim();
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login.html'
+      });
+
+      if (error) {
+        alertEl.textContent = error.message;
+        alertEl.style.display = 'flex';
+      } else {
+        successEl.innerHTML = '<i data-lucide="check-circle" style="width:16px;height:16px;flex-shrink:0"></i> Email enviado! Verifique sua caixa de entrada (e o spam).';
+        successEl.style.display = 'flex';
+        document.getElementById('formRecuperar').style.display = 'none';
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="mail"></i> Enviar link de recuperação';
+      lucide.createIcons();
+    });
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>
