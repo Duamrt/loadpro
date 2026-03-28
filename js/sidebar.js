@@ -47,7 +47,7 @@ function initSidebar() {
       <div class="sidebar-user">
         <div class="avatar">${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : initials}</div>
         <div class="sidebar-user-info">
-          <div class="name">${user.nome} ${planBadge}</div>
+          <div class="name">${esc(user.nome)} ${planBadge}</div>
           <div class="role">Personal Trainer</div>
         </div>
         <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px" title="Sair">

@@ -87,8 +87,8 @@ document.addEventListener('auth-ready', async () => {
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
         <div class="avatar" style="width:32px;height:32px;font-size:.7rem">${getInitials(nomeMap[l.aluno_id] || '?')}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.9rem;font-weight:500">${nomeMap[l.aluno_id] || 'Aluno'}</div>
-          <div style="font-size:.75rem;color:var(--text-muted)">${l.rotinas?.nome || 'Treino livre'}</div>
+          <div style="font-size:.9rem;font-weight:500">${esc(nomeMap[l.aluno_id] || 'Aluno')}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">${esc(l.rotinas?.nome || 'Treino livre')}</div>
         </div>
         <span class="badge badge-success">Treinou</span>
       </div>
@@ -104,7 +104,7 @@ document.addEventListener('auth-ready', async () => {
         <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
           <div class="avatar" style="width:32px;height:32px;font-size:.7rem">${getInitials(a.nome)}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:.9rem;font-weight:500">${a.nome}</div>
+            <div style="font-size:.9rem;font-weight:500">${esc(a.nome)}</div>
             <div style="font-size:.75rem;color:var(--text-muted)">${dias ? `${dias} dias sem treinar` : 'Nunca treinou'}</div>
           </div>
           <span class="badge badge-warning">${dias ? `${dias}d` : 'Novo'}</span>
@@ -132,8 +132,8 @@ document.addEventListener('auth-ready', async () => {
           <i data-lucide="trophy" style="width:16px;height:16px;color:var(--primary)"></i>
         </div>
         <div style="flex:1">
-          <div style="font-size:.9rem;font-weight:500">${alMap[p.treino_logs?.aluno_id] || 'Aluno'}</div>
-          <div style="font-size:.75rem;color:var(--text-muted)">${exMap[p.exercicio_id] || 'Exercício'} — ${p.carga}kg × ${p.reps}</div>
+          <div style="font-size:.9rem;font-weight:500">${esc(alMap[p.treino_logs?.aluno_id] || 'Aluno')}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">${esc(exMap[p.exercicio_id] || 'Exercício')} — ${p.carga}kg × ${p.reps}</div>
         </div>
         <span class="badge badge-primary">PR!</span>
       </div>
@@ -141,22 +141,27 @@ document.addEventListener('auth-ready', async () => {
     lucide.createIcons();
   }
 
-  // Gráfico de volume semanal
+  // Gráfico de volume semanal (1 query única em vez de 7)
   const diasSemana = [];
   const volumeData = [];
+  const { data: seriesSemana } = await supabase
+    .from('treino_series')
+    .select('carga, reps, treino_logs!inner(data)')
+    .gte('treino_logs.data', semanaAtras)
+    .lte('treino_logs.data', hoje)
+    .eq('concluida', true);
+
+  const volumePorDia = {};
+  (seriesSemana || []).forEach(s => {
+    const d = s.treino_logs?.data;
+    if (d) volumePorDia[d] = (volumePorDia[d] || 0) + (s.carga || 0) * (s.reps || 0);
+  });
+
   for (let i = 6; i >= 0; i--) {
     const d = new Date(Date.now() - i * 86400000);
     const dStr = d.toISOString().split('T')[0];
     diasSemana.push(d.toLocaleDateString('pt-BR', { weekday: 'short' }));
-
-    const { data: seriesDia } = await supabase
-      .from('treino_series')
-      .select('carga, reps, treino_logs!inner(data)')
-      .eq('treino_logs.data', dStr)
-      .eq('concluida', true);
-
-    const vol = (seriesDia || []).reduce((acc, s) => acc + (s.carga || 0) * (s.reps || 0), 0);
-    volumeData.push(vol);
+    volumeData.push(volumePorDia[dStr] || 0);
   }
 
   new Chart(document.getElementById('chartVolume'), {

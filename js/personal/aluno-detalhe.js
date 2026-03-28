@@ -14,9 +14,9 @@ document.addEventListener('auth-ready', async () => {
   const alunoId = params.get('id');
   if (!alunoId) { window.location.href = 'alunos.html'; return; }
 
-  // Carregar aluno
-  const { data: aluno } = await supabase.from('alunos').select('*').eq('id', alunoId).single();
-  if (!aluno) { showToast('Aluno não encontrado', 'error'); return; }
+  // Carregar aluno (filtra por personal_id pra segurança)
+  const { data: aluno } = await supabase.from('alunos').select('*').eq('id', alunoId).eq('personal_id', window.currentPersonal.id).single();
+  if (!aluno) { showToast('Aluno não encontrado', 'error'); window.location.href = 'alunos.html'; return; }
   alunoAtual = aluno;
 
   // Header
@@ -81,7 +81,7 @@ document.addEventListener('auth-ready', async () => {
     document.getElementById('resumoTreinos').innerHTML = rotinas.map(r => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
         <div>
-          <div style="font-weight:500">${r.nome}</div>
+          <div style="font-weight:500">${esc(r.nome)}</div>
           <div style="font-size:.8rem;color:var(--text-muted)">${(r.dias_semana || []).join(', ')}</div>
         </div>
         <span class="badge ${r.ativa ? 'badge-success' : 'badge-danger'}">${r.ativa ? 'Ativa' : 'Inativa'}</span>
@@ -205,7 +205,7 @@ function msgHTML(m, myUserId) {
       <div style="max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;
         background:${isMine ? 'var(--primary)' : 'var(--bg-card-hover)'};
         color:${isMine ? '#fff' : 'var(--text)'}">
-        ${m.texto}
+        ${esc(m.texto)}
         <div style="font-size:.7rem;margin-top:4px;opacity:.6">${new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
       </div>
     </div>

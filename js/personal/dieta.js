@@ -13,7 +13,7 @@ document.addEventListener('auth-ready', async () => {
 
   const select = document.getElementById('seletorAluno');
   (alunos || []).forEach(a => {
-    select.innerHTML += `<option value="${a.id}" data-sexo="${a.sexo}" data-nasc="${a.data_nascimento}" data-obj="${a.objetivo}">${a.nome}</option>`;
+    select.innerHTML += `<option value="${a.id}" data-sexo="${a.sexo}" data-nasc="${a.data_nascimento}" data-obj="${esc(a.objetivo)}">${esc(a.nome)}</option>`;
   });
 
   select.addEventListener('change', async () => {
@@ -40,16 +40,15 @@ document.addEventListener('auth-ready', async () => {
 async function carregarPlano() {
   if (!alunoSelecionado?.id) return;
 
-  const { data: plano } = await supabase
+  const { data: planos } = await supabase
     .from('planos_dieta')
     .select('*, refeicoes(*, refeicao_alimentos(*))')
     .eq('aluno_id', alunoSelecionado.id)
     .eq('ativo', true)
     .order('criado_em', { ascending: false })
-    .limit(1)
-    .single();
+    .limit(1);
 
-  planoAtivo = plano;
+  planoAtivo = planos?.[0] || null;
   renderPlano();
 }
 
@@ -70,7 +69,7 @@ function renderPlano() {
   container.innerHTML = `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
-        <h3 class="card-title">${planoAtivo.nome}</h3>
+        <h3 class="card-title">${esc(planoAtivo.nome)}</h3>
         <div style="display:flex;gap:8px">
           <span class="badge badge-primary">${planoAtivo.meta_kcal || '—'} kcal/dia</span>
           <span class="badge badge-success">P: ${planoAtivo.proteina_g || '—'}g</span>
@@ -83,7 +82,7 @@ function renderPlano() {
         <div style="border-top:1px solid var(--border);padding:16px 0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div>
-              <strong>${r.nome}</strong>
+              <strong>${esc(r.nome)}</strong>
               ${r.horario ? `<span style="font-size:.8rem;color:var(--text-muted);margin-left:8px">${r.horario}</span>` : ''}
             </div>
             <div style="display:flex;gap:8px;align-items:center">
@@ -92,7 +91,7 @@ function renderPlano() {
               <button class="btn btn-sm btn-danger" style="padding:4px 8px" onclick="deletarRefeicao('${r.id}')"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
             </div>
           </div>
-          ${r.descricao ? `<div style="font-size:.9rem;color:var(--text-secondary);white-space:pre-line">${r.descricao}</div>` : ''}
+          ${r.descricao ? `<div style="font-size:.9rem;color:var(--text-secondary);white-space:pre-line">${esc(r.descricao)}</div>` : ''}
         </div>
       `).join('')}
 

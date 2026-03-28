@@ -75,7 +75,7 @@
 
       const select = document.getElementById('agAluno');
       (alunos || []).forEach(a => {
-        select.innerHTML += `<option value="${a.id}">${a.nome}</option>`;
+        select.innerHTML += `<option value="${a.id}">${esc(a.nome)}</option>`;
         alunosMap[a.id] = a.nome;
       });
 
@@ -106,7 +106,7 @@
             ${slots.length ? slots.map(s => `
               <div style="background:var(--primary-light);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:8px;margin-bottom:6px;font-size:.8rem;position:relative">
                 <div style="font-weight:600;color:var(--primary)">${s.horario?.substring(0, 5)}</div>
-                <div style="color:var(--text-secondary)">${alunosMap[s.aluno_id] || 'Aluno'}</div>
+                <div style="color:var(--text-secondary)">${esc(alunosMap[s.aluno_id] || 'Aluno')}</div>
                 <button onclick="deletarHorario('${s.id}')" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.7rem"><i data-lucide="x" style="width:12px;height:12px"></i></button>
               </div>
             `).join('') : '<div style="text-align:center;font-size:.8rem;color:var(--text-muted);padding:20px 4px">Livre</div>'}

@@ -110,7 +110,7 @@
         const r = rotinas[0];
         const exs = (r.rotina_exercicios || []).sort((a, b) => a.ordem - b.ordem);
         document.getElementById('treinoHoje').innerHTML = `
-          <div style="font-weight:600;font-size:1.1rem;margin-bottom:8px">${r.nome}</div>
+          <div style="font-weight:600;font-size:1.1rem;margin-bottom:8px">${esc(r.nome)}</div>
           <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">${exs.length} exercícios</div>
           <a href="treino.html?rotina=${r.id}" class="btn btn-primary btn-block"><i data-lucide="play"></i> Iniciar Treino</a>
         `;

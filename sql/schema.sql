@@ -31,6 +31,8 @@ CREATE TABLE alunos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES users(id) ON DELETE CASCADE,
   personal_id uuid REFERENCES personals(id) ON DELETE CASCADE,
+  nome text NOT NULL DEFAULT '',
+  email text,
   telefone text,
   data_nascimento date,
   sexo text CHECK (sexo IN ('masculino','feminino')),

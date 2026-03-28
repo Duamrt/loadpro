@@ -57,10 +57,10 @@
 
       const list = document.getElementById('chatList');
       list.innerHTML = (alunos || []).map(a => `
-        <div class="chat-list-item" onclick="abrirChat('${a.id}', '${a.nome}')">
+        <div class="chat-list-item" onclick="abrirChat('${a.id}', '${esc(a.nome)}')">
           <div class="avatar" style="width:36px;height:36px;font-size:.8rem">${getInitials(a.nome)}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:500;font-size:.9rem">${a.nome}</div>
+            <div style="font-weight:500;font-size:.9rem">${esc(a.nome)}</div>
           </div>
         </div>
       `).join('') || '<p style="padding:20px;color:var(--text-muted)">Nenhum aluno ativo</p>';
@@ -120,7 +120,7 @@
           <div style="max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;
             background:${mine ? 'var(--primary)' : 'var(--bg-card-hover)'};
             color:${mine ? '#fff' : 'var(--text)'}">
-            ${m.texto}
+            ${esc(m.texto)}
             <div style="font-size:.7rem;margin-top:4px;opacity:.6">${new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
           </div>
         </div>

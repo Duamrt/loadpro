@@ -126,8 +126,8 @@
                   <i data-lucide="check" style="width:14px;height:14px;color:#fff"></i>
                 </div>
                 <div style="flex:1">
-                  <div style="font-weight:600">${s.nome}</div>
-                  <div style="font-size:.8rem;color:var(--text-muted)">${s.dosagem || ''} ${s.horario ? '· ' + s.horario : ''}</div>
+                  <div style="font-weight:600">${esc(s.nome)}</div>
+                  <div style="font-size:.8rem;color:var(--text-muted)">${esc(s.dosagem || '')} ${s.horario ? '· ' + s.horario : ''}</div>
                 </div>
               </div>
             `;
@@ -155,12 +155,12 @@
                 <i data-lucide="check" style="width:14px;height:14px;color:#fff"></i>
               </div>
               <div style="flex:1">
-                <div style="font-weight:600;${isDone ? 'text-decoration:line-through' : ''}">${r.nome}</div>
+                <div style="font-weight:600;${isDone ? 'text-decoration:line-through' : ''}">${esc(r.nome)}</div>
                 ${r.horario ? `<div style="font-size:.8rem;color:var(--text-muted)">${r.horario}</div>` : ''}
               </div>
               ${r.calorias ? `<span style="font-size:.8rem;color:var(--text-secondary)">${r.calorias} kcal</span>` : ''}
             </div>
-            ${r.descricao ? `<div style="font-size:.85rem;color:var(--text-secondary);padding-left:40px;white-space:pre-line">${r.descricao}</div>` : ''}
+            ${r.descricao ? `<div style="font-size:.85rem;color:var(--text-secondary);padding-left:40px;white-space:pre-line">${esc(r.descricao)}</div>` : ''}
           </div>
         `;
       }).join('');

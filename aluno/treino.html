@@ -93,7 +93,7 @@
 
         document.getElementById('listaRotinas').innerHTML = (rotinas || []).map(r => `
           <div class="card card-clickable" style="margin-bottom:12px" onclick="iniciarTreino('${r.id}')">
-            <div style="font-weight:600;font-size:1.1rem">${r.nome}</div>
+            <div style="font-weight:600;font-size:1.1rem">${esc(r.nome)}</div>
             <div style="font-size:.85rem;color:var(--text-muted)">${(r.rotina_exercicios || []).length} exercícios · ${(r.dias_semana || []).join(', ')}</div>
           </div>
         `).join('') || '<p style="color:var(--text-muted)">Nenhuma rotina ativa. Peça ao seu personal.</p>';
@@ -154,13 +154,13 @@
         return `
           <div class="card" style="margin-bottom:12px">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-              ${ex?.gif_url ? `<img src="${ex.gif_url}" style="width:48px;height:48px;border-radius:8px;object-fit:cover">` : ''}
+              ${ex?.gif_url ? `<img src="${esc(ex.gif_url)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover">` : ''}
               <div>
-                <div style="font-weight:600">${ex?.nome || 'Exercício'}</div>
-                <div style="font-size:.8rem;color:var(--text-muted)">${ex?.grupo_muscular || ''} · ${re.series}×${re.reps_min}-${re.reps_max} ${re.carga_sugerida ? `· ${re.carga_sugerida}kg` : ''}</div>
+                <div style="font-weight:600">${esc(ex?.nome || 'Exercício')}</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">${esc(ex?.grupo_muscular || '')} · ${re.series}×${re.reps_min}-${re.reps_max} ${re.carga_sugerida ? `· ${re.carga_sugerida}kg` : ''}</div>
               </div>
             </div>
-            ${re.observacoes ? `<div style="font-size:.8rem;color:var(--warning);margin-bottom:8px"><i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i> ${re.observacoes}</div>` : ''}
+            ${re.observacoes ? `<div style="font-size:.8rem;color:var(--warning);margin-bottom:8px"><i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i> ${esc(re.observacoes)}</div>` : ''}
             <div style="display:flex;gap:8px;padding:4px 0;font-size:.75rem;font-weight:600;color:var(--text-muted)">
               <div style="width:36px">Série</div>
               <div style="width:70px;text-align:center">Carga</div>
@@ -197,7 +197,7 @@
       lucide.createIcons();
     }
 
-    function completarSerie(idx) {
+    async function completarSerie(idx) {
       const s = seriesState[idx];
       if (s.done) return;
       s.done = true;
@@ -206,7 +206,7 @@
       check.classList.add('done');
 
       // Salvar série no banco
-      supabase.from('treino_series').insert({
+      const { error: serieErr } = await supabase.from('treino_series').insert({
         treino_log_id: treinoLogId,
         exercicio_id: s.exercicio_id,
         serie_num: s.serie_num,
@@ -214,6 +214,7 @@
         carga: s.carga || 0,
         concluida: true
       });
+      if (serieErr) showToast('Erro ao salvar série', 'error');
 
       // Iniciar timer de descanso
       startRestTimer(s.descanso);

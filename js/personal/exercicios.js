@@ -63,11 +63,11 @@ function renderExercicios() {
 
   grid.innerHTML = filtrados.map(e => `
     <div class="card card-clickable" onclick="verDetalhe('${e.id}')">
-      ${e.gif_url ? `<div style="height:120px;border-radius:8px;overflow:hidden;margin-bottom:12px;background:var(--bg-card-hover)"><img src="${e.gif_url}" alt="${e.nome}" style="width:100%;height:100%;object-fit:cover"></div>` : `<div style="height:120px;border-radius:8px;background:var(--bg-card-hover);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><i data-lucide="dumbbell" style="width:32px;height:32px;color:var(--text-muted)"></i></div>`}
-      <div style="font-weight:600;margin-bottom:4px">${e.nome}</div>
+      ${e.gif_url ? `<div style="height:120px;border-radius:8px;overflow:hidden;margin-bottom:12px;background:var(--bg-card-hover)"><img src="${esc(e.gif_url)}" alt="${esc(e.nome)}" style="width:100%;height:100%;object-fit:cover"></div>` : `<div style="height:120px;border-radius:8px;background:var(--bg-card-hover);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><i data-lucide="dumbbell" style="width:32px;height:32px;color:var(--text-muted)"></i></div>`}
+      <div style="font-weight:600;margin-bottom:4px">${esc(e.nome)}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="badge badge-primary">${e.grupo_muscular}</span>
-        ${e.equipamento ? `<span class="badge" style="background:var(--bg-card-hover);color:var(--text-muted)">${e.equipamento}</span>` : ''}
+        <span class="badge badge-primary">${esc(e.grupo_muscular)}</span>
+        ${e.equipamento ? `<span class="badge" style="background:var(--bg-card-hover);color:var(--text-muted)">${esc(e.equipamento)}</span>` : ''}
         ${!e.global ? '<span class="badge badge-warning">Custom</span>' : ''}
       </div>
     </div>
@@ -82,13 +82,13 @@ function verDetalhe(id) {
 
   document.getElementById('detalheNome').textContent = e.nome;
   document.getElementById('detalheBody').innerHTML = `
-    ${e.gif_url ? `<div style="text-align:center;margin-bottom:16px"><img src="${e.gif_url}" alt="${e.nome}" style="max-width:100%;border-radius:8px;max-height:300px"></div>` : ''}
+    ${e.gif_url ? `<div style="text-align:center;margin-bottom:16px"><img src="${esc(e.gif_url)}" alt="${esc(e.nome)}" style="max-width:100%;border-radius:8px;max-height:300px"></div>` : ''}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <span class="badge badge-primary">${e.grupo_muscular}</span>
-      ${(e.grupos_secundarios || []).map(g => `<span class="badge" style="background:var(--bg-card-hover);color:var(--text-secondary)">${g}</span>`).join('')}
-      ${e.equipamento ? `<span class="badge badge-warning">${e.equipamento}</span>` : ''}
+      <span class="badge badge-primary">${esc(e.grupo_muscular)}</span>
+      ${(e.grupos_secundarios || []).map(g => `<span class="badge" style="background:var(--bg-card-hover);color:var(--text-secondary)">${esc(g)}</span>`).join('')}
+      ${e.equipamento ? `<span class="badge badge-warning">${esc(e.equipamento)}</span>` : ''}
     </div>
-    ${e.descricao ? `<div style="font-size:.9rem;color:var(--text-secondary);line-height:1.6">${e.descricao}</div>` : '<p style="color:var(--text-muted)">Sem descrição cadastrada.</p>'}
+    ${e.descricao ? `<div style="font-size:.9rem;color:var(--text-secondary);line-height:1.6">${esc(e.descricao)}</div>` : '<p style="color:var(--text-muted)">Sem descrição cadastrada.</p>'}
   `;
   openModal('modalDetalhe');
 }

@@ -26,7 +26,7 @@ document.addEventListener('auth-ready', async () => {
 
   const select = document.getElementById('seletorAluno');
   (alunos || []).forEach(a => {
-    select.innerHTML += `<option value="${a.id}">${a.nome}</option>`;
+    select.innerHTML += `<option value="${a.id}">${esc(a.nome)}</option>`;
   });
 
   select.addEventListener('change', carregarMedidas);
@@ -84,7 +84,7 @@ function renderTimeline() {
           </div>
           ${m.massa_muscular_kg ? `<span class="badge badge-primary">${m.massa_muscular_kg}kg músculo</span>` : ''}
         </div>
-        ${m.observacoes ? `<div style="margin-top:8px;font-size:.85rem;color:var(--text-muted);font-style:italic">${m.observacoes}</div>` : ''}
+        ${m.observacoes ? `<div style="margin-top:8px;font-size:.85rem;color:var(--text-muted);font-style:italic">${esc(m.observacoes)}</div>` : ''}
       </div>
     `;
   }).join('');

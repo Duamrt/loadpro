@@ -16,7 +16,7 @@ document.addEventListener('auth-ready', async () => {
 
   const select = document.getElementById('seletorAluno');
   (alunos || []).forEach(a => {
-    select.innerHTML += `<option value="${a.id}">${a.nome}</option>`;
+    select.innerHTML += `<option value="${a.id}">${esc(a.nome)}</option>`;
   });
 
   // Pre-selecionar se veio da URL
@@ -35,7 +35,7 @@ document.addEventListener('auth-ready', async () => {
 
   const addSelect = document.getElementById('addExSelect');
   exerciciosDisponiveis.forEach(e => {
-    addSelect.innerHTML += `<option value="${e.id}">${e.nome} (${e.grupo_muscular})</option>`;
+    addSelect.innerHTML += `<option value="${e.id}">${esc(e.nome)} (${esc(e.grupo_muscular)})</option>`;
   });
 
   // Chips dias
@@ -79,7 +79,7 @@ function renderRotinas() {
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
             <div style="display:flex;align-items:center;gap:8px">
-              <h3>${r.nome}</h3>
+              <h3>${esc(r.nome)}</h3>
               <span class="badge ${r.ativa ? 'badge-success' : 'badge-danger'}">${r.ativa ? 'Ativa' : 'Inativa'}</span>
             </div>
             <div style="display:flex;gap:16px;margin-top:8px;font-size:.85rem;color:var(--text-muted)">
@@ -102,8 +102,8 @@ function renderRotinas() {
               <div style="display:flex;align-items:center;gap:12px;padding:8px 0;${i > 0 ? 'border-top:1px solid var(--border)' : ''}">
                 <span style="width:24px;height:24px;border-radius:50%;background:var(--bg-card-hover);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--text-muted);flex-shrink:0">${i + 1}</span>
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:.9rem;font-weight:500">${re.exercicios?.nome || 'Exercício removido'}</div>
-                  <div style="font-size:.8rem;color:var(--text-muted)">${re.exercicios?.grupo_muscular || ''}</div>
+                  <div style="font-size:.9rem;font-weight:500">${esc(re.exercicios?.nome || 'Exercício removido')}</div>
+                  <div style="font-size:.8rem;color:var(--text-muted)">${esc(re.exercicios?.grupo_muscular || '')}</div>
                 </div>
                 <div style="font-size:.8rem;color:var(--text-secondary);text-align:right">
                   <div>${re.series}×${re.reps_min}-${re.reps_max}</div>
@@ -206,8 +206,8 @@ function renderExerciciosModal() {
     <div class="card" style="padding:12px;margin-bottom:8px;background:var(--bg-card-hover)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="font-weight:700;color:var(--primary);font-size:.85rem">${i + 1}.</span>
-        <span style="font-weight:600;flex:1">${ex.nome}</span>
-        <span class="badge badge-primary" style="font-size:.7rem">${ex.grupo}</span>
+        <span style="font-weight:600;flex:1">${esc(ex.nome)}</span>
+        <span class="badge badge-primary" style="font-size:.7rem">${esc(ex.grupo)}</span>
         <button class="btn btn-sm btn-danger" style="padding:4px 8px" onclick="removerExercicio(${i})"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -233,7 +233,7 @@ function renderExerciciosModal() {
         </div>
       </div>
       <div style="margin-top:8px">
-        <input type="text" class="form-control" value="${ex.observacoes || ''}" placeholder="Obs técnica..." style="padding:6px 8px;font-size:.85rem" onchange="exerciciosAdicionados[${i}].observacoes=this.value">
+        <input type="text" class="form-control" value="${esc(ex.observacoes || '')}" placeholder="Obs técnica..." style="padding:6px 8px;font-size:.85rem" onchange="exerciciosAdicionados[${i}].observacoes=this.value">
       </div>
     </div>
   `).join('');

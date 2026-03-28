@@ -68,8 +68,8 @@ function renderAlunos() {
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <div class="avatar">${getInitials(a.nome)}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nome}</div>
-            <div style="font-size:.8rem;color:var(--text-muted)">${a.objetivo || 'Sem objetivo'}</div>
+            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.nome)}</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">${esc(a.objetivo || 'Sem objetivo')}</div>
           </div>
           ${statusBadge}
         </div>
@@ -111,19 +111,24 @@ async function salvarAluno() {
   // Gerar token de convite
   const token = crypto.randomUUID();
 
+  const alunoId = document.getElementById('alunoId').value;
+
   const dados = {
     personal_id: personal.id,
     nome,
+    email,
     telefone: document.getElementById('alTelefone').value.trim() || null,
     data_nascimento: document.getElementById('alNascimento').value || null,
     sexo: document.getElementById('alSexo').value || null,
     objetivo: document.getElementById('alObjetivo').value || null,
     nivel: document.getElementById('alNivel').value || null,
-    convite_token: token,
     status: 'pendente'
   };
 
-  const alunoId = document.getElementById('alunoId').value;
+  // Só gerar token no insert, não no update (senão invalida convite anterior)
+  if (!alunoId) {
+    dados.convite_token = token;
+  }
 
   let error;
   if (alunoId) {

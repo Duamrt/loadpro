@@ -1,5 +1,13 @@
 // LoadPro — Utilitários
 
+// Escape HTML (anti-XSS) — usar em TODA interpolação de dado do usuário
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
 // Toast notifications
 function showToast(msg, type = 'success') {
   let container = document.querySelector('.toast-container');

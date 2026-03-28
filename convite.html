@@ -82,9 +82,13 @@
 
       document.getElementById('personalNome').textContent = aluno.personals?.users?.nome || 'Seu Personal';
 
-      // Se aluno já tiver email cadastrado (via personal), preencher
-      // Buscar na tabela users se já existe
-      document.getElementById('email').value = 'Será vinculado ao aceitar';
+      // Mostrar email real do aluno (cadastrado pelo personal)
+      const emailAluno = aluno.email;
+      document.getElementById('email').value = emailAluno || 'Email não cadastrado';
+      if (!emailAluno) {
+        document.getElementById('alert').textContent = 'Seu personal não cadastrou seu email. Peça para ele atualizar seus dados.';
+        document.getElementById('alert').style.display = 'flex';
+      }
 
       document.getElementById('formConvite').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -95,10 +99,11 @@
         btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Criando acesso...';
 
         try {
-          // Gerar email baseado no token (ou usar email do cadastro)
-          const email = `aluno_${token.substring(0, 8)}@loadpro.app`;
+          // Usar email real do aluno (cadastrado pelo personal)
+          const email = emailAluno;
+          if (!email) throw new Error('Email não cadastrado. Peça ao seu personal.');
 
-          // Criar auth user
+          // Criar auth user com email real
           const { data: authData, error: authErr } = await supabase.auth.signUp({
             email,
             password: document.getElementById('senha').value,
