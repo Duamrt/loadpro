@@ -106,10 +106,12 @@ function initSidebar() {
     { href: 'alunos.html', icon: 'users', label: 'Alunos' },
     { href: 'treinos.html', icon: 'clipboard-list', label: 'Treinos' },
     { href: 'agenda.html', icon: 'calendar', label: 'Agenda' },
-    { href: '#mais', icon: 'grid-2x2', label: 'Mais' },
+    { href: '#mais', icon: 'more-horizontal', label: 'Mais' },
   ];
+  const isMobile = window.innerWidth <= 768;
   const bnav = document.createElement('nav');
   bnav.className = 'personal-bottom-nav';
+  if (isMobile) bnav.style.display = 'flex';
   bnav.innerHTML = bottomItems.map(item => {
     if (item.href === '#mais')
       return `<a href="#" onclick="event.preventDefault();toggleBottomSheet()"><i data-lucide="${item.icon}"></i>${item.label}</a>`;
@@ -131,6 +133,7 @@ function initSidebar() {
   const sheet = document.createElement('div');
   sheet.id = 'bottomSheet';
   sheet.className = 'bottom-sheet';
+  if (isMobile) sheet.style.display = 'block';
   sheet.innerHTML = `
     <div class="bottom-sheet-backdrop" onclick="toggleBottomSheet(false)"></div>
     <div class="bottom-sheet-content">
@@ -147,7 +150,7 @@ function initSidebar() {
   `;
   document.body.appendChild(sheet);
 
-  lucide.createIcons();
+  try { lucide.createIcons(); } catch(e) { console.warn('lucide error:', e); }
 }
 
 function toggleBottomSheet(force) {
