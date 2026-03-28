@@ -153,5 +153,7 @@ async function salvarAluno() {
   document.getElementById('alunoId').value = '';
   showToast(alunoId ? 'Aluno atualizado!' : 'Aluno cadastrado! Convite pendente.');
   btn.disabled = false;
+  // Se criou novo, mudar filtro pra Pendentes pra mostrar o aluno recém-criado
+  if (!alunoId) document.getElementById('filtroStatus').value = 'pendente';
   await carregarAlunos();
 }
