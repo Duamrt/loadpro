@@ -1,5 +1,10 @@
 // LoadPro — Utilitários
 
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 // Escape HTML (anti-XSS) — usar em TODA interpolação de dado do usuário
 function esc(str) {
   if (!str) return '';

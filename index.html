@@ -9,8 +9,9 @@
   <meta property="og:description" content="Treinos, dieta, medidas, agenda e IA em um só lugar.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://loadpro.com.br">
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="stylesheet" href="css/style.css?v=03281439">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281439"></script>
 </head>
 <body class="landing-body">
 
@@ -20,8 +21,8 @@
       <span style="color:var(--primary)">LOAD</span><span style="color:#fff">PRO</span>
     </div>
     <div class="landing-nav-links" id="navLinks">
-      <a href="#funcionalidades">Funcionalidades</a>
-      <a href="#planos">Planos</a>
+      <a href="#funcionalidades" onclick="document.getElementById('navLinks').classList.remove('open')">Funcionalidades</a>
+      <a href="#planos" onclick="document.getElementById('navLinks').classList.remove('open')">Planos</a>
       <a href="login.html" class="btn btn-sm btn-secondary">Entrar</a>
       <a href="cadastro.html" class="btn btn-sm btn-primary">Começar Grátis</a>
     </div>

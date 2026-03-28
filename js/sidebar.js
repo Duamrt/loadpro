@@ -97,6 +97,24 @@ function initSidebar() {
   document.body.insertBefore(sidebar, document.body.firstChild);
   document.body.insertBefore(backdrop, document.body.firstChild);
 
+  // Bottom nav personal (mobile)
+  const bottomItems = [
+    { href: 'dashboard.html', icon: 'layout-dashboard', label: 'Início' },
+    { href: 'alunos.html', icon: 'users', label: 'Alunos' },
+    { href: 'treinos.html', icon: 'clipboard-list', label: 'Treinos' },
+    { href: 'agenda.html', icon: 'calendar', label: 'Agenda' },
+    { href: '#menu', icon: 'menu', label: 'Mais' },
+  ];
+  const bnav = document.createElement('nav');
+  bnav.className = 'personal-bottom-nav';
+  bnav.innerHTML = bottomItems.map(item => {
+    if (item.href === '#menu')
+      return `<a href="#" onclick="event.preventDefault();toggleSidebar(true)"><i data-lucide="${item.icon}"></i>${item.label}</a>`;
+    const active = currentPage === item.href ? 'active' : '';
+    return `<a href="${item.href}" class="${active}"><i data-lucide="${item.icon}"></i>${item.label}</a>`;
+  }).join('');
+  document.body.appendChild(bnav);
+
   lucide.createIcons();
 }
 
@@ -106,6 +124,7 @@ function toggleSidebar(force) {
   const isOpen = force !== undefined ? force : !sidebar.classList.contains('open');
   sidebar.classList.toggle('open', isOpen);
   backdrop.classList.toggle('active', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 
 async function logout() {

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agenda — LoadPro</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03281439">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281439"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -15,9 +15,16 @@
         <button class="btn btn-primary" onclick="openModal('modalHorario')"><i data-lucide="plus"></i> Novo Horário</button>
       </div>
 
+      <!-- Nav mobile (dia a dia) -->
+      <div class="agenda-nav-mobile">
+        <button onclick="navegarDia(-1)"><i data-lucide="chevron-left"></i></button>
+        <span class="dia-label" id="diaLabel">Segunda</span>
+        <button onclick="navegarDia(1)"><i data-lucide="chevron-right"></i></button>
+      </div>
+
       <!-- Calendário semanal -->
       <div class="card">
-        <div class="grid" style="grid-template-columns:repeat(7,1fr);gap:8px" id="calendarioSemanal"></div>
+        <div class="grid" id="calendarioSemanal" style="grid-template-columns:repeat(7,1fr);gap:8px"></div>
       </div>
     </main>
   </div>
@@ -58,11 +65,11 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
-  <script src="../js/supabase.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/sidebar.js"></script>
-  <script src="../js/utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281439"></script>
+  <script src="../js/supabase.js?v=03281439"></script>
+  <script src="../js/auth.js?v=03281439"></script>
+  <script src="../js/sidebar.js?v=03281439"></script>
+  <script src="../js/utils.js?v=03281439"></script>
   <script>
     let agendaData = [];
     let alunosMap = {};
@@ -93,27 +100,44 @@
       renderCalendario();
     }
 
+    // Agenda mobile: navegação por dia
+    const diasLabels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+    let diaAtivo = new Date().getDay();
+    diaAtivo = diaAtivo === 0 ? 6 : diaAtivo - 1; // converter pra seg=0
+
+    function navegarDia(delta) {
+      diaAtivo = (diaAtivo + delta + 7) % 7;
+      atualizarDiaVisivel();
+    }
+
+    function atualizarDiaVisivel() {
+      const cols = document.querySelectorAll('#calendarioSemanal > div');
+      cols.forEach((c, i) => c.classList.toggle('dia-ativo', i === diaAtivo));
+      document.getElementById('diaLabel').textContent = diasLabels[diaAtivo];
+    }
+
     function renderCalendario() {
       const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-      const labels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
       const container = document.getElementById('calendarioSemanal');
 
       container.innerHTML = dias.map((d, i) => {
         const slots = agendaData.filter(a => a.dia_semana === d);
         return `
-          <div style="min-height:200px">
-            <div style="text-align:center;font-weight:600;font-size:.85rem;padding:8px;border-bottom:1px solid var(--border);margin-bottom:8px">${labels[i]}</div>
+          <div style="min-height:200px" class="${i === diaAtivo ? 'dia-ativo' : ''}">
+            <div style="text-align:center;font-weight:600;font-size:.85rem;padding:8px;border-bottom:1px solid var(--border);margin-bottom:8px">${diasLabels[i]}</div>
             ${slots.length ? slots.map(s => `
-              <div style="background:var(--primary-light);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:8px;margin-bottom:6px;font-size:.8rem;position:relative">
+              <div style="background:var(--primary-light);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px;margin-bottom:6px;font-size:.85rem;position:relative">
                 <div style="font-weight:600;color:var(--primary)">${s.horario?.substring(0, 5)}</div>
                 <div style="color:var(--text-secondary)">${esc(alunosMap[s.aluno_id] || 'Aluno')}</div>
-                <button onclick="deletarHorario('${s.id}')" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.7rem"><i data-lucide="x" style="width:12px;height:12px"></i></button>
+                <button onclick="deletarHorario('${s.id}')" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;padding:8px;min-width:44px;min-height:44px"><i data-lucide="x" style="width:14px;height:14px"></i></button>
               </div>
-            `).join('') : '<div style="text-align:center;font-size:.8rem;color:var(--text-muted);padding:20px 4px">Livre</div>'}
+            `).join('') : '<div style="text-align:center;font-size:.85rem;color:var(--text-muted);padding:20px 4px">Livre</div>'}
           </div>
         `;
       }).join('');
       lucide.createIcons();
+      // Atualizar label mobile
+      document.getElementById('diaLabel').textContent = diasLabels[diaAtivo];
     }
 
     async function salvarHorario() {

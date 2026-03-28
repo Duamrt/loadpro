@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dieta — LoadPro</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="stylesheet" href="../css/style.css?v=03281439">
+  <link rel="manifest" href="../manifest.json">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281439"></script>
   <style>
     .meal-card { padding:16px; margin-bottom:12px; }
-    .meal-check { width:28px; height:28px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; flex-shrink:0; }
+    .meal-check { width:44px; height:44px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; flex-shrink:0; }
     .meal-check.done { background:var(--success); border-color:var(--success); }
   </style>
 </head>
@@ -49,10 +51,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
-  <script src="../js/supabase.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281439"></script>
+  <script src="../js/supabase.js?v=03281439"></script>
+  <script src="../js/auth.js?v=03281439"></script>
+  <script src="../js/utils.js?v=03281439"></script>
   <script>
     let refeicoes = [];
     let checksMap = {};
