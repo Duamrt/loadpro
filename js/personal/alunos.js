@@ -90,15 +90,15 @@ function enviarConviteWhatsApp(nomeAluno, telefone, link) {
   const user = window.currentUser;
   const nomePersonal = user?.nome || 'seu personal';
 
-  const abertura = personal?.msg_convite_abertura || 'Olá! Tudo bem?';
-  const fechamento = personal?.msg_convite_fechamento || 'Bora treinar! 💪';
+  const abertura = personal?.msg_convite_abertura || 'Oi! Tudo bem? 😊';
+  const fechamento = personal?.msg_convite_fechamento || 'Qualquer dúvida me chama aqui! Bora pra cima 💪🔥';
 
   const msg = [
     abertura,
     '',
-    `Você foi convidado(a) por *${nomePersonal}* para usar o *LoadPro* — seu app de treino, dieta e evolução.`,
+    `A partir de agora seu treino, dieta e evolução ficam organizados num lugar só! Fui eu que montei tudo pra você no *LoadPro*.`,
     '',
-    `Acesse pelo link abaixo pra criar sua conta:`,
+    `Cria sua conta pelo link abaixo (é rapidinho, 30 segundos):`,
     link,
     '',
     fechamento
