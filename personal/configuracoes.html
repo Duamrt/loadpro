@@ -48,6 +48,29 @@
         </div>
       </div>
 
+      <!-- Horário de Trabalho -->
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="margin-bottom:16px"><i data-lucide="clock" style="width:18px;height:18px;color:var(--primary);vertical-align:-3px"></i> Horário de Trabalho</h3>
+        <div class="grid grid-2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>Máximo de alunos por dia</label>
+            <input type="number" class="form-control" id="cfgMaxAlunos" min="1" max="50" value="12">
+          </div>
+          <div class="form-group">
+            <label>Duração da sessão (minutos)</label>
+            <select class="form-control" id="cfgDuracaoSessao">
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60" selected>1 hora</option>
+              <option value="90">1h30</option>
+              <option value="120">2 horas</option>
+            </select>
+          </div>
+        </div>
+        <div id="horariosDias" style="margin-bottom:16px"></div>
+        <button class="btn btn-primary" onclick="salvarHorarios()"><i data-lucide="save"></i> Salvar Horários</button>
+      </div>
+
       <!-- Alterar senha -->
       <div class="card" style="margin-bottom:20px">
         <h3 style="margin-bottom:16px">Alterar Senha</h3>
@@ -75,7 +98,19 @@
   <script src="../js/sidebar.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    document.addEventListener('auth-ready', () => {
+    const DIAS_CONFIG = [
+      { key: 'seg', label: 'Segunda-feira' },
+      { key: 'ter', label: 'Terça-feira' },
+      { key: 'qua', label: 'Quarta-feira' },
+      { key: 'qui', label: 'Quinta-feira' },
+      { key: 'sex', label: 'Sexta-feira' },
+      { key: 'sab', label: 'Sábado' },
+      { key: 'dom', label: 'Domingo' },
+    ];
+
+    let horariosData = {};
+
+    document.addEventListener('auth-ready', async () => {
       const user = window.currentUser;
       const personal = window.currentPersonal;
 
@@ -85,9 +120,110 @@
       document.getElementById('cfgPlano').textContent = (personal?.plano || 'starter').toUpperCase();
       document.getElementById('cfgStatus').textContent = personal?.status_assinatura || '—';
       document.getElementById('cfgVenc').textContent = personal?.data_vencimento ? formatDate(personal.data_vencimento) : '—';
+      document.getElementById('cfgMaxAlunos').value = personal?.max_alunos_dia || 12;
+      document.getElementById('cfgDuracaoSessao').value = personal?.duracao_sessao_min || 60;
 
       maskPhone(document.getElementById('cfgTelefone'));
+
+      // Carregar horários
+      const { data: horarios } = await supabase
+        .from('horario_funcionamento')
+        .select('*')
+        .eq('personal_id', personal.id);
+
+      (horarios || []).forEach(h => { horariosData[h.dia_semana] = h; });
+      renderHorarios();
     });
+
+    function renderHorarios() {
+      const container = document.getElementById('horariosDias');
+      container.innerHTML = DIAS_CONFIG.map(d => {
+        const h = horariosData[d.key];
+        const ativo = h ? h.ativo : ['seg','ter','qua','qui','sex'].includes(d.key);
+        const abertura = h?.abertura?.substring(0,5) || '06:00';
+        const fechamento = h?.fechamento?.substring(0,5) || '20:00';
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <label style="display:flex;align-items:center;gap:8px;min-width:140px;cursor:pointer">
+              <input type="checkbox" id="dia_${d.key}" ${ativo ? 'checked' : ''} style="accent-color:var(--primary);width:18px;height:18px">
+              <span style="font-weight:500;font-size:.9rem">${d.label}</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:8px;flex:1">
+              <input type="time" class="form-control" id="abre_${d.key}" value="${abertura}" style="width:auto;padding:8px 12px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+              <span style="color:var(--text-muted)">até</span>
+              <input type="time" class="form-control" id="fecha_${d.key}" value="${fechamento}" style="width:auto;padding:8px 12px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
+            </div>
+            <div style="font-size:.8rem;color:var(--text-muted);min-width:80px;text-align:right" id="vagas_${d.key}"></div>
+          </div>
+        `;
+      }).join('');
+
+      // Toggle enable/disable dos inputs ao clicar no checkbox
+      DIAS_CONFIG.forEach(d => {
+        const cb = document.getElementById(`dia_${d.key}`);
+        cb.addEventListener('change', () => {
+          document.getElementById(`abre_${d.key}`).disabled = !cb.checked;
+          document.getElementById(`fecha_${d.key}`).disabled = !cb.checked;
+          calcVagas(d.key);
+        });
+        // Calcular vagas ao mudar horário
+        document.getElementById(`abre_${d.key}`).addEventListener('change', () => calcVagas(d.key));
+        document.getElementById(`fecha_${d.key}`).addEventListener('change', () => calcVagas(d.key));
+        calcVagas(d.key);
+      });
+    }
+
+    function calcVagas(dia) {
+      const cb = document.getElementById(`dia_${dia}`);
+      const el = document.getElementById(`vagas_${dia}`);
+      if (!cb.checked) { el.textContent = 'Folga'; return; }
+      const abre = document.getElementById(`abre_${dia}`).value;
+      const fecha = document.getElementById(`fecha_${dia}`).value;
+      if (!abre || !fecha) { el.textContent = ''; return; }
+      const [h1,m1] = abre.split(':').map(Number);
+      const [h2,m2] = fecha.split(':').map(Number);
+      const minTotal = (h2*60+m2) - (h1*60+m1);
+      const duracao = parseInt(document.getElementById('cfgDuracaoSessao').value) || 60;
+      const vagas = Math.floor(minTotal / duracao);
+      el.innerHTML = `<span style="color:var(--primary);font-weight:600">${vagas}</span> vagas`;
+    }
+
+    // Recalcular vagas ao mudar duração da sessão
+    document.getElementById('cfgDuracaoSessao')?.addEventListener('change', () => {
+      DIAS_CONFIG.forEach(d => calcVagas(d.key));
+    });
+
+    async function salvarHorarios() {
+      const personal = window.currentPersonal;
+
+      // Salvar max alunos e duração
+      await supabase.from('personals').update({
+        max_alunos_dia: parseInt(document.getElementById('cfgMaxAlunos').value) || 12,
+        duracao_sessao_min: parseInt(document.getElementById('cfgDuracaoSessao').value) || 60
+      }).eq('id', personal.id);
+
+      // Upsert cada dia
+      for (const d of DIAS_CONFIG) {
+        const ativo = document.getElementById(`dia_${d.key}`).checked;
+        const abertura = document.getElementById(`abre_${d.key}`).value || '06:00';
+        const fechamento = document.getElementById(`fecha_${d.key}`).value || '20:00';
+
+        const { data: existing } = await supabase
+          .from('horario_funcionamento')
+          .select('id')
+          .eq('personal_id', personal.id)
+          .eq('dia_semana', d.key)
+          .single();
+
+        if (existing) {
+          await supabase.from('horario_funcionamento').update({ abertura, fechamento, ativo }).eq('id', existing.id);
+        } else {
+          await supabase.from('horario_funcionamento').insert({ personal_id: personal.id, dia_semana: d.key, abertura, fechamento, ativo });
+        }
+      }
+
+      showToast('Horários salvos!');
+    }
 
     async function salvarPerfil() {
       const nome = document.getElementById('cfgNome').value.trim();
