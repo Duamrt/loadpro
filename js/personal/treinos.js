@@ -63,6 +63,8 @@ async function carregarRotinas() {
 function renderRotinas() {
   const container = document.getElementById('rotinasContainer');
   const empty = document.getElementById('emptyState');
+  const btnLimpar = document.getElementById('btnLimpar');
+  if (btnLimpar) btnLimpar.style.display = rotinasAluno.length ? 'inline-flex' : 'none';
 
   if (!rotinasAluno.length) {
     container.innerHTML = '';
@@ -341,6 +343,15 @@ async function duplicarRotina(id) {
 }
 
 // ── Templates de Treino ──
+async function limparTreinos() {
+  const alunoId = document.getElementById('seletorAluno').value;
+  if (!alunoId) return;
+  if (!confirm('Apagar todas as ' + rotinasAluno.length + ' rotinas desse aluno?')) return;
+  await supabase.from('rotinas').delete().eq('aluno_id', alunoId);
+  showToast('Treinos apagados');
+  await carregarRotinas();
+}
+
 async function abrirTemplates() {
   const alunoId = document.getElementById('seletorAluno').value;
   if (!alunoId) { showToast('Selecione um aluno primeiro', 'error'); return; }
