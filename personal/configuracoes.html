@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Configurações — LoadPro</title>
-  <link rel="stylesheet" href="../css/style.css?v=03281439">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281439"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="../css/style.css?v=03281444">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281444"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -92,11 +95,11 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281439"></script>
-  <script src="../js/supabase.js?v=03281439"></script>
-  <script src="../js/auth.js?v=03281439"></script>
-  <script src="../js/sidebar.js?v=03281439"></script>
-  <script src="../js/utils.js?v=03281439"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281444"></script>
+  <script src="../js/supabase.js?v=03281444"></script>
+  <script src="../js/auth.js?v=03281444"></script>
+  <script src="../js/sidebar.js?v=03281444"></script>
+  <script src="../js/utils.js?v=03281444"></script>
   <script>
     const DIAS_CONFIG = [
       { key: 'seg', label: 'Segunda-feira' },
@@ -147,22 +150,26 @@
         const temTarde = h ? !!h.abertura_tarde : true;
         return `
           <div style="padding:12px 0;border-bottom:1px solid var(--border)">
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-              <label style="display:flex;align-items:center;gap:8px;min-width:140px;cursor:pointer">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+              <label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer">
                 <input type="checkbox" id="dia_${d.key}" ${ativo ? 'checked' : ''} style="accent-color:var(--primary);width:18px;height:18px">
                 <span style="font-weight:500;font-size:.9rem">${d.label}</span>
               </label>
-              <div style="display:flex;align-items:center;gap:6px;flex:1;flex-wrap:wrap">
+              <div style="font-size:.8rem;color:var(--text-muted)" id="vagas_${d.key}"></div>
+            </div>
+            <div class="horario-dia-inputs" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-left:26px">
+              <div class="horario-turno">
                 <span style="font-size:.75rem;color:var(--text-muted);min-width:45px">Manhã</span>
                 <input type="time" class="form-control" id="abre_${d.key}" value="${abertura}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
                 <span style="color:var(--text-muted);font-size:.8rem">-</span>
                 <input type="time" class="form-control" id="fecha_${d.key}" value="${fechamento}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
-                <span style="font-size:.75rem;color:var(--text-muted);min-width:40px;margin-left:8px">Tarde</span>
+              </div>
+              <div class="horario-turno">
+                <span style="font-size:.75rem;color:var(--text-muted);min-width:45px">Tarde</span>
                 <input type="time" class="form-control" id="abre2_${d.key}" value="${abertura2}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
                 <span style="color:var(--text-muted);font-size:.8rem">-</span>
                 <input type="time" class="form-control" id="fecha2_${d.key}" value="${fechamento2}" style="width:auto;padding:6px 10px;font-size:.85rem" ${!ativo ? 'disabled' : ''}>
               </div>
-              <div style="font-size:.8rem;color:var(--text-muted);min-width:80px;text-align:right" id="vagas_${d.key}"></div>
             </div>
           </div>
         `;

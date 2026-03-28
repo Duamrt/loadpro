@@ -3,7 +3,7 @@
    Dark mode, laranja primário, Inter
    ═══════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Font carregada via <link> nos HTMLs (evita render-blocking @import) */
 
 :root {
   --bg: #0a0a0a;
@@ -320,6 +320,38 @@ tr:hover td { background: var(--bg-card); }
 
   /* Grid gap menor */
   .grid { gap: 12px; }
+
+  /* Header controls: empilhar no mobile */
+  .main-header > div { width: 100%; }
+  .main-header > div[style*="display:flex"] { flex-wrap: wrap; }
+  .main-header select.form-control { width: 100% !important; }
+
+  /* Stats: manter 2 colunas (são cards pequenos) */
+  .grid-2.stats-keep { grid-template-columns: repeat(2, 1fr); }
+
+  /* Modal grids: 2 colunas pra macros (4 itens compactos) */
+  .modal .grid-4 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Circunferências: 2 colunas (D/E lado a lado) */
+  .modal .grid-3 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Dieta calc: resultado 2x2 em vez de 4 colunas */
+  #resultadoCalc.grid-4 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Tabs: fade gradient indicando mais itens */
+  .tabs-wrapper { position: relative; }
+  .tabs-wrapper::after {
+    content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+    width: 32px; background: linear-gradient(to left, var(--bg) 20%, transparent);
+    pointer-events: none; z-index: 1;
+  }
+
+  /* Configurações horário: layout empilhado por turno */
+  .horario-dia-inputs { flex-direction: column !important; gap: 8px !important; }
+  .horario-turno { display: flex; align-items: center; gap: 6px; }
+
+  /* Hero: desabilitar animação pesada */
+  .hero::before { animation: none; }
 }
 
 /* Bottom nav personal (hidden por default, show via media query) */
