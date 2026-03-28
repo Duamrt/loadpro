@@ -14,6 +14,9 @@ document.addEventListener('auth-ready', async () => {
   document.getElementById('filtroStatus').addEventListener('change', carregarAlunos);
 
   await carregarAlunos();
+
+  // Se veio com ?novo=1, abrir modal de cadastro
+  if (new URLSearchParams(location.search).get('novo')) openModal('modalAluno');
 });
 
 async function carregarAlunos() {
