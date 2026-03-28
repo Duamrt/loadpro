@@ -170,6 +170,15 @@ async function salvarAnamnese() {
   else showToast('Anamnese salva!');
 }
 
+async function excluirAluno() {
+  if (!alunoAtual) return;
+  if (!confirm('Excluir ' + alunoAtual.nome + '? Todos os dados (treinos, dieta, chat, fotos) serão apagados permanentemente.')) return;
+  const { error } = await supabase.from('alunos').delete().eq('id', alunoAtual.id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Aluno excluído');
+  window.location.href = 'alunos.html';
+}
+
 function enviarConviteWhatsApp(nomeAluno, telefone, link) {
   const personal = window.currentPersonal;
   const user = window.currentUser;
