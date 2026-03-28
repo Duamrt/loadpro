@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281551">
+  <link rel="stylesheet" href="../css/style.css?v=03281600">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281551"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281600"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -19,6 +19,15 @@
     .serie-check.done { background:var(--success); border-color:var(--success); }
     @media (max-width:360px) { .serie-input { width:56px; padding:6px; font-size:.85rem; } }
     .timer-display { font-size:2rem; font-weight:800; color:var(--primary); text-align:center; font-variant-numeric:tabular-nums; }
+    /* PR celebration */
+    .pr-badge { display:inline-flex; align-items:center; gap:4px; background:linear-gradient(135deg,#f97316,#eab308); color:#fff; font-size:.7rem; font-weight:800; padding:3px 8px; border-radius:100px; margin-left:8px; animation:prPop .5s ease; }
+    @keyframes prPop { 0%{transform:scale(0);opacity:0} 50%{transform:scale(1.3)} 100%{transform:scale(1);opacity:1} }
+    .pr-toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; background:rgba(0,0,0,.9); border:2px solid #f97316; border-radius:20px; padding:32px 48px; text-align:center; animation:prToastIn .4s ease; pointer-events:none; }
+    .pr-toast .trophy { font-size:48px; margin-bottom:8px; animation:prBounce 1s ease infinite; }
+    .pr-toast .pr-text { font-size:1.1rem; font-weight:800; color:#f97316; }
+    .pr-toast .pr-detail { font-size:.85rem; color:#a1a1aa; margin-top:4px; }
+    @keyframes prToastIn { 0%{transform:translate(-50%,-50%) scale(0);opacity:0} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
+    @keyframes prBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
   </style>
 </head>
 <body>
@@ -63,10 +72,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281551"></script>
-  <script src="../js/supabase.js?v=03281551"></script>
-  <script src="../js/auth.js?v=03281551"></script>
-  <script src="../js/utils.js?v=03281551"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281600"></script>
+  <script src="../js/supabase.js?v=03281600"></script>
+  <script src="../js/auth.js?v=03281600"></script>
+  <script src="../js/utils.js?v=03281600"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -220,19 +229,68 @@
       if (s.done) return;
       s.done = true;
 
+      // Atualizar carga/reps do input (pode ter mudado)
+      const row = document.getElementById(`serie-${idx}`);
+      const inputs = row?.querySelectorAll('.serie-input');
+      if (inputs?.length >= 2) {
+        s.carga = +inputs[0].value || 0;
+        s.reps = +inputs[1].value || 0;
+      }
+
       const check = document.getElementById(`check-${idx}`);
       check.classList.add('done');
+
+      const carga = s.carga || 0;
+      const reps = s.reps || 0;
+      const volume = carga * reps;
 
       // Salvar série no banco
       const { error: serieErr } = await supabase.from('treino_series').insert({
         treino_log_id: treinoLogId,
         exercicio_id: s.exercicio_id,
         serie_num: s.serie_num,
-        reps: s.reps,
-        carga: s.carga || 0,
+        reps,
+        carga,
         concluida: true
       });
       if (serieErr) showToast('Erro ao salvar série', 'error');
+
+      // Verificar PR em tempo real (carga OU volume)
+      if (carga > 0) {
+        const { data: prAnterior } = await supabase
+          .from('treino_series')
+          .select('carga, reps')
+          .eq('exercicio_id', s.exercicio_id)
+          .eq('concluida', true)
+          .neq('treino_log_id', treinoLogId)
+          .order('carga', { ascending: false })
+          .limit(1);
+
+        const cargaAnterior = prAnterior?.[0]?.carga || 0;
+        const volAnterior = (prAnterior?.[0]?.carga || 0) * (prAnterior?.[0]?.reps || 0);
+
+        let prTipo = null;
+        if (carga > cargaAnterior) prTipo = 'carga';
+        else if (volume > volAnterior && carga >= cargaAnterior) prTipo = 'volume';
+
+        if (prTipo) {
+          // Marcar como PR no banco
+          await supabase.from('treino_series')
+            .update({ pr: true })
+            .eq('treino_log_id', treinoLogId)
+            .eq('exercicio_id', s.exercicio_id)
+            .eq('serie_num', s.serie_num);
+
+          // Badge na série
+          check.insertAdjacentHTML('afterend', '<span class="pr-badge">🏆 PR!</span>');
+
+          // Celebração central
+          const label = prTipo === 'carga'
+            ? `${carga}kg — novo recorde de carga!`
+            : `${volume}kg vol — novo recorde de volume!`;
+          mostrarPRCelebration(label);
+        }
+      }
 
       // Iniciar timer de descanso
       startRestTimer(s.descanso);
@@ -269,6 +327,15 @@
       document.getElementById('restTimer').style.display = 'none';
     }
 
+    function mostrarPRCelebration(label) {
+      const el = document.createElement('div');
+      el.className = 'pr-toast';
+      el.innerHTML = `<div class="trophy">🏆</div><div class="pr-text">NOVO RECORDE!</div><div class="pr-detail">${esc(label)}</div>`;
+      document.body.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; }, 2000);
+      setTimeout(() => el.remove(), 2500);
+    }
+
     async function finalizarTreino() {
       clearInterval(timerInterval);
       clearInterval(restInterval);
@@ -282,36 +349,10 @@
         completo: totalDone === total
       }).eq('id', treinoLogId);
 
-      // Verificar PRs (maior carga por exercício)
-      const exercicioIds = [...new Set(seriesState.map(s => s.exercicio_id))];
-      for (const exId of exercicioIds) {
-        const melhores = seriesState.filter(s => s.exercicio_id === exId && s.done);
-        if (!melhores.length) continue;
-
-        const melhorCarga = Math.max(...melhores.map(s => s.carga || 0));
-        if (melhorCarga <= 0) continue;
-
-        // Buscar PR anterior
-        const { data: prAnterior } = await supabase
-          .from('treino_series')
-          .select('carga')
-          .eq('exercicio_id', exId)
-          .eq('concluida', true)
-          .neq('treino_log_id', treinoLogId)
-          .order('carga', { ascending: false })
-          .limit(1);
-
-        if (!prAnterior?.length || melhorCarga > prAnterior[0].carga) {
-          // Marcar como PR
-          await supabase.from('treino_series')
-            .update({ pr: true })
-            .eq('treino_log_id', treinoLogId)
-            .eq('exercicio_id', exId)
-            .eq('carga', melhorCarga);
-        }
-      }
-
-      showToast(`Treino finalizado! ${duracao}min · ${totalDone}/${total} séries`);
+      // PRs já foram verificados em tempo real no completarSerie()
+      const totalPRs = document.querySelectorAll('.pr-badge').length;
+      const prMsg = totalPRs > 0 ? ` · ${totalPRs} PR${totalPRs > 1 ? 's' : ''} 🏆` : '';
+      showToast(`Treino finalizado! ${duracao}min · ${totalDone}/${total} séries${prMsg}`);
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
     }
   </script>
