@@ -170,9 +170,15 @@ async function salvarAnamnese() {
   else showToast('Anamnese salva!');
 }
 
-function copiarConvite() {
-  if (!alunoAtual.convite_token) { showToast('Token de convite não gerado', 'error'); return; }
-  const link = `${location.origin}/convite.html?token=${alunoAtual.convite_token}`;
+async function copiarConvite() {
+  let token = alunoAtual.convite_token;
+  if (!token) {
+    token = (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const { error } = await supabase.from('alunos').update({ convite_token: token }).eq('id', alunoAtual.id);
+    if (error) { showToast('Erro ao gerar token', 'error'); return; }
+    alunoAtual.convite_token = token;
+  }
+  const link = `${location.origin}/convite.html?token=${token}`;
   navigator.clipboard.writeText(link);
   showToast('Link de convite copiado!');
 }
