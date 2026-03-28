@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha do Aluno — LoadPro</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="css/style.css?v=03281900">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281900"></script>
+  <style>
+    .ficha-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .ficha-box { width:100%; max-width:520px; }
+    .ficha-logo { text-align:center; margin-bottom:24px; font-size:1.8rem; font-weight:900; letter-spacing:-1px; }
+    .ficha-card { background:var(--bg-card); border-radius:var(--radius-lg); padding:28px 24px; box-shadow:var(--shadow); }
+    .step { display:none; }
+    .step.active { display:block; }
+    .step-bar { display:flex; gap:6px; margin-bottom:24px; }
+    .step-dot { flex:1; height:4px; border-radius:2px; background:var(--border); transition:background .3s; }
+    .step-dot.done { background:var(--primary); }
+    .step-title { font-size:1.1rem; font-weight:700; margin-bottom:4px; }
+    .step-desc { font-size:.85rem; color:var(--text-muted); margin-bottom:20px; }
+    .nav-btns { display:flex; gap:12px; margin-top:24px; }
+    .nav-btns .btn { flex:1; }
+    .chip-group { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip { padding:8px 16px; border-radius:20px; background:var(--bg-card-hover); border:2px solid var(--border); cursor:pointer; font-size:.85rem; transition:all .2s; user-select:none; }
+    .chip.active { background:var(--primary-light); border-color:var(--primary); color:var(--primary); }
+    .welcome-personal { display:flex; align-items:center; gap:12px; background:var(--bg-card-hover); padding:14px; border-radius:var(--radius); margin-bottom:20px; }
+    .success-screen { text-align:center; padding:40px 20px; }
+    .success-screen i { color:var(--success); margin-bottom:16px; }
+    .foto-slots { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .foto-slot { aspect-ratio:3/4; border:2px dashed var(--border); border-radius:var(--radius); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:border .2s; overflow:hidden; position:relative; }
+    .foto-slot:active { border-color:var(--primary); }
+    .foto-slot img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .foto-slot span { font-size:.8rem; color:var(--text-muted); z-index:1; }
+    .foto-slot.has-foto { border-style:solid; border-color:var(--success); }
+  </style>
+</head>
+<body>
+  <div class="ficha-page">
+    <div class="ficha-box">
+      <div class="ficha-logo">
+        <span style="color:var(--primary)">LOAD</span><span style="color:#fff">PRO</span>
+      </div>
+
+      <div class="ficha-card">
+        <!-- Barra de progresso -->
+        <div class="step-bar">
+          <div class="step-dot done" id="dot1"></div>
+          <div class="step-dot" id="dot2"></div>
+          <div class="step-dot" id="dot3"></div>
+          <div class="step-dot" id="dot4"></div>
+        </div>
+
+        <!-- STEP 1: Dados Pessoais -->
+        <div class="step active" id="step1">
+          <div class="welcome-personal">
+            <div class="avatar" style="width:40px;height:40px;font-size:.85rem;flex-shrink:0" id="personalAvatar"></div>
+            <div>
+              <div style="font-size:.85rem;color:var(--text-muted)">Seu personal</div>
+              <div style="font-weight:600" id="personalNome">Carregando...</div>
+            </div>
+          </div>
+          <div class="step-title">Seus dados</div>
+          <div class="step-desc">Preencha pra seu personal montar o treino ideal pra voce.</div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" class="form-control" id="fEmail" placeholder="seu@email.com">
+          </div>
+          <div class="grid grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label>Data de nascimento *</label>
+              <input type="date" class="form-control" id="fNascimento">
+            </div>
+            <div class="form-group">
+              <label>Sexo *</label>
+              <select class="form-control" id="fSexo">
+                <option value="">Selecione</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Objetivo</label>
+            <select class="form-control" id="fObjetivo">
+              <option value="">Selecione</option>
+              <option value="Emagrecimento">Emagrecimento</option>
+              <option value="Hipertrofia">Ganho de massa</option>
+              <option value="Condicionamento">Condicionamento</option>
+              <option value="Qualidade de vida">Qualidade de vida</option>
+              <option value="Reabilitação">Reabilitacao</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nivel de treino</label>
+            <select class="form-control" id="fNivel">
+              <option value="">Selecione</option>
+              <option value="iniciante">Nunca treinei / Voltando</option>
+              <option value="intermediario">Treino ha alguns meses</option>
+              <option value="avancado">Treino ha mais de 1 ano</option>
+            </select>
+          </div>
+          <div class="nav-btns">
+            <button class="btn btn-primary btn-block" onclick="proximoStep(2)">Continuar <i data-lucide="arrow-right" style="width:16px;height:16px"></i></button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Anamnese -->
+        <div class="step" id="step2">
+          <div class="step-title">Saude e restricoes</div>
+          <div class="step-desc">Isso ajuda seu personal a montar um treino seguro.</div>
+          <div class="form-group">
+            <label>Tem algum problema de saude? (diabetes, hipertensao, etc)</label>
+            <textarea class="form-control" id="fSaude" rows="2" placeholder="Se nao tem, deixe em branco"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Lesoes ou dores? (joelho, ombro, coluna, etc)</label>
+            <textarea class="form-control" id="fLesoes" rows="2" placeholder="Se nao tem, deixe em branco"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Toma algum medicamento?</label>
+            <textarea class="form-control" id="fMedicamentos" rows="2" placeholder="Se nao, deixe em branco"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Restricoes alimentares ou alergias?</label>
+            <textarea class="form-control" id="fRestricoes" rows="2" placeholder="Lactose, gluten, frutos do mar..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Dias disponiveis pra treinar</label>
+            <div class="chip-group" id="fDias">
+              <div class="chip" data-dia="seg" onclick="this.classList.toggle('active')">Seg</div>
+              <div class="chip" data-dia="ter" onclick="this.classList.toggle('active')">Ter</div>
+              <div class="chip" data-dia="qua" onclick="this.classList.toggle('active')">Qua</div>
+              <div class="chip" data-dia="qui" onclick="this.classList.toggle('active')">Qui</div>
+              <div class="chip" data-dia="sex" onclick="this.classList.toggle('active')">Sex</div>
+              <div class="chip" data-dia="sab" onclick="this.classList.toggle('active')">Sab</div>
+              <div class="chip" data-dia="dom" onclick="this.classList.toggle('active')">Dom</div>
+            </div>
+          </div>
+          <div class="nav-btns">
+            <button class="btn btn-secondary" onclick="proximoStep(1)"><i data-lucide="arrow-left" style="width:16px;height:16px"></i> Voltar</button>
+            <button class="btn btn-primary" onclick="proximoStep(3)">Continuar <i data-lucide="arrow-right" style="width:16px;height:16px"></i></button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Medidas + Fotos -->
+        <div class="step" id="step3">
+          <div class="step-title">Medidas e fotos</div>
+          <div class="step-desc">Seu personal usa isso pra calcular dieta e acompanhar evolucao.</div>
+          <div class="grid grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label>Peso (kg) *</label>
+              <input type="number" class="form-control" id="fPeso" placeholder="70" step="0.1">
+            </div>
+            <div class="form-group">
+              <label>Altura (cm) *</label>
+              <input type="number" class="form-control" id="fAltura" placeholder="170">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Fotos de progresso <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+            <div class="foto-slots">
+              <div class="foto-slot" id="slot-frente" onclick="tirarFoto('frente')">
+                <i data-lucide="camera" style="width:24px;height:24px;color:var(--text-muted)"></i>
+                <span>Frente</span>
+              </div>
+              <div class="foto-slot" id="slot-costas" onclick="tirarFoto('costas')">
+                <i data-lucide="camera" style="width:24px;height:24px;color:var(--text-muted)"></i>
+                <span>Costas</span>
+              </div>
+              <div class="foto-slot" id="slot-lateral_d" onclick="tirarFoto('lateral_d')">
+                <i data-lucide="camera" style="width:24px;height:24px;color:var(--text-muted)"></i>
+                <span>Lado Direito</span>
+              </div>
+              <div class="foto-slot" id="slot-lateral_e" onclick="tirarFoto('lateral_e')">
+                <i data-lucide="camera" style="width:24px;height:24px;color:var(--text-muted)"></i>
+                <span>Lado Esquerdo</span>
+              </div>
+            </div>
+            <input type="file" id="fotoInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none">
+          </div>
+          <div class="nav-btns">
+            <button class="btn btn-secondary" onclick="proximoStep(2)"><i data-lucide="arrow-left" style="width:16px;height:16px"></i> Voltar</button>
+            <button class="btn btn-primary" onclick="enviarFicha()"><i data-lucide="check" style="width:16px;height:16px"></i> Enviar pro personal</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Sucesso -->
+        <div class="step" id="step4">
+          <div class="success-screen">
+            <i data-lucide="check-circle" style="width:64px;height:64px"></i>
+            <h2 style="margin-bottom:8px">Ficha enviada!</h2>
+            <p style="color:var(--text-secondary);font-size:.95rem">Seu personal <strong id="personalNome2"></strong> vai montar seu treino e dieta personalizados.</p>
+            <p style="color:var(--text-muted);font-size:.85rem;margin-top:16px">Voce vai receber uma mensagem no WhatsApp quando tudo estiver pronto.</p>
+          </div>
+        </div>
+
+        <!-- Link invalido -->
+        <div id="fichaInvalida" style="display:none;text-align:center;padding:40px 20px">
+          <i data-lucide="alert-circle" style="width:48px;height:48px;color:var(--danger);margin-bottom:16px"></i>
+          <h3>Link invalido</h3>
+          <p style="font-size:.9rem;margin-top:8px;color:var(--text-secondary)">Este link nao e valido ou ja foi preenchido.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281900"></script>
+  <script src="js/supabase.js?v=03281900"></script>
+  <script>
+    const token = new URLSearchParams(location.search).get('token');
+    let alunoData = null;
+    let personalNome = '';
+    let fotosPendentes = {}; // { frente: File, costas: File, ... }
+    let fotoTipoAtual = null;
+
+    function esc(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = String(str); return d.innerHTML; }
+    function getInitials(nome) { return (nome||'U').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase(); }
+
+    (async () => {
+      if (!token) { mostrarInvalido(); return; }
+
+      // Buscar dados via RPC
+      const { data } = await supabase.rpc('buscar_convite', { p_token: token });
+      if (!data) { mostrarInvalido(); return; }
+
+      // Se já preencheu a ficha
+      alunoData = data;
+      personalNome = data.personal_nome || 'seu personal';
+
+      document.getElementById('personalNome').textContent = personalNome;
+      document.getElementById('personalNome2').textContent = personalNome;
+      document.getElementById('personalAvatar').textContent = getInitials(personalNome);
+
+      // Pré-preencher email se já tem
+      if (data.email) document.getElementById('fEmail').value = data.email;
+
+      lucide.createIcons();
+    })();
+
+    function mostrarInvalido() {
+      document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+      document.querySelector('.step-bar').style.display = 'none';
+      document.getElementById('fichaInvalida').style.display = 'block';
+      lucide.createIcons();
+    }
+
+    function proximoStep(n) {
+      // Validar step atual
+      if (n === 2) {
+        if (!document.getElementById('fEmail').value.trim()) { alert('Preencha seu email'); return; }
+        if (!document.getElementById('fNascimento').value) { alert('Preencha sua data de nascimento'); return; }
+        if (!document.getElementById('fSexo').value) { alert('Selecione seu sexo'); return; }
+      }
+      if (n === 3) {
+        // anamnese é opcional, só avança
+      }
+
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + n).classList.add('active');
+
+      // Atualizar barra
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById('dot' + i).classList.toggle('done', i <= n);
+      }
+      lucide.createIcons();
+      window.scrollTo(0, 0);
+    }
+
+    // Fotos
+    function tirarFoto(tipo) {
+      fotoTipoAtual = tipo;
+      document.getElementById('fotoInput').click();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('fotoInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file || !fotoTipoAtual) return;
+        if (file.size > 10 * 1024 * 1024) { alert('Foto muito grande (max 10MB)'); return; }
+
+        fotosPendentes[fotoTipoAtual] = file;
+        const slot = document.getElementById('slot-' + fotoTipoAtual);
+        slot.classList.add('has-foto');
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          // Limpar slot e colocar imagem
+          const existingImg = slot.querySelector('img');
+          if (existingImg) existingImg.remove();
+          const img = document.createElement('img');
+          img.src = reader.result;
+          slot.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+        document.getElementById('fotoInput').value = '';
+      });
+    });
+
+    async function enviarFicha() {
+      const peso = +document.getElementById('fPeso').value;
+      const altura = +document.getElementById('fAltura').value;
+      if (!peso || !altura) { alert('Preencha peso e altura'); return; }
+
+      const btn = document.querySelector('#step3 .btn-primary');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin" style="width:16px;height:16px"></i> Enviando...';
+
+      // Coletar dias
+      const dias = [...document.querySelectorAll('#fDias .chip.active')].map(c => c.dataset.dia);
+
+      // Salvar via RPC
+      const { data, error } = await supabase.rpc('salvar_ficha_aluno', {
+        p_token: token,
+        p_email: document.getElementById('fEmail').value.trim(),
+        p_data_nascimento: document.getElementById('fNascimento').value || null,
+        p_sexo: document.getElementById('fSexo').value || null,
+        p_objetivo: document.getElementById('fObjetivo').value || null,
+        p_nivel: document.getElementById('fNivel').value || null,
+        p_peso: peso,
+        p_altura: altura,
+        p_historico_saude: document.getElementById('fSaude').value.trim() || null,
+        p_lesoes: document.getElementById('fLesoes').value.trim() || null,
+        p_medicamentos: document.getElementById('fMedicamentos').value.trim() || null,
+        p_restricoes: document.getElementById('fRestricoes').value.trim() || null,
+        p_alergias: null,
+        p_dias_disponiveis: dias.length ? dias : null,
+        p_observacoes: null
+      });
+
+      if (error || data?.error) {
+        alert(data?.error || error?.message || 'Erro ao enviar');
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px"></i> Enviar pro personal';
+        lucide.createIcons();
+        return;
+      }
+
+      // Upload fotos de progresso (se tiver)
+      const alunoId = data.aluno_id;
+      for (const [tipo, file] of Object.entries(fotosPendentes)) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const path = `fichas/${alunoId}/${tipo}_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from('fotos-progresso')
+          .upload(path, file, { contentType: file.type });
+        if (!upErr) {
+          const { data: urlData } = supabase.storage.from('fotos-progresso').getPublicUrl(path);
+          await supabase.from('fotos_progresso').insert({
+            aluno_id: alunoId, url: urlData.publicUrl, tipo: tipo
+          });
+        }
+      }
+
+      // Mostrar sucesso
+      proximoStep(4);
+    }
+  </script>
+</body>
+</html>

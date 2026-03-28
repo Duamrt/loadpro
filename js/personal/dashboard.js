@@ -27,15 +27,32 @@ document.addEventListener('auth-ready', async () => {
   const hoje = new Date().toISOString().split('T')[0];
   const semanaAtras = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
 
-  const [alunosRes, logsHojeRes, logsRecentes, prsRes] = await Promise.all([
+  const [alunosRes, fichasRes, logsHojeRes, logsRecentes, prsRes] = await Promise.all([
     supabase.from('alunos').select('id, nome, user_id, objetivo, status').eq('personal_id', personal.id).eq('status', 'ativo'),
+    supabase.from('alunos').select('id, nome, ficha_preenchida_em').eq('personal_id', personal.id).eq('ficha_preenchida', true).is('user_id', null),
     supabase.from('treino_logs').select('aluno_id, rotina_id, rotinas(nome)').eq('data', hoje),
     supabase.from('treino_logs').select('aluno_id, data').gte('data', semanaAtras),
     supabase.from('treino_series').select('id, exercicio_id, carga, reps, treino_log_id, pr, treino_logs(aluno_id, data)').eq('pr', true).gte('treino_logs.data', semanaAtras)
   ]);
 
   const alunos = alunosRes.data || [];
+  const fichasPendentes = fichasRes.data || [];
   const logsHoje = logsHojeRes.data || [];
+
+  // Alerta fichas preenchidas aguardando prescrição
+  if (fichasPendentes.length) {
+    const el = document.getElementById('alertaFichas');
+    el.style.display = 'block';
+    el.innerHTML = fichasPendentes.map(f => `
+      <div class="card" style="margin-bottom:8px;padding:14px;border-left:3px solid var(--primary);display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-weight:600">${esc(f.nome)}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">Preencheu a ficha ${f.ficha_preenchida_em ? timeAgo(f.ficha_preenchida_em) : ''} — aguardando treino e dieta</div>
+        </div>
+        <a href="aluno-detalhe.html?id=${f.id}" class="btn btn-sm btn-primary" style="white-space:nowrap">Montar treino</a>
+      </div>
+    `).join('');
+  }
   const prs = (prsRes.data || []).filter(p => p.treino_logs);
 
   // Stats
