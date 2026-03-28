@@ -372,6 +372,14 @@ async function aplicarTemplate(template) {
   if (!alunoId) { showToast('Selecione um aluno primeiro', 'error'); return; }
 
   const nomes = { ppl: 'PPL', abc: 'ABC', upper_lower: 'Upper/Lower', full_body: 'Full Body' };
+
+  // Se já tem rotinas, perguntar se quer substituir
+  if (rotinasAluno.length > 0) {
+    if (!confirm('Esse aluno já tem ' + rotinasAluno.length + ' rotina(s). Quer substituir tudo pelo template ' + nomes[template] + '?')) return;
+    // Deletar rotinas existentes (cascadeia pra rotina_exercicios)
+    await supabase.from('rotinas').delete().eq('aluno_id', alunoId);
+  }
+
   closeModal('modalTemplates');
   showToast('Aplicando ' + nomes[template] + '...');
 
