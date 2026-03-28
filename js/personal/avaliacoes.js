@@ -134,7 +134,11 @@ document.addEventListener('auth-ready', async function() {
       alunoSexo = opt.dataset.sexo || 'masculino';
       alunoNascimento = opt.dataset.nasc || null;
     }
-    carregarAvaliacoes();
+    await carregarAvaliacoes();
+    // Se veio da ficha do aluno, abrir modal de nova avaliação direto
+    if (params.get('nova') === '1') {
+      novaAvaliacao();
+    }
   }
 
   // Listeners de calculo em tempo real
