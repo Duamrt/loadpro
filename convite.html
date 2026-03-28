@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03281806">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281806"></script>
+  <link rel="stylesheet" href="css/style.css?v=03281807">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281807"></script>
 </head>
 <body>
   <div class="auth-page">
@@ -55,8 +55,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281806"></script>
-  <script src="js/supabase.js?v=03281806"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281807"></script>
+  <script src="js/supabase.js?v=03281807"></script>
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
@@ -88,11 +88,10 @@
         btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Criando acesso...';
 
         try {
-          // Usar email real do aluno (cadastrado pelo personal)
           const email = emailAluno;
           if (!email) throw new Error('Email não cadastrado. Peça ao seu personal.');
 
-          // Criar auth user com email real
+          // Criar auth user
           const { data: authData, error: authErr } = await supabase.auth.signUp({
             email,
             password: document.getElementById('senha').value,
@@ -100,21 +99,13 @@
           });
           if (authErr) throw authErr;
 
-          // Criar user record
-          const { data: userData, error: userErr } = await supabase.from('users').insert({
-            auth_id: authData.user.id,
-            email,
-            nome: aluno.nome || 'Aluno',
-            tipo: 'aluno'
-          }).select().single();
-          if (userErr) throw userErr;
-
-          // Vincular aluno
-          await supabase.from('alunos').update({
-            user_id: userData.id,
-            status: 'ativo',
-            convite_token: null
-          }).eq('id', aluno.id);
+          // RPC atomica: cria user + vincula aluno (SECURITY DEFINER, sem RLS)
+          const { data: result, error: rpcErr } = await supabase.rpc('aceitar_convite', {
+            p_token: token,
+            p_auth_id: authData.user.id
+          });
+          if (rpcErr) throw rpcErr;
+          if (result?.error) throw new Error(result.error);
 
           window.location.href = 'aluno/dashboard.html';
         } catch (err) {
