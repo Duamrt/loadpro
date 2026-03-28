@@ -205,7 +205,8 @@ async function enviarConviteWA() {
     if (error) { showToast('Erro ao gerar token', 'error'); return; }
     alunoAtual.convite_token = token;
   }
-  const link = `${location.origin}/c/${token}`;
+  const shortCode = token.split('-')[0];
+  const link = `${location.origin}/c/${shortCode}`;
   enviarConviteWhatsApp(alunoAtual.nome, alunoAtual.telefone, link);
 }
 
