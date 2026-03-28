@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281539">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281539"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03281544">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281544"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -74,6 +74,62 @@
         <button class="btn btn-primary" onclick="salvarHorarios()"><i data-lucide="save"></i> Salvar Horários</button>
       </div>
 
+      <!-- Mensagens WhatsApp -->
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="margin-bottom:16px"><i data-lucide="message-circle" style="width:18px;height:18px;color:var(--success);vertical-align:-3px"></i> Mensagens WhatsApp</h3>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px">Personalize as mensagens automáticas enviadas aos seus alunos</p>
+
+        <!-- Convite -->
+        <div style="margin-bottom:20px;padding:16px;background:var(--bg-input);border-radius:var(--radius);border-left:3px solid var(--success)">
+          <label style="font-size:13px;font-weight:700;margin-bottom:8px;display:block">📩 Convite para novo aluno</label>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:11px">Saudação</label>
+            <input type="text" class="form-control" id="cfg-msg-convite-abertura" placeholder="Ex: Olá! Tudo bem?">
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);padding:8px 12px;background:var(--bg-card);border-radius:6px;margin-bottom:8px;line-height:1.6">
+            <em>Você foi convidado(a) por <strong>Nome do Personal</strong> para usar o LoadPro.<br>Acesse seu treino, dieta e evolução pelo link:<br>🔗 Link do convite</em>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label style="font-size:11px">Fechamento</label>
+            <input type="text" class="form-control" id="cfg-msg-convite-fechamento" placeholder="Ex: Bora treinar! 💪">
+          </div>
+        </div>
+
+        <!-- Lembrete de treino -->
+        <div style="margin-bottom:20px;padding:16px;background:var(--bg-input);border-radius:var(--radius);border-left:3px solid var(--warning)">
+          <label style="font-size:13px;font-weight:700;margin-bottom:8px;display:block">🏋️ Lembrete de treino</label>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:11px">Saudação</label>
+            <input type="text" class="form-control" id="cfg-msg-lembrete-abertura" placeholder="Ex: E aí, sumiu? 😄">
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);padding:8px 12px;background:var(--bg-card);border-radius:6px;margin-bottom:8px;line-height:1.6">
+            <em>Faz <strong>X dias</strong> que você não treina! Seu treino de hoje é <strong>Nome da rotina</strong>.</em>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label style="font-size:11px">Fechamento</label>
+            <input type="text" class="form-control" id="cfg-msg-lembrete-fechamento" placeholder="Ex: Te espero no treino! 💪">
+          </div>
+        </div>
+
+        <!-- Nova avaliação -->
+        <div style="margin-bottom:16px;padding:16px;background:var(--bg-input);border-radius:var(--radius);border-left:3px solid var(--primary)">
+          <label style="font-size:13px;font-weight:700;margin-bottom:8px;display:block">📏 Nova avaliação disponível</label>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:11px">Saudação</label>
+            <input type="text" class="form-control" id="cfg-msg-avaliacao-abertura" placeholder="Ex: Oi! Tudo certo?">
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);padding:8px 12px;background:var(--bg-card);border-radius:6px;margin-bottom:8px;line-height:1.6">
+            <em>Sua nova avaliação física está registrada! Acesse no app pra ver sua evolução.</em>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label style="font-size:11px">Fechamento</label>
+            <input type="text" class="form-control" id="cfg-msg-avaliacao-fechamento" placeholder="Ex: Tá evoluindo demais! 🔥">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="salvarMensagens()"><i data-lucide="save"></i> Salvar Mensagens</button>
+      </div>
+
       <!-- Alterar senha -->
       <div class="card" style="margin-bottom:20px">
         <h3 style="margin-bottom:16px">Alterar Senha</h3>
@@ -95,11 +151,11 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281539"></script>
-  <script src="../js/supabase.js?v=03281539"></script>
-  <script src="../js/auth.js?v=03281539"></script>
-  <script src="../js/sidebar.js?v=03281539"></script>
-  <script src="../js/utils.js?v=03281539"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281544"></script>
+  <script src="../js/supabase.js?v=03281544"></script>
+  <script src="../js/auth.js?v=03281544"></script>
+  <script src="../js/sidebar.js?v=03281544"></script>
+  <script src="../js/utils.js?v=03281544"></script>
   <script>
     const DIAS_CONFIG = [
       { key: 'seg', label: 'Segunda-feira' },
@@ -125,6 +181,12 @@
       document.getElementById('cfgVenc').textContent = personal?.data_vencimento ? formatDate(personal.data_vencimento) : '—';
       document.getElementById('cfgMaxAlunos').value = personal?.max_alunos_dia || 12;
       document.getElementById('cfgDuracaoSessao').value = personal?.duracao_sessao_min || 60;
+
+      // Carregar mensagens WhatsApp
+      ['convite','lembrete','avaliacao'].forEach(tipo => {
+        document.getElementById('cfg-msg-' + tipo + '-abertura').value = personal?.['msg_' + tipo + '_abertura'] || '';
+        document.getElementById('cfg-msg-' + tipo + '-fechamento').value = personal?.['msg_' + tipo + '_fechamento'] || '';
+      });
 
       maskPhone(document.getElementById('cfgTelefone'));
 
@@ -257,6 +319,19 @@
       await supabase.from('users').update({ nome }).eq('id', window.currentUser.id);
       await supabase.from('personals').update({ telefone }).eq('id', window.currentPersonal.id);
       showToast('Perfil atualizado!');
+    }
+
+    async function salvarMensagens() {
+      const personal = window.currentPersonal;
+      const campos = {};
+      ['convite','lembrete','avaliacao'].forEach(tipo => {
+        campos['msg_' + tipo + '_abertura'] = document.getElementById('cfg-msg-' + tipo + '-abertura').value.trim();
+        campos['msg_' + tipo + '_fechamento'] = document.getElementById('cfg-msg-' + tipo + '-fechamento').value.trim();
+      });
+      const { error } = await supabase.from('personals').update(campos).eq('id', personal.id);
+      if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+      Object.assign(personal, campos);
+      showToast('Mensagens salvas!');
     }
 
     async function alterarSenha() {

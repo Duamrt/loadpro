@@ -85,6 +85,36 @@ function renderAlunos() {
   lucide.createIcons();
 }
 
+function enviarConviteWhatsApp(nomeAluno, telefone, link) {
+  const personal = window.currentPersonal;
+  const user = window.currentUser;
+  const nomePersonal = user?.nome || 'seu personal';
+
+  const abertura = personal?.msg_convite_abertura || 'Olá! Tudo bem?';
+  const fechamento = personal?.msg_convite_fechamento || 'Bora treinar! 💪';
+
+  const msg = [
+    abertura,
+    '',
+    `Você foi convidado(a) por *${nomePersonal}* para usar o *LoadPro* — seu app de treino, dieta e evolução.`,
+    '',
+    `Acesse pelo link abaixo pra criar sua conta:`,
+    link,
+    '',
+    fechamento
+  ].join('\n');
+
+  if (telefone) {
+    const num = telefone.replace(/\D/g, '');
+    const fone = num.startsWith('55') ? num : '55' + num;
+    window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    // Sem telefone: copiar link e abrir WhatsApp genérico
+    try { navigator.clipboard.writeText(msg); } catch(e) {}
+    showToast('Link copiado! Cole no WhatsApp do aluno.');
+  }
+}
+
 async function salvarAluno() {
   const personal = window.currentPersonal;
   const btn = document.getElementById('btnSalvar');
@@ -151,9 +181,17 @@ async function salvarAluno() {
   closeModal('modalAluno');
   document.getElementById('formAluno').reset();
   document.getElementById('alunoId').value = '';
-  showToast(alunoId ? 'Aluno atualizado!' : 'Aluno cadastrado! Convite pendente.');
   btn.disabled = false;
-  // Se criou novo, mudar filtro pra Pendentes pra mostrar o aluno recém-criado
-  if (!alunoId) document.getElementById('filtroStatus').value = 'pendente';
+
+  if (alunoId) {
+    showToast('Aluno atualizado!');
+  } else {
+    // Novo aluno: enviar convite por WhatsApp
+    document.getElementById('filtroStatus').value = 'pendente';
+    const telefone = dados.telefone;
+    const link = window.location.origin + '/convite.html?token=' + token;
+    enviarConviteWhatsApp(nome, telefone, link);
+    showToast('Aluno cadastrado!');
+  }
   await carregarAlunos();
 }
