@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loadpro-v20260328145532';
+const CACHE_NAME = 'loadpro-v20260328150112';
 const STATIC_ASSETS = [
   '/css/style.css',
   '/js/supabase.js',
