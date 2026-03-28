@@ -26,11 +26,48 @@
   window.currentUser = user;
   window.currentSession = session;
 
+  // ── Verificar se é admin da plataforma ──
+  const isAdminPage = location.pathname.includes('admin.html');
+  const { data: isAdmin } = await supabase.rpc('is_loadpro_admin');
+  window.isLoadProAdmin = !!isAdmin;
+
+  // Se é admin e NÃO está na página admin, e NÃO está acessando como personal → redirecionar
+  if (isAdmin && !isAdminPage && !localStorage.getItem('admin_viewing_personal')) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  // Se admin está "acessando como" um personal, sobrescrever currentPersonal
+  if (isAdmin && localStorage.getItem('admin_viewing_personal')) {
+    const viewingId = localStorage.getItem('admin_viewing_personal');
+    const { data: resultado } = await supabase.rpc('admin_acessar_personal', { p_personal_id: viewingId });
+
+    if (resultado && resultado.personal) {
+      const fakePersonal = resultado.personal;
+      window.currentPersonal = fakePersonal;
+      window.currentUser = { ...user, tipo: 'personal', personals: fakePersonal };
+      window.adminViewingPersonal = true;
+      window.adminViewingName = localStorage.getItem('admin_viewing_name') || resultado.user?.nome || 'Personal';
+
+      // Limite de alunos por plano
+      const limites = { starter: 10, pro: 20 };
+      window.limiteAlunos = limites[fakePersonal.plano] || 10;
+
+      // Disparar auth-ready e sair — pular verificações normais
+      document.dispatchEvent(new CustomEvent('auth-ready', { detail: { user: window.currentUser } }));
+      return;
+    } else {
+      // Personal não encontrado, limpar
+      localStorage.removeItem('admin_viewing_personal');
+      localStorage.removeItem('admin_viewing_name');
+    }
+  }
+
   // Verificar tipo vs página
   const isPersonalPage = location.pathname.includes('/personal/');
   const isAlunoPage = location.pathname.includes('/aluno/');
 
-  if (isPersonalPage && user.tipo !== 'personal') {
+  if (isPersonalPage && user.tipo !== 'personal' && !isAdmin) {
     window.location.href = '../aluno/dashboard.html';
     return;
   }

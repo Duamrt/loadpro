@@ -6,6 +6,25 @@ function initSidebar() {
   const personal = window.currentPersonal;
   if (!user) return;
 
+  // ── Barra laranja de admin acessando como personal ──
+  if (window.adminViewingPersonal) {
+    const adminBar = document.createElement('div');
+    adminBar.id = 'adminBar';
+    adminBar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998;background:#ea580c;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:.9rem;font-weight:600;';
+    const nome = window.adminViewingName || 'Personal';
+    adminBar.innerHTML = `
+      <span>Acessando: ${esc(nome)}</span>
+      <button onclick="voltarAdmin()" style="background:#fff;color:#ea580c;border:none;padding:6px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.8rem">Voltar ao Admin</button>
+    `;
+    document.body.insertBefore(adminBar, document.body.firstChild);
+
+    // Ajustar layout pra caber a barra
+    const barH = '44px';
+    document.querySelectorAll('.sidebar').forEach(s => s.style.top = barH);
+    document.querySelectorAll('.main-content').forEach(m => m.style.paddingTop = 'calc(32px + ' + barH + ')');
+    document.querySelectorAll('.mobile-header').forEach(h => h.style.top = barH);
+  }
+
   const currentPage = location.pathname.split('/').pop();
 
   const menuItems = [
@@ -93,6 +112,13 @@ function toggleSidebar(force) {
 async function logout() {
   await supabase.auth.signOut();
   window.location.href = '../login.html';
+}
+
+// Voltar ao painel admin (remove modo "acessando como")
+function voltarAdmin() {
+  localStorage.removeItem('admin_viewing_personal');
+  localStorage.removeItem('admin_viewing_name');
+  window.location.href = 'admin.html';
 }
 
 // Init quando auth estiver pronto
