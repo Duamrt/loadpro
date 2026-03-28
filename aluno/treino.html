@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Treino — LoadPro</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="stylesheet" href="../css/style.css?v=03281439">
+  <link rel="manifest" href="../manifest.json">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281439"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
-    .serie-row input { width:70px; padding:8px; text-align:center; }
-    .serie-check { width:36px; height:36px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
+    .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
+    .serie-input::-webkit-inner-spin-button, .serie-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+    .serie-check { width:44px; height:44px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; flex-shrink:0; }
     .serie-check.done { background:var(--success); border-color:var(--success); }
+    @media (max-width:360px) { .serie-input { width:56px; padding:6px; font-size:.85rem; } }
     .timer-display { font-size:2rem; font-weight:800; color:var(--primary); text-align:center; font-variant-numeric:tabular-nums; }
   </style>
 </head>
@@ -56,10 +60,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
-  <script src="../js/supabase.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281439"></script>
+  <script src="../js/supabase.js?v=03281439"></script>
+  <script src="../js/auth.js?v=03281439"></script>
+  <script src="../js/utils.js?v=03281439"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -172,19 +176,19 @@
               </div>
             </div>
             ${re.observacoes ? `<div style="font-size:.8rem;color:var(--warning);margin-bottom:8px"><i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i> ${esc(re.observacoes)}</div>` : ''}
-            <div style="display:flex;gap:8px;padding:4px 0;font-size:.75rem;font-weight:600;color:var(--text-muted)">
-              <div style="width:36px">Série</div>
-              <div style="width:70px;text-align:center">Carga</div>
-              <div style="width:70px;text-align:center">Reps</div>
-              <div style="width:36px"></div>
+            <div class="serie-row" style="border:none;padding:4px 0;font-size:.75rem;font-weight:600;color:var(--text-muted)">
+              <div style="width:36px;flex-shrink:0">Série</div>
+              <div class="serie-input" style="border:none;background:none;color:var(--text-muted);font-weight:600;font-size:.75rem;padding:0">Carga</div>
+              <div class="serie-input" style="border:none;background:none;color:var(--text-muted);font-weight:600;font-size:.75rem;padding:0">Reps</div>
+              <div style="width:44px;flex-shrink:0"></div>
             </div>
             ${series.map((s, sIdx) => {
               const gIdx = seriesState.findIndex(ss => ss.exercicio_id === s.exercicio_id && ss.serie_num === s.serie_num);
               return `
                 <div class="serie-row" id="serie-${gIdx}">
-                  <div style="width:36px;text-align:center;font-weight:600;font-size:.85rem">${s.serie_num}</div>
-                  <input type="number" class="form-control" value="${s.carga}" style="width:70px" onchange="seriesState[${gIdx}].carga=+this.value">
-                  <input type="number" class="form-control" value="${s.reps}" style="width:70px" onchange="seriesState[${gIdx}].reps=+this.value">
+                  <div style="width:36px;text-align:center;font-weight:600;font-size:.85rem;flex-shrink:0">${s.serie_num}</div>
+                  <input type="number" class="form-control serie-input" value="${s.carga}" onchange="seriesState[${gIdx}].carga=+this.value" placeholder="kg" inputmode="decimal">
+                  <input type="number" class="form-control serie-input" value="${s.reps}" onchange="seriesState[${gIdx}].reps=+this.value" placeholder="reps" inputmode="numeric">
                   <div class="serie-check" id="check-${gIdx}" onclick="completarSerie(${gIdx})">
                     <i data-lucide="check" style="width:16px;height:16px;color:#fff"></i>
                   </div>

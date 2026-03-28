@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat — LoadPro</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03281439">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281439"></script>
   <style>
     .chat-list-item { display:flex; align-items:center; gap:12px; padding:14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .2s; }
     .chat-list-item:hover { background:var(--bg-card-hover); }
@@ -21,13 +21,16 @@
         <h1>Chat</h1>
       </div>
 
-      <div class="grid grid-2" style="gap:0;height:calc(100vh - 140px)">
+      <div class="grid grid-2 chat-layout" style="gap:0;height:calc(100vh - 140px)">
         <!-- Lista de conversas -->
-        <div class="card" style="border-radius:var(--radius) 0 0 var(--radius);overflow-y:auto" id="chatList"></div>
+        <div class="card chat-list" id="chatList" style="border-radius:var(--radius) 0 0 var(--radius);overflow-y:auto"></div>
 
         <!-- Área do chat -->
-        <div class="card" style="border-radius:0 var(--radius) var(--radius) 0;border-left:0;display:flex;flex-direction:column">
-          <div id="chatHeader" style="padding:16px;border-bottom:1px solid var(--border);font-weight:600">Selecione um aluno</div>
+        <div class="card chat-area" id="chatArea" style="border-radius:0 var(--radius) var(--radius) 0;border-left:0;display:flex;flex-direction:column">
+          <div id="chatHeader" style="padding:16px;border-bottom:1px solid var(--border);font-weight:600;display:flex;align-items:center;gap:12px">
+            <button class="btn btn-sm btn-secondary chat-back-mobile" onclick="voltarListaChat()" style="padding:8px"><i data-lucide="arrow-left" style="width:16px;height:16px"></i></button>
+            <span id="chatHeaderName">Selecione um aluno</span>
+          </div>
           <div id="chatMessages" style="flex:1;overflow-y:auto;padding:16px"></div>
           <div class="chat-input-area" id="chatInputArea" style="display:none">
             <input type="text" class="form-control" id="chatInput" placeholder="Digite..." style="flex:1">
@@ -38,14 +41,19 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
-  <script src="../js/supabase.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/sidebar.js"></script>
-  <script src="../js/utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281439"></script>
+  <script src="../js/supabase.js?v=03281439"></script>
+  <script src="../js/auth.js?v=03281439"></script>
+  <script src="../js/sidebar.js?v=03281439"></script>
+  <script src="../js/utils.js?v=03281439"></script>
   <script>
     let alunoChat = null;
     let subscription = null;
+
+    function voltarListaChat() {
+      document.getElementById('chatList').classList.remove('hidden-mobile');
+      document.getElementById('chatArea').classList.remove('show-mobile');
+    }
 
     document.addEventListener('auth-ready', async () => {
       const personal = window.currentPersonal;
@@ -72,7 +80,10 @@
 
     async function abrirChat(alunoId, nome) {
       alunoChat = alunoId;
-      document.getElementById('chatHeader').textContent = nome;
+      document.getElementById('chatHeaderName').textContent = nome;
+      // Mobile: esconder lista, mostrar chat
+      document.getElementById('chatList').classList.add('hidden-mobile');
+      document.getElementById('chatArea').classList.add('show-mobile');
       document.getElementById('chatInputArea').style.display = 'flex';
 
       // Highlight
