@@ -29,6 +29,7 @@ function initSidebar() {
     { href: 'treinos.html', icon: 'clipboard-list', label: 'Treinos' },
     { href: 'dieta.html', icon: 'utensils', label: 'Dieta' },
     { href: 'medidas.html', icon: 'ruler', label: 'Medidas' },
+    { href: 'avaliacao.html', icon: 'clipboard-check', label: 'Avaliacao' },
     { href: 'agenda.html', icon: 'calendar', label: 'Agenda' },
     { section: 'Comunicação' },
     { href: 'chat.html', icon: 'message-circle', label: 'Chat' },
@@ -125,6 +126,7 @@ function initSidebar() {
     { href: 'exercicios.html', icon: 'dumbbell', label: 'Exercícios' },
     { href: 'dieta.html', icon: 'utensils', label: 'Dieta' },
     { href: 'medidas.html', icon: 'ruler', label: 'Medidas' },
+    { href: 'avaliacao.html', icon: 'clipboard-check', label: 'Avaliacao' },
     { href: 'chat.html', icon: 'message-circle', label: 'Chat' },
     { href: 'configuracoes.html', icon: 'settings', label: 'Configurações' },
   ];
