@@ -65,6 +65,9 @@ function renderRotinas() {
   const empty = document.getElementById('emptyState');
   const btnLimpar = document.getElementById('btnLimpar');
   if (btnLimpar) btnLimpar.style.display = rotinasAluno.length ? 'inline-flex' : 'none';
+  // Travar seletor enquanto tem rotinas
+  const select = document.getElementById('seletorAluno');
+  if (select) select.disabled = rotinasAluno.length > 0;
 
   if (!rotinasAluno.length) {
     container.innerHTML = '';
