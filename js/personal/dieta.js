@@ -107,16 +107,16 @@ function renderPlano() {
 async function calcularTMB() {
   if (!alunoSelecionado?.id) return;
 
-  // Buscar última medida
-  const { data: medida } = await supabase
-    .from('medidas')
-    .select('peso_kg, altura_cm')
+  // Buscar última avaliação
+  const { data: aval } = await supabase
+    .from('avaliacoes')
+    .select('peso, altura')
     .eq('aluno_id', alunoSelecionado.id)
     .order('data', { ascending: false })
     .limit(1)
     .single();
 
-  if (!medida?.peso_kg || !medida?.altura_cm) {
+  if (!aval?.peso || !aval?.altura) {
     showToast('Registre peso e altura na avaliação física primeiro', 'warning');
     return;
   }
@@ -124,7 +124,7 @@ async function calcularTMB() {
   const idade = calcIdade(alunoSelecionado.data_nascimento);
   if (!idade) { showToast('Data de nascimento não cadastrada', 'warning'); return; }
 
-  const tmb = calcTMB(medida.peso_kg, medida.altura_cm, idade, alunoSelecionado.sexo);
+  const tmb = calcTMB(aval.peso, aval.altura, idade, alunoSelecionado.sexo);
   const fator = +document.getElementById('fatorAtividade').value;
   const get = tmb * fator;
   const obj = document.getElementById('objDieta').value;
@@ -134,7 +134,7 @@ async function calcularTMB() {
   else if (obj === 'superavit') meta = get + 300;
   else meta = get;
 
-  const macros = calcMacros(meta, medida.peso_kg);
+  const macros = calcMacros(meta, aval.peso);
 
   calcResult = { tmb: Math.round(tmb), get: Math.round(get), meta: Math.round(meta), fator, objetivo_dieta: obj, ...macros };
 
