@@ -9,7 +9,7 @@ document.addEventListener('auth-ready', async () => {
 
   const { data: alunos } = await supabase
     .from('alunos').select('id, nome, sexo, data_nascimento, objetivo')
-    .eq('personal_id', personal.id).eq('status', 'ativo').order('nome');
+    .eq('personal_id', personal.id).in('status', ['ativo','pendente']).order('nome');
 
   const select = document.getElementById('seletorAluno');
   (alunos || []).forEach(a => {
