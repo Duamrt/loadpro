@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281603">
+  <link rel="stylesheet" href="../css/style.css?v=03281605">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281603"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281605"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -19,6 +19,16 @@
     .serie-check.done { background:var(--success); border-color:var(--success); }
     @media (max-width:360px) { .serie-input { width:56px; padding:6px; font-size:.85rem; } }
     .timer-display { font-size:2rem; font-weight:800; color:var(--primary); text-align:center; font-variant-numeric:tabular-nums; }
+    /* Tipo de série badges */
+    .serie-tipo { width:36px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:800; cursor:pointer; flex-shrink:0; transition:all .15s; border:none; }
+    .serie-tipo-W { background:var(--warning-light); color:var(--warning); }
+    .serie-tipo-1 { background:var(--primary-light); color:var(--primary); }
+    .serie-tipo-F { background:var(--danger-light); color:var(--danger); }
+    .serie-tipo-D { background:var(--success-light); color:var(--success); }
+    .serie-anterior { font-size:.7rem; color:var(--text-muted); text-align:center; min-width:70px; flex-shrink:0; }
+    /* PSE selector */
+    .pse-btn { width:36px; height:28px; border-radius:6px; background:var(--bg-card-hover); color:var(--text-muted); border:1px solid var(--border); font-size:.7rem; font-weight:700; cursor:pointer; flex-shrink:0; }
+    .pse-btn.rated { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
     /* PR celebration */
     .pr-badge { display:inline-flex; align-items:center; gap:4px; background:linear-gradient(135deg,#f97316,#eab308); color:#fff; font-size:.7rem; font-weight:800; padding:3px 8px; border-radius:100px; margin-left:8px; animation:prPop .5s ease; }
     @keyframes prPop { 0%{transform:scale(0);opacity:0} 50%{transform:scale(1.3)} 100%{transform:scale(1);opacity:1} }
@@ -72,10 +82,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281603"></script>
-  <script src="../js/supabase.js?v=03281603"></script>
-  <script src="../js/auth.js?v=03281603"></script>
-  <script src="../js/utils.js?v=03281603"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281605"></script>
+  <script src="../js/supabase.js?v=03281605"></script>
+  <script src="../js/auth.js?v=03281605"></script>
+  <script src="../js/utils.js?v=03281605"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -174,7 +184,7 @@
         const series = [];
         for (let s = 1; s <= re.series; s++) {
           const ant = cargasAnteriores[`${re.exercicio_id}_${s}`];
-          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: ant?.carga || re.carga_sugerida || '', reps: ant?.reps || re.reps_min || 10, done: false });
+          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: ant?.carga || re.carga_sugerida || '', reps: ant?.reps || re.reps_min || 10, done: false, tipo: '1', pse: 0 });
         }
         seriesState.push(...series.map((s, i) => ({ ...s, globalIdx: seriesState.length + i, descanso: re.descanso_seg || 60 })));
 
@@ -188,19 +198,25 @@
               </div>
             </div>
             ${re.observacoes ? `<div style="font-size:.8rem;color:var(--warning);margin-bottom:8px"><i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i> ${esc(re.observacoes)}</div>` : ''}
-            <div class="serie-row" style="border:none;padding:4px 0;font-size:.75rem;font-weight:600;color:var(--text-muted)">
-              <div style="width:36px;flex-shrink:0">Série</div>
-              <div class="serie-input" style="border:none;background:none;color:var(--text-muted);font-weight:600;font-size:.75rem;padding:0">Carga</div>
-              <div class="serie-input" style="border:none;background:none;color:var(--text-muted);font-weight:600;font-size:.75rem;padding:0">Reps</div>
+            <div class="serie-row" style="border:none;padding:4px 0;font-size:.7rem;font-weight:600;color:var(--text-muted)">
+              <div style="width:36px;flex-shrink:0">Tipo</div>
+              <div class="serie-anterior">Anterior</div>
+              <div class="serie-input" style="border:none;background:none;color:var(--text-muted);font-weight:600;font-size:.7rem;padding:0">Carga</div>
+              <div class="serie-input" style="border:none;background:none;color:var(--text-muted);font-weight:600;font-size:.7rem;padding:0">Reps</div>
+              <div style="width:36px;flex-shrink:0;text-align:center">PSE</div>
               <div style="width:44px;flex-shrink:0"></div>
             </div>
             ${series.map((s, sIdx) => {
               const gIdx = seriesState.findIndex(ss => ss.exercicio_id === s.exercicio_id && ss.serie_num === s.serie_num);
+              const ant = cargasAnteriores[`${re.exercicio_id}_${s.serie_num}`];
+              const antLabel = ant ? `${ant.carga}kg×${ant.reps}` : '—';
               return `
                 <div class="serie-row" id="serie-${gIdx}">
-                  <div style="width:36px;text-align:center;font-weight:600;font-size:.85rem;flex-shrink:0">${s.serie_num}</div>
+                  <button class="serie-tipo serie-tipo-1" id="tipo-${gIdx}" onclick="ciclaTipo(${gIdx})" title="Tipo de série">1</button>
+                  <div class="serie-anterior">${antLabel}</div>
                   <input type="number" class="form-control serie-input" value="${s.carga}" onchange="seriesState[${gIdx}].carga=+this.value" placeholder="kg" inputmode="decimal">
                   <input type="number" class="form-control serie-input" value="${s.reps}" onchange="seriesState[${gIdx}].reps=+this.value" placeholder="reps" inputmode="numeric">
+                  <button class="pse-btn" id="pse-${gIdx}" onclick="selecionaPSE(${gIdx})" title="Esforço percebido">—</button>
                   <div class="serie-check" id="check-${gIdx}" onclick="completarSerie(${gIdx})">
                     <i data-lucide="check" style="width:16px;height:16px;color:#fff"></i>
                   </div>
@@ -244,15 +260,18 @@
       const reps = s.reps || 0;
       const volume = carga * reps;
 
-      // Salvar série no banco
-      const { error: serieErr } = await supabase.from('treino_series').insert({
+      // Salvar série no banco (tipo e pse opcionais)
+      const insertData = {
         treino_log_id: treinoLogId,
         exercicio_id: s.exercicio_id,
         serie_num: s.serie_num,
         reps,
         carga,
         concluida: true
-      });
+      };
+      if (s.tipo && s.tipo !== '1') insertData.tipo_serie = s.tipo;
+      if (s.pse > 0) insertData.pse = s.pse;
+      const { error: serieErr } = await supabase.from('treino_series').insert(insertData);
       if (serieErr) showToast('Erro ao salvar série', 'error');
 
       // Verificar PR em tempo real (carga OU volume)
@@ -355,6 +374,39 @@
     function skipRest() {
       clearInterval(restInterval);
       document.getElementById('restTimer').style.display = 'none';
+    }
+
+    // Tipo de série: cicla W → 1 → F → D
+    const TIPOS_SERIE = [
+      { key: '1', label: '1', nome: 'Normal' },
+      { key: 'W', label: 'W', nome: 'Aquecimento' },
+      { key: 'F', label: 'F', nome: 'Falhada' },
+      { key: 'D', label: 'D', nome: 'Drop' },
+    ];
+    function ciclaTipo(idx) {
+      const s = seriesState[idx];
+      const atual = s.tipo || '1';
+      const i = TIPOS_SERIE.findIndex(t => t.key === atual);
+      const prox = TIPOS_SERIE[(i + 1) % TIPOS_SERIE.length];
+      s.tipo = prox.key;
+      const btn = document.getElementById(`tipo-${idx}`);
+      btn.textContent = prox.label;
+      btn.className = `serie-tipo serie-tipo-${prox.key}`;
+      showToast(prox.nome, 'success');
+    }
+
+    // PSE: seleciona 1-10
+    function selecionaPSE(idx) {
+      const s = seriesState[idx];
+      const atual = s.pse || 0;
+      // Cicla: — → 6 → 7 → 8 → 9 → 10 → —
+      const opcoes = [0, 6, 7, 8, 9, 10];
+      const i = opcoes.indexOf(atual);
+      const prox = opcoes[(i + 1) % opcoes.length];
+      s.pse = prox;
+      const btn = document.getElementById(`pse-${idx}`);
+      btn.textContent = prox || '—';
+      btn.classList.toggle('rated', prox > 0);
     }
 
     function mostrarPRCelebration(label) {
