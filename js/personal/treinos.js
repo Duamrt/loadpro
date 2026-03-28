@@ -364,6 +364,7 @@ async function aplicarTemplate(template) {
   if (error) { showToast('Erro: ' + error.message, 'error'); return; }
   if (data?.error) { showToast(data.error, 'error'); return; }
 
-  showToast(nomes[template] + ' aplicado com sucesso!');
-  await carregarRotinas();
+  showToast(nomes[template] + ' aplicado!');
+  // Recarregar rotinas imediatamente
+  setTimeout(() => carregarRotinas(), 300);
 }
