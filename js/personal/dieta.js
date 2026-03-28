@@ -300,5 +300,29 @@ async function aplicarTemplateDieta(objetivo) {
   if (data?.error) { showToast(data.error, 'warning'); return; }
 
   showToast('Dieta montada! ' + data.meta_kcal + ' kcal/dia');
-  setTimeout(() => carregarPlano(), 300);
+  await carregarPlano();
+
+  // Oferecer enviar convite pro aluno
+  setTimeout(async () => {
+    if (confirm('Dieta salva! Enviar convite pro aluno criar a conta?')) {
+      // Buscar dados do aluno pra montar link
+      const { data: al } = await supabase.from('alunos').select('nome, telefone, convite_token').eq('id', alunoSelecionado.id).single();
+      if (al?.convite_token) {
+        const link = window.location.origin + '/convite.html?token=' + al.convite_token;
+        const nomePersonal = (window.currentUser?.nome || '').split(' ')[0];
+        const primeiroNome = (al.nome || '').split(' ')[0];
+        const msg = ['Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.', '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', 'Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal].join('\n');
+        if (al.telefone) {
+          const num = al.telefone.replace(/\D/g, '');
+          const fone = num.startsWith('55') ? num : '55' + num;
+          window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+        } else {
+          try { navigator.clipboard.writeText(msg); } catch(e) {}
+          showToast('Link copiado! Cole no WhatsApp do aluno.');
+        }
+      } else {
+        showToast('Token de convite não encontrado', 'warning');
+      }
+    }
+  }, 500);
 }
