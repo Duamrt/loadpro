@@ -11,18 +11,8 @@
   var destino = matchFicha ? '/ficha.html' : matchConvite ? '/convite.html' : null;
 
   if (code && destino) {
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js';
-    s.onload = async function() {
-      var sb = window.supabase.createClient(
-        'https://sclrcxwiwfiqnxguxvbv.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjbHJjeHdpd2ZpcW54Z3V4dmJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjM2NzYsImV4cCI6MjA5MDAzOTY3Nn0._sH7CVQ38LO4RTQFHGmUPpZX4Js1SYmRwjau1Hc5cTM'
-      );
-      var { data } = await sb.from('alunos').select('convite_token').like('convite_token', code + '%').limit(1).single();
-      var token = data?.convite_token || code;
-      location.replace(destino + '?token=' + token);
-    };
-    document.head.appendChild(s);
+    // Token completo já vem na URL — redireciona direto, sem lookup no banco
+    location.replace(destino + '?token=' + code);
   } else {
     document.getElementById('msg').style.display = 'block';
   }

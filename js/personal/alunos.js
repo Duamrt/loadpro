@@ -219,8 +219,7 @@ async function salvarAluno() {
     // Novo aluno: enviar link da ficha por WhatsApp
     document.getElementById('filtroStatus').value = 'pendente';
     const telefone = dados.telefone;
-    const shortCode = token.split('-')[0];
-    const link = window.location.origin + '/f/' + shortCode;
+    const link = window.location.origin + '/f/' + token;
     enviarFichaWhatsApp(nome, telefone, link);
     showToast('Aluno cadastrado!');
   }
