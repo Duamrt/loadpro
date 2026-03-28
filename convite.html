@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03282033">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03282033"></script>
+  <link rel="stylesheet" href="css/style.css?v=03282034">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03282034"></script>
 </head>
 <body>
   <div class="auth-page">
@@ -55,8 +55,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03282033"></script>
-  <script src="js/supabase.js?v=03282033"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03282034"></script>
+  <script src="js/supabase.js?v=03282034"></script>
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
@@ -65,7 +65,12 @@
       if (!token) { mostrarInvalido(); return; }
 
       // Buscar convite via RPC (SECURITY DEFINER, sem problema de RLS)
-      const { data: aluno } = await supabase.rpc('buscar_convite', { p_token: token });
+      const { data: aluno, error: rpcError } = await supabase.rpc('buscar_convite', { p_token: token });
+
+      // Debug temporário — remover depois
+      console.log('TOKEN:', token);
+      console.log('RPC RESULT:', aluno);
+      console.log('RPC ERROR:', rpcError);
 
       if (!aluno || aluno.user_id) { mostrarInvalido(); return; }
 

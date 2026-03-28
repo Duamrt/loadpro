@@ -23,7 +23,8 @@
           'https://sclrcxwiwfiqnxguxvbv.supabase.co',
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjbHJjeHdpd2ZpcW54Z3V4dmJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjM2NzYsImV4cCI6MjA5MDAzOTY3Nn0._sH7CVQ38LO4RTQFHGmUPpZX4Js1SYmRwjau1Hc5cTM'
         );
-        var { data } = await sb.rpc('resolver_codigo', { p_code: code });
+        var { data, error } = await sb.rpc('resolver_codigo', { p_code: code });
+        console.log('404 CODE:', code, 'RPC DATA:', data, 'RPC ERROR:', error);
         var token = data || code;
         location.replace(destino + '?token=' + token);
       };
