@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281444">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281444"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03281447">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281447"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
     .admin-sidebar {
@@ -69,11 +69,20 @@
     }
     @media (max-width: 768px) {
       .admin-mobile-header { display: flex; }
-      .admin-sidebar { transform: translateX(-100%); z-index: 200; transition: transform .2s; }
+      .admin-sidebar { transform: translateX(-100%); z-index: 200; transition: transform .2s; width: min(260px, 85vw); }
       .admin-sidebar.open { transform: translateX(0); }
       .admin-backdrop.active { display: block; z-index: 199; }
       .main-content { margin-left: 0 !important; padding: 16px !important; padding-top: calc(var(--header-h) + 16px) !important; }
       .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+      .filters-row select { max-width: 100%; flex: 1; }
+      .filters-row .search-box { max-width: 100%; flex: 1; min-width: 200px; }
+      /* Tabela vira cards no mobile */
+      .table-wrap { border: none; overflow: visible; }
+      .table-wrap table thead { display: none; }
+      .table-wrap table, .table-wrap table tbody, .table-wrap table tr, .table-wrap table td { display: block; width: 100%; }
+      .table-wrap table tr { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+      .table-wrap table td { border: none; padding: 4px 0; }
+      .table-wrap table td:last-child { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
     }
   </style>
 </head>
@@ -245,9 +254,9 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281444"></script>
-  <script src="../js/supabase.js?v=03281444"></script>
-  <script src="../js/utils.js?v=03281444"></script>
-  <script src="../js/admin.js?v=03281444"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281447"></script>
+  <script src="../js/supabase.js?v=03281447"></script>
+  <script src="../js/utils.js?v=03281447"></script>
+  <script src="../js/admin.js?v=03281447"></script>
 </body>
 </html>

@@ -168,19 +168,19 @@ function renderPersonals(lista) {
         <td><span class="status-dot status-${statusClass}"></span>${esc(statusLabel)}</td>
         <td style="font-weight:600">${p.total_alunos}</td>
         <td style="color:var(--text-muted);font-size:.8rem">${formatDate(p.criado_em?.split('T')[0])}</td>
-        <td style="display:flex;gap:6px">
-          <select class="form-control" style="width:auto;padding:4px 8px;font-size:.75rem" onchange="mudarPlano('${p.id}', this.value)" title="Mudar plano">
+        <td>
+          <select class="form-control" style="width:auto;padding:6px 10px;font-size:.8rem" onchange="mudarPlano('${p.id}', this.value)" title="Mudar plano">
             <option value="starter" ${p.plano === 'starter' ? 'selected' : ''}>Starter</option>
             <option value="pro" ${p.plano === 'pro' ? 'selected' : ''}>Pro</option>
           </select>
-          <select class="form-control" style="width:auto;padding:4px 8px;font-size:.75rem" onchange="mudarStatus('${p.id}', this.value)" title="Mudar status">
+          <select class="form-control" style="width:auto;padding:6px 10px;font-size:.8rem" onchange="mudarStatus('${p.id}', this.value)" title="Mudar status">
             <option value="trial" ${p.status_assinatura === 'trial' ? 'selected' : ''}>Trial</option>
             <option value="ativo" ${p.status_assinatura === 'ativo' ? 'selected' : ''}>Ativo</option>
             <option value="vencido" ${p.status_assinatura === 'vencido' ? 'selected' : ''}>Vencido</option>
             <option value="bloqueado" ${p.status_assinatura === 'bloqueado' ? 'selected' : ''}>Bloqueado</option>
           </select>
-          <button class="btn btn-sm btn-primary" onclick="acessarPersonal('${p.id}', '${esc(p.nome)}')">
-            <i data-lucide="log-in" style="width:14px;height:14px"></i> Acessar
+          <button class="btn btn-sm btn-primary" onclick="acessarPersonal('${p.id}', '${esc(p.nome)}')" style="min-height:44px">
+            <i data-lucide="log-in" style="width:16px;height:16px"></i> Acessar
           </button>
         </td>
       </tr>`;
@@ -239,6 +239,7 @@ function toggleAdminSidebar(force) {
   const isOpen = force !== undefined ? force : !sb.classList.contains('open');
   sb.classList.toggle('open', isOpen);
   bd.classList.toggle('active', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 
 // ── Logout ──
