@@ -279,8 +279,7 @@ async function enviarConviteAluno() {
   const link = window.location.origin + '/convite.html?token=' + al.convite_token;
   const nomePersonal = (window.currentUser?.nome || '').split(' ')[0];
   const primeiroNome = (al.nome || '').split(' ')[0];
-  const shortCode = al.convite_token.split('-')[0];
-  const linkCurto = window.location.origin + '/c/' + shortCode;
+  const linkCurto = window.location.origin + '/c/' + al.convite_token;
   const msg = ['Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.', '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', linkCurto, '', 'Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal].join('\n');
 
   if (al.telefone) {
