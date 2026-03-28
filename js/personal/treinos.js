@@ -406,11 +406,16 @@ async function aplicarTemplate(template) {
   showToast(nomes[template] + ' aplicado!');
   await carregarRotinas();
 
-  // Perguntar se quer ir pra dieta
-  const alunoNome = document.getElementById('seletorAluno').options[document.getElementById('seletorAluno').selectedIndex]?.text || 'aluno';
-  setTimeout(() => {
-    if (confirm('Treino salvo! Ir pra Dieta de ' + alunoNome + '?')) {
-      window.location.href = 'dieta.html?aluno=' + alunoId;
-    }
-  }, 500);
+  // Banner: confere e vai pra dieta quando quiser
+  const banner = document.createElement('div');
+  banner.id = 'bannerDieta';
+  banner.style.cssText = 'position:sticky;top:0;z-index:50;background:var(--primary);color:#fff;padding:14px 20px;border-radius:var(--radius);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
+  banner.innerHTML = `
+    <span style="font-weight:600">Treino aplicado! Confira abaixo e quando estiver ok:</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="document.getElementById('bannerDieta').remove()">Ficar aqui</button>
+      <button class="btn btn-sm" style="background:#fff;color:var(--primary);font-weight:700" onclick="window.location.href='dieta.html?aluno=${alunoId}'">Ir pra Dieta →</button>
+    </div>`;
+  const container = document.getElementById('rotinasContainer');
+  container.parentNode.insertBefore(banner, container);
 }

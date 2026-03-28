@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281955">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281955"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03281959">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281959"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -19,6 +19,7 @@
           <p>Planos alimentares dos alunos</p>
         </div>
         <div style="display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="limparDieta()" id="btnLimparDieta" style="display:none"><i data-lucide="trash-2"></i> Limpar</button>
           <button class="btn btn-secondary" onclick="abrirTemplateDieta()"><i data-lucide="layout-template"></i> Template</button>
           <button class="btn btn-primary" onclick="novoPlano()"><i data-lucide="plus"></i> Novo Plano</button>
         </div>
@@ -181,11 +182,11 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281955"></script>
-  <script src="../js/supabase.js?v=03281955"></script>
-  <script src="../js/auth.js?v=03281955"></script>
-  <script src="../js/sidebar.js?v=03281955"></script>
-  <script src="../js/utils.js?v=03281955"></script>
-  <script src="../js/personal/dieta.js?v=03281955"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281959"></script>
+  <script src="../js/supabase.js?v=03281959"></script>
+  <script src="../js/auth.js?v=03281959"></script>
+  <script src="../js/sidebar.js?v=03281959"></script>
+  <script src="../js/utils.js?v=03281959"></script>
+  <script src="../js/personal/dieta.js?v=03281959"></script>
 </body>
 </html>
