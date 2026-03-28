@@ -31,6 +31,14 @@ document.addEventListener('auth-ready', async () => {
     document.getElementById('alunoIdade').textContent = `${calcIdade(aluno.data_nascimento)} anos · ${aluno.sexo === 'masculino' ? '♂' : '♀'}`;
   }
 
+  // Links com aluno pré-selecionado
+  var linkTreinos = document.getElementById('linkTreinos');
+  if (linkTreinos) linkTreinos.href = 'treinos.html?aluno=' + alunoId;
+  var linkDieta = document.getElementById('linkDieta');
+  if (linkDieta) linkDieta.href = 'dieta.html?aluno=' + alunoId;
+  var linkAvaliacao = document.getElementById('linkAvaliacao');
+  if (linkAvaliacao) linkAvaliacao.href = 'avaliacao.html?aluno=' + alunoId;
+
   // Último treino
   const { data: ultimoLog } = await supabase
     .from('treino_logs')
