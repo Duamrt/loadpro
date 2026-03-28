@@ -618,6 +618,18 @@ async function salvarAvaliacao() {
 
   if (resp.error) { showToast('Erro: ' + resp.error.message, 'error'); return; }
 
+  // Salvar peso/altura em medidas também (pra cálculo de dieta)
+  if (peso && altura) {
+    await supabase.from('medidas').insert({
+      aluno_id: alunoId,
+      data: dados.data || new Date().toISOString().split('T')[0],
+      peso_kg: peso,
+      altura_cm: altura,
+      imc: dados.imc,
+      gordura_pct: dados.bf_percent
+    });
+  }
+
   closeModal('modalAvaliacao');
   showToast(editandoId ? 'Avaliacao atualizada!' : 'Avaliacao registrada!');
   editandoId = null;
