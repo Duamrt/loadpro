@@ -186,7 +186,7 @@ function enviarConviteWhatsApp(nomeAluno, telefone, link) {
   const primeiroNome = (nomeAluno || '').split(' ')[0];
   const abertura = personal?.msg_convite_abertura || ('Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.');
   const fechamento = personal?.msg_convite_fechamento || ('Qualquer dúvida me chama aqui. Bora! - ' + nomePersonal);
-  const msg = [abertura, '', 'Acabei de montar seu treino e dieta no app. Lá você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist, sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', fechamento].join('\n');
+  const msg = [abertura, '', 'Seu treino e dieta estão prontos! No app você vai ver tudo organizado: treino do dia, séries, carga, dieta com checklist e sua evolução.', '', 'Cria sua senha aqui pra acessar (é rapidinho):', link, '', fechamento].join('\n');
   if (telefone) {
     const num = telefone.replace(/\D/g, '');
     const fone = num.startsWith('55') ? num : '55' + num;
