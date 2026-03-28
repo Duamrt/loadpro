@@ -88,6 +88,32 @@ function renderAlunos() {
   lucide.createIcons();
 }
 
+function enviarFichaWhatsApp(nomeAluno, telefone, link) {
+  const user = window.currentUser;
+  const nomePersonal = (user?.nome || 'seu personal').split(' ')[0];
+  const primeiroNome = (nomeAluno || '').split(' ')[0];
+
+  const msg = [
+    'Fala ' + primeiroNome + '! Aqui e o ' + nomePersonal + ', seu personal.',
+    '',
+    'Pra eu montar seu treino e dieta, preciso que voce preencha uma ficha rapida com seus dados, saude e medidas.',
+    '',
+    'Leva menos de 2 minutos:',
+    link,
+    '',
+    'Assim que voce preencher, eu ja comeco a montar tudo personalizado pra voce!'
+  ].join('\n');
+
+  if (telefone) {
+    const num = telefone.replace(/\D/g, '');
+    const fone = num.startsWith('55') ? num : '55' + num;
+    window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    try { navigator.clipboard.writeText(msg); } catch(e) {}
+    showToast('Link copiado! Cole no WhatsApp do aluno.');
+  }
+}
+
 function enviarConviteWhatsApp(nomeAluno, telefone, link) {
   const personal = window.currentPersonal;
   const user = window.currentUser;
@@ -190,11 +216,11 @@ async function salvarAluno() {
   if (alunoId) {
     showToast('Aluno atualizado!');
   } else {
-    // Novo aluno: enviar convite por WhatsApp
+    // Novo aluno: enviar link da ficha por WhatsApp
     document.getElementById('filtroStatus').value = 'pendente';
     const telefone = dados.telefone;
-    const link = window.location.origin + '/convite.html?token=' + token;
-    enviarConviteWhatsApp(nome, telefone, link);
+    const link = window.location.origin + '/ficha.html?token=' + token;
+    enviarFichaWhatsApp(nome, telefone, link);
     showToast('Aluno cadastrado!');
   }
   await carregarAlunos();
