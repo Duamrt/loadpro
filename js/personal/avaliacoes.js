@@ -109,7 +109,7 @@ document.addEventListener('auth-ready', async function() {
   var resp = await supabase
     .from('alunos').select('id, nome, sexo, data_nascimento')
     .eq('personal_id', personal.id)
-    .eq('status', 'ativo')
+    .in('status', ['ativo','pendente'])
     .order('nome');
 
   var alunos = resp.data || [];
