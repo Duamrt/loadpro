@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03281758">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281758"></script>
+  <link rel="stylesheet" href="css/style.css?v=03281802">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281802"></script>
 </head>
 <body>
   <div class="auth-page">
@@ -55,8 +55,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281758"></script>
-  <script src="js/supabase.js?v=03281758"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281802"></script>
+  <script src="js/supabase.js?v=03281802"></script>
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
@@ -64,15 +64,17 @@
     (async () => {
       if (!token) { mostrarInvalido(); return; }
 
-      // Buscar aluno pelo token
-      const { data: aluno } = await supabase
+      // Buscar aluno pelo token (token só existe enquanto não aceitou)
+      const { data: aluno, error: errAluno } = await supabase
         .from('alunos')
         .select('*, personals(*, users(nome))')
         .eq('convite_token', token)
-        .eq('status', 'pendente')
         .single();
 
       if (!aluno) { mostrarInvalido(); return; }
+
+      // Se já tem user vinculado, já aceitou antes
+      if (aluno.user_id) { mostrarInvalido(); return; }
 
       document.getElementById('personalNome').textContent = aluno.personals?.users?.nome || 'Seu Personal';
 
