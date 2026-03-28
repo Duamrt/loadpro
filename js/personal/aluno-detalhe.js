@@ -170,7 +170,24 @@ async function salvarAnamnese() {
   else showToast('Anamnese salva!');
 }
 
-async function copiarConvite() {
+function enviarConviteWhatsApp(nomeAluno, telefone, link) {
+  const personal = window.currentPersonal;
+  const user = window.currentUser;
+  const nomePersonal = user?.nome || 'seu personal';
+  const abertura = personal?.msg_convite_abertura || 'E aí! Bem-vindo(a) ao time! \u{1F525}';
+  const fechamento = personal?.msg_convite_fechamento || 'Agora é só foco e consistência que o shape vem! Qualquer dúvida tô aqui. Bora pra cima! \u{1F4AA}\u{1F680}';
+  const msg = [abertura, '', 'Montei seu treino e sua dieta no *LoadPro* — é o app onde você vai acompanhar tudo: treino do dia, dieta, evolução, tudo na palma da mão.', '', 'Cria sua conta aqui (30 segundos e já tá dentro):', link, '', fechamento].join('\n');
+  if (telefone) {
+    const num = telefone.replace(/\D/g, '');
+    const fone = num.startsWith('55') ? num : '55' + num;
+    window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    try { navigator.clipboard.writeText(msg); } catch(e) {}
+    showToast('Link copiado! Cole no WhatsApp do aluno.');
+  }
+}
+
+async function enviarConviteWA() {
   let token = alunoAtual.convite_token;
   if (!token) {
     token = (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -179,8 +196,7 @@ async function copiarConvite() {
     alunoAtual.convite_token = token;
   }
   const link = `${location.origin}/convite.html?token=${token}`;
-  navigator.clipboard.writeText(link);
-  showToast('Link de convite copiado!');
+  enviarConviteWhatsApp(alunoAtual.nome, alunoAtual.telefone, link);
 }
 
 // ── Chat ──
