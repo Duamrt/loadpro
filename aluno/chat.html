@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281827">
+  <link rel="stylesheet" href="../css/style.css?v=03281831">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281827"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281831"></script>
   <style>
     .chat-container { display:flex; flex-direction:column; height:calc(100vh - 130px - env(safe-area-inset-bottom, 0px)); height:calc(100dvh - 130px - env(safe-area-inset-bottom, 0px)); }
     .chat-msgs { flex:1; overflow-y:auto; padding:12px 16px; }
@@ -33,6 +33,11 @@
     .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; display:none; align-items:center; justify-content:center; cursor:pointer; }
     .lightbox.active { display:flex; }
     .lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
+    .pose-slot { display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;background:var(--bg-card-hover);border-radius:8px;cursor:pointer;border:2px solid var(--border);transition:border .2s; }
+    .pose-slot:active { border-color:var(--primary); }
+    .pose-slot span { font-size:.75rem;color:var(--text-secondary); }
+    .tipo-btn { background:var(--bg-card-hover);color:var(--text-muted);border:1px solid var(--border);font-size:.75rem;padding:4px 10px; }
+    .tipo-btn.active { background:var(--primary);color:#fff;border-color:var(--primary); }
   </style>
 </head>
 <body>
@@ -53,12 +58,46 @@
       <!-- Preview foto selecionada -->
       <div class="foto-preview" id="fotoPreview" style="display:none">
         <img id="fotoPreviewImg" src="">
+        <div id="fotoTipoBar" style="display:none;margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm tipo-btn active" data-tipo="" onclick="setTipoFoto(this,'')">Normal</button>
+          <button class="btn btn-sm tipo-btn" data-tipo="frente" onclick="setTipoFoto(this,'frente')">Frente</button>
+          <button class="btn btn-sm tipo-btn" data-tipo="costas" onclick="setTipoFoto(this,'costas')">Costas</button>
+          <button class="btn btn-sm tipo-btn" data-tipo="lateral_d" onclick="setTipoFoto(this,'lateral_d')">Lado D</button>
+          <button class="btn btn-sm tipo-btn" data-tipo="lateral_e" onclick="setTipoFoto(this,'lateral_e')">Lado E</button>
+        </div>
         <button class="remove" onclick="limparFoto()">&times;</button>
+      </div>
+
+      <!-- Painel Fotos de Progresso -->
+      <div id="progressoPanel" style="display:none;padding:12px 16px;border-top:1px solid var(--border);background:var(--bg-card)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-weight:600;font-size:.9rem">Fotos de Progresso</span>
+          <button class="btn-foto" onclick="fecharProgresso()" style="padding:4px"><i data-lucide="x" style="width:16px;height:16px"></i></button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          <div class="pose-slot" onclick="tirarFotoProgresso('frente')">
+            <i data-lucide="user" style="width:24px;height:24px;color:var(--primary)"></i>
+            <span>Frente</span>
+          </div>
+          <div class="pose-slot" onclick="tirarFotoProgresso('costas')">
+            <i data-lucide="user" style="width:24px;height:24px;color:var(--primary);transform:scaleX(-1)"></i>
+            <span>Costas</span>
+          </div>
+          <div class="pose-slot" onclick="tirarFotoProgresso('lateral_d')">
+            <i data-lucide="user" style="width:24px;height:24px;color:var(--primary);transform:rotate(90deg)"></i>
+            <span>Lado D</span>
+          </div>
+          <div class="pose-slot" onclick="tirarFotoProgresso('lateral_e')">
+            <i data-lucide="user" style="width:24px;height:24px;color:var(--primary);transform:rotate(-90deg)"></i>
+            <span>Lado E</span>
+          </div>
+        </div>
+        <input type="file" id="progressoInput" class="foto-input" accept="image/jpeg,image/png,image/webp" capture="environment">
       </div>
 
       <!-- Barra de input -->
       <div class="chat-bar">
-        <button class="btn-foto" onclick="document.getElementById('fotoInput').click()" title="Enviar foto">
+        <button class="btn-foto" onclick="abrirProgresso()" title="Fotos de progresso">
           <i data-lucide="camera" style="width:22px;height:22px"></i>
         </button>
         <input type="file" id="fotoInput" class="foto-input" accept="image/jpeg,image/png,image/webp" capture="environment">
@@ -84,10 +123,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281827"></script>
-  <script src="../js/supabase.js?v=03281827"></script>
-  <script src="../js/auth.js?v=03281827"></script>
-  <script src="../js/utils.js?v=03281827"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281831"></script>
+  <script src="../js/supabase.js?v=03281831"></script>
+  <script src="../js/auth.js?v=03281831"></script>
+  <script src="../js/utils.js?v=03281831"></script>
   <script>
     let personalId = null;
     let subscription = null;
@@ -148,12 +187,53 @@
         if (!file) return;
         if (file.size > 10 * 1024 * 1024) { showToast('Foto muito grande (max 10MB)', 'error'); return; }
         fotoFile = file;
+        fotoTipo = null;
         const reader = new FileReader();
         reader.onload = () => {
           document.getElementById('fotoPreviewImg').src = reader.result;
           document.getElementById('fotoPreview').style.display = 'block';
+          document.getElementById('fotoTipoBar').style.display = 'flex';
         };
         reader.readAsDataURL(file);
+      });
+
+      // Foto de progresso (com tipo pré-selecionado)
+      document.getElementById('progressoInput').addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) { showToast('Foto muito grande (max 10MB)', 'error'); return; }
+
+        const tipos = { frente: 'Frente', costas: 'Costas', lateral_d: 'Lado D', lateral_e: 'Lado E' };
+        showToast('Enviando foto ' + (tipos[progressoTipo] || '') + '...');
+        fecharProgresso();
+
+        const aluno = window.currentAluno;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const path = `${window.currentSession.user.id}/${aluno.id}/${Date.now()}.${ext}`;
+        const { error } = await supabase.storage.from('fotos-progresso').upload(path, file, { contentType: file.type });
+        if (error) { showToast('Erro ao enviar', 'error'); return; }
+
+        const { data: urlData } = supabase.storage.from('fotos-progresso').getPublicUrl(path);
+        const foto_url = urlData.publicUrl;
+        const textoTipo = tipos[progressoTipo] || '';
+
+        // Salvar na galeria com tipo
+        await supabase.from('fotos_progresso').insert({
+          aluno_id: aluno.id, url: foto_url, tipo: progressoTipo, observacoes: null
+        });
+
+        // Enviar no chat
+        const tempId = 'temp-' + Date.now();
+        appendMsg({ id: tempId, remetente_id: window.currentUser.id, texto: 'Foto de progresso: ' + textoTipo, foto_url, criado_em: new Date().toISOString() });
+
+        await supabase.from('mensagens').insert({
+          personal_id: personalId, aluno_id: aluno.id, remetente_id: window.currentUser.id,
+          texto: 'Foto de progresso: ' + textoTipo, foto_url
+        });
+
+        showToast('Foto ' + textoTipo + ' enviada!');
+        document.getElementById('progressoInput').value = '';
+        progressoTipo = null;
       });
 
       lucide.createIcons();
@@ -207,10 +287,34 @@
       document.getElementById('lightbox').classList.add('active');
     }
 
+    let fotoTipo = null;
+    let progressoTipo = null;
+
     function limparFoto() {
       fotoFile = null;
+      fotoTipo = null;
       document.getElementById('fotoPreview').style.display = 'none';
       document.getElementById('fotoInput').value = '';
+    }
+
+    function setTipoFoto(btn, tipo) {
+      fotoTipo = tipo || null;
+      document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function abrirProgresso() {
+      document.getElementById('progressoPanel').style.display = 'block';
+      lucide.createIcons();
+    }
+
+    function fecharProgresso() {
+      document.getElementById('progressoPanel').style.display = 'none';
+    }
+
+    function tirarFotoProgresso(tipo) {
+      progressoTipo = tipo;
+      document.getElementById('progressoInput').click();
     }
 
     async function enviar() {
@@ -241,11 +345,11 @@
         const { data: urlData } = supabase.storage.from('fotos-progresso').getPublicUrl(path);
         foto_url = urlData.publicUrl;
 
-        // Salvar também na galeria de progresso
+        // Salvar na galeria de progresso (com tipo se selecionou)
         await supabase.from('fotos_progresso').insert({
           aluno_id: aluno.id,
           url: foto_url,
-          tipo: null,
+          tipo: fotoTipo || null,
           observacoes: texto || null
         });
 
