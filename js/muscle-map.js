@@ -278,16 +278,10 @@ function renderMuscleMap(containerId, primaryMuscle, secondaryMuscles = []) {
     }
   });
 
-  const COLOR_PRIMARY = '#f97316';
-  const COLOR_SECONDARY = 'rgba(249,115,22,0.35)';
-  const COLOR_DEFAULT = '#2a2a2a';
-  const COLOR_STROKE = '#3a3a3a';
-  const COLOR_BODY = '#1e1e1e';
-
-  function getColor(muscleId) {
-    if (primaryIds.has(muscleId)) return COLOR_PRIMARY;
-    if (secondaryIds.has(muscleId)) return COLOR_SECONDARY;
-    return COLOR_DEFAULT;
+  function getLevel(muscleId) {
+    if (primaryIds.has(muscleId)) return 'primary';
+    if (secondaryIds.has(muscleId)) return 'secondary';
+    return 'default';
   }
 
   function buildSVG(data, viewBoxH) {
@@ -297,18 +291,81 @@ function renderMuscleMap(containerId, primaryMuscle, secondaryMuscles = []) {
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     svg.style.width = '100%';
     svg.style.height = 'auto';
-    svg.style.maxWidth = '160px';
+    svg.style.maxWidth = '180px';
     svg.style.display = 'block';
+    svg.style.filter = 'drop-shadow(0 0 8px rgba(249,115,22,0.15))';
 
-    data.forEach(group => {
-      const fill = getColor(group.muscle);
-      group.svgPoints.forEach(points => {
-        const polygon = document.createElementNS(ns, 'polygon');
+    // Defs: gradientes e glow
+    const defs = document.createElementNS(ns, 'defs');
+
+    // Gradiente principal (laranja vibrante)
+    const gradPrimary = document.createElementNS(ns, 'linearGradient');
+    gradPrimary.id = 'gradPrimary' + viewBoxH;
+    gradPrimary.setAttribute('x1', '0'); gradPrimary.setAttribute('y1', '0');
+    gradPrimary.setAttribute('x2', '0'); gradPrimary.setAttribute('y2', '1');
+    var s1 = document.createElementNS(ns, 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', '#fb923c');
+    var s2 = document.createElementNS(ns, 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', '#ea580c');
+    gradPrimary.appendChild(s1); gradPrimary.appendChild(s2);
+    defs.appendChild(gradPrimary);
+
+    // Gradiente secundário (laranja suave)
+    const gradSecondary = document.createElementNS(ns, 'linearGradient');
+    gradSecondary.id = 'gradSecondary' + viewBoxH;
+    gradSecondary.setAttribute('x1', '0'); gradSecondary.setAttribute('y1', '0');
+    gradSecondary.setAttribute('x2', '0'); gradSecondary.setAttribute('y2', '1');
+    var s3 = document.createElementNS(ns, 'stop');
+    s3.setAttribute('offset', '0%'); s3.setAttribute('stop-color', 'rgba(249,115,22,0.5)');
+    var s4 = document.createElementNS(ns, 'stop');
+    s4.setAttribute('offset', '100%'); s4.setAttribute('stop-color', 'rgba(234,88,12,0.3)');
+    gradSecondary.appendChild(s3); gradSecondary.appendChild(s4);
+    defs.appendChild(gradSecondary);
+
+    // Glow filter
+    const glow = document.createElementNS(ns, 'filter');
+    glow.id = 'muscleGlow' + viewBoxH;
+    glow.setAttribute('x', '-20%'); glow.setAttribute('y', '-20%');
+    glow.setAttribute('width', '140%'); glow.setAttribute('height', '140%');
+    var blur = document.createElementNS(ns, 'feGaussianBlur');
+    blur.setAttribute('stdDeviation', '2'); blur.setAttribute('result', 'glow');
+    var merge = document.createElementNS(ns, 'feMerge');
+    var mn1 = document.createElementNS(ns, 'feMergeNode'); mn1.setAttribute('in', 'glow');
+    var mn2 = document.createElementNS(ns, 'feMergeNode'); mn2.setAttribute('in', 'SourceGraphic');
+    merge.appendChild(mn1); merge.appendChild(mn2);
+    glow.appendChild(blur); glow.appendChild(merge);
+    defs.appendChild(glow);
+
+    svg.appendChild(defs);
+
+    data.forEach(function(group) {
+      var level = getLevel(group.muscle);
+      var fill, stroke, strokeW, filterAttr;
+      if (level === 'primary') {
+        fill = 'url(#gradPrimary' + viewBoxH + ')';
+        stroke = '#fb923c';
+        strokeW = '0.5';
+        filterAttr = 'url(#muscleGlow' + viewBoxH + ')';
+      } else if (level === 'secondary') {
+        fill = 'url(#gradSecondary' + viewBoxH + ')';
+        stroke = 'rgba(249,115,22,0.5)';
+        strokeW = '0.4';
+        filterAttr = '';
+      } else {
+        fill = '#1a1a1a';
+        stroke = '#333';
+        strokeW = '0.3';
+        filterAttr = '';
+      }
+
+      group.svgPoints.forEach(function(points) {
+        var polygon = document.createElementNS(ns, 'polygon');
         polygon.setAttribute('points', points.trim());
         polygon.setAttribute('fill', fill);
-        polygon.setAttribute('stroke', fill === COLOR_DEFAULT ? COLOR_STROKE : fill);
-        polygon.setAttribute('stroke-width', '0.3');
+        polygon.setAttribute('stroke', stroke);
+        polygon.setAttribute('stroke-width', strokeW);
         polygon.setAttribute('stroke-linejoin', 'round');
+        if (filterAttr) polygon.setAttribute('filter', filterAttr);
         svg.appendChild(polygon);
       });
     });
@@ -316,31 +373,37 @@ function renderMuscleMap(containerId, primaryMuscle, secondaryMuscles = []) {
     return svg;
   }
 
-  // Wrapper
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'display:flex;gap:12px;justify-content:center;align-items:flex-start;width:100%;';
+  // Wrapper com background sutil
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;gap:16px;justify-content:center;align-items:flex-start;width:100%;padding:16px 8px;background:linear-gradient(180deg,#0d0d0d,#141414);border-radius:12px;border:1px solid #1e1e1e;';
 
   // Front
-  const frontCol = document.createElement('div');
+  var frontCol = document.createElement('div');
   frontCol.style.cssText = 'display:flex;flex-direction:column;align-items:center;flex:1;max-width:180px;';
-  const frontSvg = buildSVG(anteriorData, 200);
-  frontCol.appendChild(frontSvg);
-  const frontLabel = document.createElement('span');
+  frontCol.appendChild(buildSVG(anteriorData, 200));
+  var frontLabel = document.createElement('span');
   frontLabel.textContent = 'Frente';
-  frontLabel.style.cssText = 'font-size:11px;color:#888;margin-top:4px;';
+  frontLabel.style.cssText = 'font-size:10px;color:#555;margin-top:8px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;';
   frontCol.appendChild(frontLabel);
 
   // Back
-  const backCol = document.createElement('div');
+  var backCol = document.createElement('div');
   backCol.style.cssText = 'display:flex;flex-direction:column;align-items:center;flex:1;max-width:180px;';
-  const backSvg = buildSVG(posteriorData, 222);
-  backCol.appendChild(backSvg);
-  const backLabel = document.createElement('span');
+  backCol.appendChild(buildSVG(posteriorData, 222));
+  var backLabel = document.createElement('span');
   backLabel.textContent = 'Costas';
-  backLabel.style.cssText = 'font-size:11px;color:#888;margin-top:4px;';
+  backLabel.style.cssText = 'font-size:10px;color:#555;margin-top:8px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;';
   backCol.appendChild(backLabel);
 
   wrapper.appendChild(frontCol);
   wrapper.appendChild(backCol);
+
+  // Legenda
+  var legend = document.createElement('div');
+  legend.style.cssText = 'display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:10px;';
+  legend.innerHTML = '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:linear-gradient(#fb923c,#ea580c)"></span><span style="color:#888">Principal</span></span>' +
+    '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(249,115,22,0.4)"></span><span style="color:#888">Secundário</span></span>';
+
   container.appendChild(wrapper);
+  container.appendChild(legend);
 }
