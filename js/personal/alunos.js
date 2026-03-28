@@ -108,8 +108,10 @@ async function salvarAluno() {
 
   btn.disabled = true;
 
-  // Gerar token de convite
-  const token = crypto.randomUUID();
+  // Gerar token de convite (fallback pra HTTP onde crypto.randomUUID não existe)
+  const token = (typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID()
+    : 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c === 'x' ? r : (r&0x3|0x8)).toString(16); }) + '-' + Date.now().toString(36);
 
   const alunoId = document.getElementById('alunoId').value;
 
