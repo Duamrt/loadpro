@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03281602">
+  <link rel="stylesheet" href="../css/style.css?v=03281603">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281602"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03281603"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -72,10 +72,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281602"></script>
-  <script src="../js/supabase.js?v=03281602"></script>
-  <script src="../js/auth.js?v=03281602"></script>
-  <script src="../js/utils.js?v=03281602"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03281603"></script>
+  <script src="../js/supabase.js?v=03281603"></script>
+  <script src="../js/auth.js?v=03281603"></script>
+  <script src="../js/utils.js?v=03281603"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -296,6 +296,24 @@
       startRestTimer(s.descanso);
     }
 
+    // Alerta sonoro — funciona com fone, por cima da música
+    function playRestBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        // 3 beeps curtos
+        [0, 0.2, 0.4].forEach(delay => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 880; // A5
+          gain.gain.value = 0.3;
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.12);
+        });
+      } catch(e) {}
+    }
+
     function startRestTimer(seconds) {
       clearInterval(restInterval);
       let remaining = seconds;
@@ -307,7 +325,19 @@
         const m = String(Math.floor(remaining / 60)).padStart(2, '0');
         const s = String(remaining % 60).padStart(2, '0');
         displayEl.textContent = `${m}:${s}`;
-        if (remaining <= 0) { skipRest(); return; }
+        // Beep nos últimos 3 segundos + beep final
+        if (remaining <= 3 && remaining > 0) {
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 660;
+            gain.gain.value = 0.15;
+            osc.start(); osc.stop(ctx.currentTime + 0.08);
+          } catch(e) {}
+        }
+        if (remaining <= 0) { playRestBeep(); skipRest(); return; }
         remaining--;
       };
       update();
