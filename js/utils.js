@@ -133,6 +133,17 @@ function closeModal(id) {
   document.getElementById(id)?.classList.remove('active');
 }
 
+// ESC fecha qualquer modal aberto
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.querySelector('.modal-overlay.active');
+    if (modal) { modal.classList.remove('active'); e.preventDefault(); }
+    // Fechar bottom sheet também
+    var sheet = document.getElementById('bottomSheet');
+    if (sheet && sheet.classList.contains('open')) { sheet.classList.remove('open'); document.body.style.overflow = ''; }
+  }
+});
+
 // Dias da semana
 const DIAS_SEMANA = [
   { key: 'seg', label: 'Seg' },
