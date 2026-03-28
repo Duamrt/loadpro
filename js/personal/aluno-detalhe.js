@@ -283,9 +283,53 @@ async function carregarFotos(alunoId) {
     .order('criado_em', { ascending: false });
 
   const container = document.getElementById('galFotos');
-  if (!fotos?.length) return; // mantém empty state
+  if (!fotos?.length) return;
 
-  // Agrupar por mês
+  const tipoNomes = { frente: 'Frente', costas: 'Costas', lateral_d: 'Lado D', lateral_e: 'Lado E' };
+  const tiposOrdem = ['frente', 'costas', 'lateral_d', 'lateral_e'];
+
+  // Separar fotos com tipo (progresso) e sem tipo (avulsas)
+  const porTipo = {};
+  const avulsas = [];
+  fotos.forEach(f => {
+    if (f.tipo && tipoNomes[f.tipo]) {
+      if (!porTipo[f.tipo]) porTipo[f.tipo] = [];
+      porTipo[f.tipo].push(f);
+    } else {
+      avulsas.push(f);
+    }
+  });
+
+  let html = '';
+
+  // Grid comparativo por tipo (última foto de cada pose)
+  const temTipo = tiposOrdem.some(t => porTipo[t]?.length);
+  if (temTipo) {
+    html += `<div style="margin-bottom:20px">
+      <h4 style="margin-bottom:12px;font-size:.9rem;color:var(--text-secondary)">Últimas fotos de progresso</h4>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">`;
+    tiposOrdem.forEach(t => {
+      const foto = porTipo[t]?.[0]; // já vem DESC, primeira é mais recente
+      if (foto) {
+        html += `<div style="text-align:center">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden;cursor:pointer" onclick="abrirFotoDetalhe('${esc(foto.url)}')">
+            <img src="${esc(foto.url)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+          </div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">${tipoNomes[t]}</div>
+          <div style="font-size:.7rem;color:var(--text-muted)">${new Date(foto.criado_em).toLocaleDateString('pt-BR')}</div>
+        </div>`;
+      } else {
+        html += `<div style="text-align:center">
+          <div style="aspect-ratio:3/4;border-radius:8px;background:var(--bg-card-hover);display:flex;align-items:center;justify-content:center;border:2px dashed var(--border)">
+            <span style="font-size:.75rem;color:var(--text-muted)">${tipoNomes[t]}</span>
+          </div>
+        </div>`;
+      }
+    });
+    html += `</div></div>`;
+  }
+
+  // Histórico por mês (todas as fotos)
   const grupos = {};
   fotos.forEach(f => {
     const d = new Date(f.criado_em);
@@ -294,13 +338,12 @@ async function carregarFotos(alunoId) {
     grupos[key].push(f);
   });
 
-  let html = '';
   for (const [mes, lista] of Object.entries(grupos)) {
     html += `<div style="margin-bottom:20px">
       <h4 style="margin-bottom:12px;text-transform:capitalize;font-size:.9rem;color:var(--text-secondary)">${esc(mes)}</h4>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">`;
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">`;
     lista.forEach(f => {
-      const tipo = f.tipo ? `<span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.7rem;padding:2px 6px;border-radius:4px">${esc(f.tipo)}</span>` : '';
+      const tipo = f.tipo && tipoNomes[f.tipo] ? `<span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px">${tipoNomes[f.tipo]}</span>` : '';
       html += `
         <div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer" onclick="abrirFotoDetalhe('${esc(f.url)}')">
           <img src="${esc(f.url)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
