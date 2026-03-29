@@ -111,25 +111,48 @@ document.addEventListener('auth-ready', async () => {
     document.getElementById('resumoTreinos').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhuma rotina criada</p>';
   }
 
-  // Carregar resumo de dieta
+  // Carregar resumo de dieta com refeições
   try {
-    const { data: planosDieta, error: errDieta } = await supabase
+    const { data: planosDieta } = await supabase
       .from('planos_dieta')
-      .select('nome, meta_kcal, proteina_g, carboidrato_g, gordura_g, ativo')
+      .select('*, refeicoes(id, nome, horario, calorias, descricao, ordem)')
       .eq('aluno_id', alunoId)
       .eq('personal_id', window.currentPersonal.id)
       .eq('ativo', true)
+      .order('criado_em', { ascending: false })
       .limit(1);
 
     if (planosDieta?.length) {
       const p = planosDieta[0];
+      const refs = (p.refeicoes || []).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+      const totalKcal = refs.reduce((s, r) => s + (r.calorias || 0), 0);
+
       document.getElementById('resumoDieta').innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
           <div>
-            <div style="font-weight:500">${esc(p.nome)}</div>
-            <div style="font-size:.8rem;color:var(--text-muted)">${p.meta_kcal || '—'} kcal · P:${p.proteina_g || '—'}g · C:${p.carboidrato_g || '—'}g · G:${p.gordura_g || '—'}g</div>
+            <div style="font-weight:600">${esc(p.nome)}</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">Meta: ${p.meta_kcal || '—'} kcal/dia</div>
           </div>
-          <span class="badge badge-success">Ativo</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-primary">P: ${p.proteina_g || '—'}g</span>
+            <span class="badge badge-warning">C: ${p.carboidrato_g || '—'}g</span>
+            <span class="badge badge-danger">G: ${p.gordura_g || '—'}g</span>
+          </div>
+        </div>
+        ${refs.length ? refs.map(r => `
+          <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <strong style="font-size:.9rem">${esc(r.nome)}</strong>
+              <div style="display:flex;gap:8px;align-items:center">
+                ${r.horario ? `<span style="font-size:.75rem;color:var(--text-muted)">${r.horario}</span>` : ''}
+                ${r.calorias ? `<span style="font-size:.8rem;font-weight:600">${r.calorias} kcal</span>` : ''}
+              </div>
+            </div>
+            ${r.descricao ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:pre-line">${esc(r.descricao)}</div>` : ''}
+          </div>
+        `).join('') : '<p style="color:var(--text-muted);font-size:.85rem;padding:12px 0">Nenhuma refeição cadastrada ainda</p>'}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+          <div style="font-size:.85rem;color:var(--text-muted)">Total: <strong style="color:var(--text)">${totalKcal} kcal</strong> de ${p.meta_kcal || '—'}</div>
         </div>`;
     } else {
       document.getElementById('resumoDieta').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhum plano alimentar ativo</p>';
