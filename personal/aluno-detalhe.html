@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03290459">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290459"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03290504">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290504"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body>
@@ -107,7 +107,6 @@
           </div>
           <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
             <button class="btn btn-primary" onclick="salvarDados()"><i data-lucide="save"></i> Salvar</button>
-            <button class="btn btn-success" onclick="enviarConviteWA()"><i data-lucide="message-circle"></i> Enviar WhatsApp</button>
             <button class="btn btn-danger" onclick="excluirAluno()" style="margin-left:auto"><i data-lucide="trash-2"></i> Excluir</button>
           </div>
         </div>
@@ -115,15 +114,45 @@
         <!-- Acesso do aluno -->
         <div class="card" style="margin-top:16px" id="cardAcesso">
           <h3 style="margin-bottom:16px"><i data-lucide="key-round" style="width:18px;height:18px;vertical-align:-3px"></i> Acesso do aluno</h3>
+
+          <!-- Estado: pendente (sem conta ainda) -->
           <div id="acessoPendente" style="display:none">
-            <div class="alert alert-warning" style="display:flex;align-items:center;gap:12px">
-              <i data-lucide="clock" style="width:20px;height:20px;flex-shrink:0"></i>
-              <div>
-                <strong>Convite pendente</strong> — o aluno ainda não criou a senha.
-                <br><span style="font-size:.85rem">Envie o convite por WhatsApp para ele criar o acesso.</span>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <!-- Passo 1: Ficha -->
+              <div class="card" style="background:var(--bg-card-hover);padding:16px" id="passo1">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                  <span style="background:var(--primary);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">1</span>
+                  <div style="flex:1">
+                    <strong>Ficha de saúde</strong>
+                    <div style="font-size:.8rem;color:var(--text-muted)" id="fichaStatus">O aluno preenche dados, saúde e medidas</div>
+                  </div>
+                  <button class="btn btn-success btn-sm" onclick="enviarFichaWA()" style="white-space:nowrap">
+                    <i data-lucide="clipboard-list" style="width:14px;height:14px"></i> Enviar ficha
+                  </button>
+                </div>
+              </div>
+
+              <!-- Passo 2: Convite (criar senha) -->
+              <div class="card" style="background:var(--bg-card-hover);padding:16px" id="passo2">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                  <span style="background:var(--primary);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">2</span>
+                  <div style="flex:1">
+                    <strong>Criar acesso</strong>
+                    <div style="font-size:.8rem;color:var(--text-muted)">O aluno cria a senha e acessa o app</div>
+                  </div>
+                  <button class="btn btn-success btn-sm" onclick="enviarConviteWA()" style="white-space:nowrap">
+                    <i data-lucide="send" style="width:14px;height:14px"></i> Enviar convite
+                  </button>
+                </div>
               </div>
             </div>
+            <p style="font-size:.8rem;color:var(--text-muted);margin-top:12px">
+              <i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i>
+              Pode reenviar qualquer link quantas vezes precisar. O aluno recebe no WhatsApp.
+            </p>
           </div>
+
+          <!-- Estado: ativo (já tem conta) -->
           <div id="acessoAtivo" style="display:none">
             <div class="grid grid-2">
               <div class="form-group">
@@ -260,11 +289,11 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290459"></script>
-  <script src="../js/supabase.js?v=03290459"></script>
-  <script src="../js/auth.js?v=03290459"></script>
-  <script src="../js/sidebar.js?v=03290459"></script>
-  <script src="../js/utils.js?v=03290459"></script>
-  <script src="../js/personal/aluno-detalhe.js?v=03290459"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290504"></script>
+  <script src="../js/supabase.js?v=03290504"></script>
+  <script src="../js/auth.js?v=03290504"></script>
+  <script src="../js/sidebar.js?v=03290504"></script>
+  <script src="../js/utils.js?v=03290504"></script>
+  <script src="../js/personal/aluno-detalhe.js?v=03290504"></script>
 </body>
 </html>
