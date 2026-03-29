@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291136">
+  <link rel="stylesheet" href="../css/style.css?v=03291309">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291136"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291309"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -84,10 +84,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291136"></script>
-  <script src="../js/supabase.js?v=03291136"></script>
-  <script src="../js/auth.js?v=03291136"></script>
-  <script src="../js/utils.js?v=03291136"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291309"></script>
+  <script src="../js/supabase.js?v=03291309"></script>
+  <script src="../js/auth.js?v=03291309"></script>
+  <script src="../js/utils.js?v=03291309"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -186,7 +186,7 @@
         const series = [];
         for (let s = 1; s <= re.series; s++) {
           const ant = cargasAnteriores[`${re.exercicio_id}_${s}`];
-          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: ant?.carga || re.carga_sugerida || '', reps: ant?.reps || re.reps_min || 10, done: false, tipo: '1', pse: 0 });
+          series.push({ exercicio_id: re.exercicio_id, serie_num: s, carga: ant?.carga || re.carga_sugerida || 0, reps: ant?.reps || re.reps_min || 10, done: false, tipo: '1', pse: 0 });
         }
         seriesState.push(...series.map((s, i) => ({ ...s, globalIdx: seriesState.length + i, descanso: re.descanso_seg || 60 })));
 
@@ -216,7 +216,7 @@
                 <div class="serie-row" id="serie-${gIdx}">
                   <button class="serie-tipo serie-tipo-1" id="tipo-${gIdx}" onclick="ciclaTipo(${gIdx})" title="Tipo de série">1</button>
                   <div class="serie-anterior">${antLabel}</div>
-                  <input type="number" class="form-control serie-input" value="${s.carga}" oninput="seriesState[${gIdx}].carga=parseFloat(this.value)||0" placeholder="kg" inputmode="decimal">
+                  <input type="number" class="form-control serie-input" value="${s.carga || ''}" oninput="seriesState[${gIdx}].carga=parseFloat(this.value)||0" placeholder="kg" inputmode="decimal" style="${!s.carga ? 'border-color:var(--warning)' : ''}">
                   <input type="number" class="form-control serie-input" value="${s.reps}" oninput="seriesState[${gIdx}].reps=parseInt(this.value)||0" placeholder="reps" inputmode="numeric">
                   <button class="pse-btn" id="pse-${gIdx}" onclick="selecionaPSE(${gIdx})" title="Esforço percebido">—</button>
                   <div class="serie-check" id="check-${gIdx}" onclick="completarSerie(${gIdx})">
@@ -253,6 +253,15 @@
       if (inputs?.length >= 2) {
         s.carga = parseFloat(inputs[0].value) || 0;
         s.reps = parseInt(inputs[1].value) || 0;
+      }
+
+      // Avisar se carga tá zerada
+      if (s.carga === 0 && s.reps > 0) {
+        if (!confirm('Carga está 0kg. Confirmar sem carga?')) {
+          s.done = false;
+          if (inputs?.[0]) inputs[0].focus();
+          return;
+        }
       }
 
       const check = document.getElementById(`check-${idx}`);
