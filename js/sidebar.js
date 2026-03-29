@@ -52,10 +52,14 @@ function initSidebar() {
   sidebar.className = 'sidebar';
   sidebar.id = 'sidebar';
   sidebar.innerHTML = `
-    <div class="sidebar-brand" style="padding:20px 20px 16px">
-      <h1 style="font-size:24px;font-weight:900;letter-spacing:-1px"><span style="color:var(--primary)">LOAD</span><span style="color:#fff">PRO</span></h1>
+    <div class="sidebar-brand">
+      <h1 style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;letter-spacing:-0.5px">Load<span style="color:var(--primary)">Pro</span></h1>
     </div>
     <nav class="sidebar-nav">${navHTML}</nav>
+    <button class="theme-toggle-sidebar" onclick="toggleTheme()">
+      <div class="theme-toggle-track"><div class="theme-toggle-thumb"></div></div>
+      <span id="themeLabel">${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Modo claro' : 'Modo escuro'}</span>
+    </button>
     <div class="sidebar-footer">
       <div class="sidebar-user">
         <div class="avatar">${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : initials}</div>
@@ -75,10 +79,10 @@ function initSidebar() {
   mobileHeader.className = 'mobile-header';
   mobileHeader.innerHTML = `
     <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
-    <div style="display:flex;align-items:center;gap:8px;font-weight:700">
-      <span style="font-weight:900;letter-spacing:-1px"><span style="color:var(--primary)">LOAD</span><span>PRO</span></span>
+    <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;letter-spacing:-0.5px">
+      Load<span style="color:var(--primary)">Pro</span>
     </div>
-    <div style="width:40px"></div>
+    <button onclick="toggleTheme()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:8px" title="Alternar tema" id="mobileThemeBtn">🌙</button>
   `;
 
   // Backdrop
@@ -181,6 +185,29 @@ function voltarAdmin() {
   localStorage.removeItem('admin_viewing_name');
   window.location.href = 'admin.html';
 }
+
+// ── Theme toggle ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('loadpro-theme', newTheme);
+  const label = document.getElementById('themeLabel');
+  if (label) label.textContent = newTheme === 'dark' ? 'Modo claro' : 'Modo escuro';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = newTheme === 'dark' ? '#1A1816' : '#F5F0E8';
+}
+
+// Restaurar tema salvo (roda antes do DOM pra evitar flash)
+(function() {
+  const saved = localStorage.getItem('loadpro-theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = '#1A1816';
+  }
+})();
 
 // Init quando auth estiver pronto
 document.addEventListener('auth-ready', () => initSidebar());
