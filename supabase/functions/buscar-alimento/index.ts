@@ -3,8 +3,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const CONSUMER_KEY = "36e3a251970342ada5cb014404f59293"
-const CONSUMER_SECRET = "240d34a9f005438da204377af6082274"
+const CONSUMER_KEY = Deno.env.get("FATSECRET_KEY") || ""
+const CONSUMER_SECRET = Deno.env.get("FATSECRET_SECRET") || ""
 
 // Mapa PT→EN dos alimentos fitness mais comuns
 const TRADUCOES: Record<string, string> = {
@@ -146,7 +146,7 @@ async function gerarSignature(method: string, url: string, params: Record<string
 }
 
 const CORS = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://loadpro.com.br",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, x-client-info",
   "Content-Type": "application/json",
