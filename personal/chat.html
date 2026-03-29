@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291119">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291119"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03291124">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291124"></script>
   <style>
     .chat-list-item { display:flex; align-items:center; gap:12px; padding:14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .2s; }
     .chat-list-item:hover { background:var(--bg-card-hover); }
@@ -25,6 +25,8 @@
     .foto-preview .remove { position:absolute; top:0; right:8px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:.75rem; display:flex; align-items:center; justify-content:center; }
     .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; display:none; align-items:center; justify-content:center; cursor:pointer; }
     .lightbox.active { display:flex; }
+    .msg-tick { font-size:.7rem; letter-spacing:-2px; opacity:.7; }
+    .msg-tick.lida { color:#5ef; opacity:1; }
     .lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
     .uploading { opacity:.5; pointer-events:none; }
     .unread-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; }
@@ -71,15 +73,31 @@
     <img id="lightboxImg" src="">
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291119"></script>
-  <script src="../js/supabase.js?v=03291119"></script>
-  <script src="../js/auth.js?v=03291119"></script>
-  <script src="../js/sidebar.js?v=03291119"></script>
-  <script src="../js/utils.js?v=03291119"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291124"></script>
+  <script src="../js/supabase.js?v=03291124"></script>
+  <script src="../js/auth.js?v=03291124"></script>
+  <script src="../js/sidebar.js?v=03291124"></script>
+  <script src="../js/utils.js?v=03291124"></script>
   <script>
     let alunoChat = null;
     let subscription = null;
     let fotoFile = null;
+
+    // Pedir permissão de notificação
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    function notificarMsg(nome, texto) {
+      if (document.hasFocus()) return;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('LoadPro — ' + nome, {
+          body: texto || 'Enviou uma foto',
+          icon: '/favicon.svg',
+          tag: 'loadpro-chat'
+        });
+      }
+    }
 
     function voltarListaChat() {
       document.getElementById('chatList').classList.remove('hidden-mobile');
@@ -172,16 +190,27 @@
       await supabase.from('mensagens').update({ lida: true })
         .eq('aluno_id', alunoId).eq('lida', false).neq('remetente_id', window.currentUser.id);
 
-      // Realtime
+      // Realtime — novas msgs + atualização de leitura
       if (subscription) subscription.unsubscribe();
       subscription = supabase.channel('chat-' + alunoId)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${alunoId}` }, payload => {
           if (!document.getElementById('msg-' + payload.new.id)) {
             appendMsg(payload.new);
           }
-          // Marcar como lida se nao e minha
+          // Marcar como lida se nao e minha + notificação
           if (payload.new.remetente_id !== window.currentUser.id) {
             supabase.from('mensagens').update({ lida: true }).eq('id', payload.new.id);
+            notificarMsg(nome, payload.new.texto);
+          }
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${alunoId}` }, payload => {
+          // Atualizar ticks quando msg for lida
+          if (payload.new.lida && payload.new.remetente_id === window.currentUser.id) {
+            const el = document.getElementById('msg-' + payload.new.id);
+            if (el) {
+              const tick = el.querySelector('.msg-tick');
+              if (tick) { tick.textContent = '✓✓'; tick.classList.add('lida'); }
+            }
           }
         })
         .subscribe();
@@ -209,13 +238,25 @@
       }
       if (m.texto) conteudo += esc(m.texto);
 
+      let ticks = '';
+      if (mine) {
+        const isTemp = String(m.id).startsWith('temp-');
+        if (isTemp) {
+          ticks = '<span class="msg-tick">✓</span>';
+        } else if (m.lida) {
+          ticks = '<span class="msg-tick lida">✓✓</span>';
+        } else {
+          ticks = '<span class="msg-tick">✓✓</span>';
+        }
+      }
+
       return `
         <div id="msg-${m.id}" style="display:flex;justify-content:${mine ? 'flex-end' : 'flex-start'};margin-bottom:8px">
           <div style="max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;
             background:${mine ? 'var(--primary)' : 'var(--bg-card-hover)'};
             color:${mine ? '#fff' : 'var(--text)'}">
             ${conteudo}
-            <div style="font-size:.7rem;margin-top:4px;opacity:.6">${hora}</div>
+            <div style="font-size:.7rem;margin-top:4px;opacity:.6;display:flex;align-items:center;gap:4px;justify-content:flex-end">${hora} ${ticks}</div>
           </div>
         </div>
       `;

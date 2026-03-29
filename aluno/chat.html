@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291119">
+  <link rel="stylesheet" href="../css/style.css?v=03291124">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291119"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291124"></script>
   <style>
     .chat-container { display:flex; flex-direction:column; height:calc(100vh - 130px - env(safe-area-inset-bottom, 0px)); height:calc(100dvh - 130px - env(safe-area-inset-bottom, 0px)); }
     .chat-msgs { flex:1; overflow-y:auto; padding:12px 16px; }
@@ -21,6 +21,8 @@
     .msg-mine { background:var(--primary); color:#fff; border-bottom-right-radius:4px; }
     .msg-other { background:var(--bg-card-hover); color:var(--text); border-bottom-left-radius:4px; }
     .msg-time { font-size:.7rem; margin-top:4px; opacity:.6; }
+    .msg-tick { font-size:.7rem; letter-spacing:-2px; opacity:.7; }
+    .msg-tick.lida { color:#5ef; opacity:1; }
     .msg-foto { max-width:100%; border-radius:8px; margin-bottom:4px; cursor:pointer; }
     .foto-input { display:none; }
     .btn-foto { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:8px; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
@@ -125,14 +127,24 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291119"></script>
-  <script src="../js/supabase.js?v=03291119"></script>
-  <script src="../js/auth.js?v=03291119"></script>
-  <script src="../js/utils.js?v=03291119"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291124"></script>
+  <script src="../js/supabase.js?v=03291124"></script>
+  <script src="../js/auth.js?v=03291124"></script>
+  <script src="../js/utils.js?v=03291124"></script>
   <script>
     let personalId = null;
     let subscription = null;
     let fotoFile = null;
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    function notificarMsg(nome, texto) {
+      if (document.hasFocus()) return;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('LoadPro — ' + nome, { body: texto || 'Enviou uma foto', icon: '../favicon.svg', tag: 'loadpro-chat' });
+      }
+    }
 
     document.addEventListener('auth-ready', async () => {
       const aluno = window.currentAluno;
@@ -165,15 +177,28 @@
         .neq('remetente_id', window.currentUser.id);
 
       // Realtime
+      const personalNome = document.getElementById('personalNome').textContent;
       subscription = supabase.channel('aluno-chat-' + aluno.id)
         .on('postgres_changes', {
           event: 'INSERT', schema: 'public', table: 'mensagens',
           filter: `aluno_id=eq.${aluno.id}`
         }, payload => {
           appendMsg(payload.new);
-          // Marcar como lida se não é minha
           if (payload.new.remetente_id !== window.currentUser.id) {
             supabase.from('mensagens').update({ lida: true }).eq('id', payload.new.id);
+            notificarMsg(personalNome, payload.new.texto);
+          }
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE', schema: 'public', table: 'mensagens',
+          filter: `aluno_id=eq.${aluno.id}`
+        }, payload => {
+          if (payload.new.lida && payload.new.remetente_id === window.currentUser.id) {
+            const el = document.getElementById('msg-' + payload.new.id);
+            if (el) {
+              const tick = el.querySelector('.msg-tick');
+              if (tick) { tick.textContent = '✓✓'; tick.classList.add('lida'); }
+            }
           }
         })
         .subscribe();
@@ -274,11 +299,23 @@
         conteudo += esc(m.texto);
       }
 
+      let ticks = '';
+      if (mine) {
+        const isTemp = String(m.id).startsWith('temp-');
+        if (isTemp) {
+          ticks = '<span class="msg-tick">✓</span>';
+        } else if (m.lida) {
+          ticks = '<span class="msg-tick lida">✓✓</span>';
+        } else {
+          ticks = '<span class="msg-tick">✓✓</span>';
+        }
+      }
+
       return `
         <div id="msg-${m.id}" style="display:flex;justify-content:${mine ? 'flex-end' : 'flex-start'};margin-bottom:8px">
           <div class="msg-bubble ${cls}">
             ${conteudo}
-            <div class="msg-time">${hora}</div>
+            <div class="msg-time" style="display:flex;align-items:center;gap:4px;justify-content:flex-end">${hora} ${ticks}</div>
           </div>
         </div>
       `;
