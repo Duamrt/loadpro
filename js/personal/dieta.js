@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                onmouseover="this.style.background='var(--bg-card-hover)'" onmouseout="this.style.background=''"
                onclick='selecionarAlimento(${JSON.stringify(a).replace(/'/g, "&#39;")})'>
             <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-weight:600;font-size:.9rem">${a.nome}</span>
+              <span style="font-weight:600;font-size:.9rem">${esc(a.nome)}</span>
               <span style="font-size:.8rem;color:var(--primary);font-weight:700">${a.kcal} kcal</span>
             </div>
             <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
@@ -363,7 +363,7 @@ function renderAlimentosRefeicao() {
   container.innerHTML = alimentosRefeicao.map((a, i) => `
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-card-hover);border-radius:var(--radius-sm);margin-bottom:6px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:.85rem;font-weight:500">${a.nome}</div>
+        <div style="font-size:.85rem;font-weight:500">${esc(a.nome)}</div>
         <div style="font-size:.75rem;color:var(--text-muted)">${a.porcao} · ${a.kcal} kcal · P:${a.proteina}g C:${a.carbo}g G:${a.gordura}g</div>
       </div>
       <div style="display:flex;align-items:center;gap:4px">

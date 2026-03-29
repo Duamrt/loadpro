@@ -24,7 +24,7 @@ function showToast(msg, type = 'success') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   const icons = { success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle' };
-  toast.innerHTML = `<i data-lucide="${icons[type] || icons.success}" style="width:18px;height:18px;flex-shrink:0"></i> ${msg}`;
+  toast.innerHTML = `<i data-lucide="${icons[type] || icons.success}" style="width:18px;height:18px;flex-shrink:0"></i> ${esc(msg)}`;
   container.appendChild(toast);
   lucide.createIcons();
   setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
