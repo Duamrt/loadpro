@@ -458,19 +458,26 @@ async function enviarMsg() {
   input.value = '';
 
   // Mostrar instantaneamente
+  const tempId = 'temp-' + Date.now();
   appendMsg({
-    id: 'temp-' + Date.now(),
+    id: tempId,
     remetente_id: window.currentUser.id,
     texto,
     criado_em: new Date().toISOString()
   });
 
-  await supabase.from('mensagens').insert({
+  const { data: msgSalva } = await supabase.from('mensagens').insert({
     personal_id: window.currentPersonal.id,
     aluno_id: alunoAtual.id,
     remetente_id: window.currentUser.id,
     texto
-  });
+  }).select().single();
+
+  if (msgSalva) {
+    const tempEl = document.getElementById('msg-' + tempId);
+    if (tempEl) tempEl.remove();
+    appendMsg(msgSalva);
+  }
 }
 
 // ── Galeria de Fotos de Progresso ──

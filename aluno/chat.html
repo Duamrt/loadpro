@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291124">
+  <link rel="stylesheet" href="../css/style.css?v=03291127">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291124"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291127"></script>
   <style>
     .chat-container { display:flex; flex-direction:column; height:calc(100vh - 130px - env(safe-area-inset-bottom, 0px)); height:calc(100dvh - 130px - env(safe-area-inset-bottom, 0px)); }
     .chat-msgs { flex:1; overflow-y:auto; padding:12px 16px; }
@@ -21,8 +21,8 @@
     .msg-mine { background:var(--primary); color:#fff; border-bottom-right-radius:4px; }
     .msg-other { background:var(--bg-card-hover); color:var(--text); border-bottom-left-radius:4px; }
     .msg-time { font-size:.7rem; margin-top:4px; opacity:.6; }
-    .msg-tick { font-size:.7rem; letter-spacing:-2px; opacity:.7; }
-    .msg-tick.lida { color:#5ef; opacity:1; }
+    .msg-tick { font-size:.75rem; letter-spacing:-1px; opacity:.85; font-weight:700; }
+    .msg-tick.lida { color:#4dd9ff; opacity:1; }
     .msg-foto { max-width:100%; border-radius:8px; margin-bottom:4px; cursor:pointer; }
     .foto-input { display:none; }
     .btn-foto { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:8px; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
@@ -127,10 +127,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291124"></script>
-  <script src="../js/supabase.js?v=03291124"></script>
-  <script src="../js/auth.js?v=03291124"></script>
-  <script src="../js/utils.js?v=03291124"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291127"></script>
+  <script src="../js/supabase.js?v=03291127"></script>
+  <script src="../js/auth.js?v=03291127"></script>
+  <script src="../js/utils.js?v=03291127"></script>
   <script>
     let personalId = null;
     let subscription = null;
@@ -397,7 +397,7 @@
 
       input.value = '';
 
-      // Mostrar na tela imediatamente (sem esperar realtime)
+      // Mostrar na tela imediatamente
       const tempId = 'temp-' + Date.now();
       appendMsg({
         id: tempId,
@@ -407,16 +407,22 @@
         criado_em: new Date().toISOString()
       });
 
-      // Inserir no banco
-      await supabase.from('mensagens').insert({
+      bar.classList.remove('uploading');
+
+      // Inserir no banco e trocar temp pela real
+      const { data: msgSalva } = await supabase.from('mensagens').insert({
         personal_id: personalId,
         aluno_id: aluno.id,
         remetente_id: window.currentUser.id,
         texto: texto || null,
         foto_url
-      });
+      }).select().single();
 
-      bar.classList.remove('uploading');
+      if (msgSalva) {
+        const tempEl = document.getElementById('msg-' + tempId);
+        if (tempEl) tempEl.remove();
+        appendMsg(msgSalva);
+      }
     }
   </script>
 </body>
