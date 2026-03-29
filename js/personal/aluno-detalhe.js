@@ -112,24 +112,29 @@ document.addEventListener('auth-ready', async () => {
   }
 
   // Carregar resumo de dieta
-  const { data: planosDieta } = await supabase
-    .from('planos_dieta')
-    .select('nome, meta_kcal, proteina_g, carboidrato_g, gordura_g, ativo')
-    .eq('aluno_id', alunoId)
-    .eq('ativo', true)
-    .limit(1);
+  try {
+    const { data: planosDieta, error: errDieta } = await supabase
+      .from('planos_dieta')
+      .select('nome, meta_kcal, proteina_g, carboidrato_g, gordura_g, ativo')
+      .eq('aluno_id', alunoId)
+      .eq('personal_id', window.currentPersonal.id)
+      .eq('ativo', true)
+      .limit(1);
 
-  if (planosDieta?.length) {
-    const p = planosDieta[0];
-    document.getElementById('resumoDieta').innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
-        <div>
-          <div style="font-weight:500">${esc(p.nome)}</div>
-          <div style="font-size:.8rem;color:var(--text-muted)">${p.meta_kcal || '—'} kcal · P:${p.proteina_g || '—'}g · C:${p.carboidrato_g || '—'}g · G:${p.gordura_g || '—'}g</div>
-        </div>
-        <span class="badge badge-success">Ativo</span>
-      </div>`;
-  } else {
+    if (planosDieta?.length) {
+      const p = planosDieta[0];
+      document.getElementById('resumoDieta').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+          <div>
+            <div style="font-weight:500">${esc(p.nome)}</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">${p.meta_kcal || '—'} kcal · P:${p.proteina_g || '—'}g · C:${p.carboidrato_g || '—'}g · G:${p.gordura_g || '—'}g</div>
+          </div>
+          <span class="badge badge-success">Ativo</span>
+        </div>`;
+    } else {
+      document.getElementById('resumoDieta').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhum plano alimentar ativo</p>';
+    }
+  } catch(e) {
     document.getElementById('resumoDieta').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhum plano alimentar ativo</p>';
   }
 
