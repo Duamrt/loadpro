@@ -507,13 +507,17 @@ async function aplicarTemplateDieta(objetivo) {
   closeModal('modalTemplateDieta');
   showToast('Calculando e montando dieta...');
 
+  const idade = alunoSelecionado.data_nascimento ? calcIdade(alunoSelecionado.data_nascimento) : 25;
+
   const { data, error } = await supabase.rpc('aplicar_template_dieta', {
     p_aluno_id: alunoSelecionado.id,
     p_personal_id: window.currentPersonal.id,
     p_objetivo: objetivo,
     p_fator: fator,
     p_peso: peso,
-    p_altura: altura
+    p_altura: altura,
+    p_sexo: alunoSelecionado.sexo || 'masculino',
+    p_idade: idade
   });
 
   if (error) { showToast('Erro: ' + error.message, 'error'); return; }
