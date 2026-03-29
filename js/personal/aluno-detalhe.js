@@ -111,6 +111,28 @@ document.addEventListener('auth-ready', async () => {
     document.getElementById('resumoTreinos').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhuma rotina criada</p>';
   }
 
+  // Carregar resumo de dieta
+  const { data: planosDieta } = await supabase
+    .from('planos_dieta')
+    .select('nome, meta_kcal, proteina_g, carboidrato_g, gordura_g, ativo')
+    .eq('aluno_id', alunoId)
+    .eq('ativo', true)
+    .limit(1);
+
+  if (planosDieta?.length) {
+    const p = planosDieta[0];
+    document.getElementById('resumoDieta').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <div>
+          <div style="font-weight:500">${esc(p.nome)}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">${p.meta_kcal || '—'} kcal · P:${p.proteina_g || '—'}g · C:${p.carboidrato_g || '—'}g · G:${p.gordura_g || '—'}g</div>
+        </div>
+        <span class="badge badge-success">Ativo</span>
+      </div>`;
+  } else {
+    document.getElementById('resumoDieta').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhum plano alimentar ativo</p>';
+  }
+
   // Carregar resumo de avaliações
   const { data: avaliacoes } = await supabase.from('avaliacoes').select('*').eq('aluno_id', alunoId).order('data', { ascending: false }).limit(3);
   if (avaliacoes?.length) {
