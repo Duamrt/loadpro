@@ -135,9 +135,19 @@ function renderPlano() {
 
   container.innerHTML = `
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header">
-        <h3 class="card-title">${esc(planoAtivo.nome)}</h3>
-        <div style="display:flex;gap:8px">
+      <div class="card-header" style="flex-wrap:wrap;gap:8px">
+        <div>
+          <h3 class="card-title">${esc(planoAtivo.nome)}</h3>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:8px">
+            ${planoAtivo.data_inicio || planoAtivo.data_fim ? `
+              <span>${planoAtivo.data_inicio ? formatDate(planoAtivo.data_inicio) : '—'} → ${planoAtivo.data_fim ? formatDate(planoAtivo.data_fim) : '—'}</span>
+            ` : ''}
+            <button class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:.75rem" onclick="editarPeriodoPlano()">
+              ${planoAtivo.data_inicio ? 'Alterar período' : 'Definir período'}
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
           <span class="badge badge-primary">${planoAtivo.meta_kcal || '—'} kcal/dia</span>
           <span class="badge badge-success">P: ${planoAtivo.proteina_g || '—'}g</span>
           <span class="badge badge-warning">C: ${planoAtivo.carboidrato_g || '—'}g</span>
@@ -150,7 +160,7 @@ function renderPlano() {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div>
               <strong>${esc(r.nome)}</strong>
-              ${r.horario ? `<span style="font-size:.8rem;color:var(--text-muted);margin-left:8px">${r.horario}</span>` : ''}
+              ${r.horario ? `<span style="font-size:.8rem;color:var(--text-muted);margin-left:8px">${r.horario.substring(0,5)}</span>` : ''}
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               ${r.calorias ? `<span style="font-size:.85rem;color:var(--text-secondary)">${r.calorias} kcal</span>` : ''}
@@ -169,6 +179,72 @@ function renderPlano() {
     </div>
   `;
   lucide.createIcons();
+}
+
+async function editarPeriodoPlano() {
+  if (!planoAtivo) return;
+  const hoje = new Date().toISOString().split('T')[0];
+  const inicio = planoAtivo.data_inicio || hoje;
+  // Default: 4 semanas
+  const fimDefault = planoAtivo.data_fim || new Date(Date.now() + 28 * 86400000).toISOString().split('T')[0];
+
+  // Criar modal dinâmico
+  let overlay = document.getElementById('modalPeriodo');
+  if (overlay) overlay.remove();
+
+  overlay = document.createElement('div');
+  overlay.id = 'modalPeriodo';
+  overlay.className = 'modal-overlay active';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <h3>Período do Plano</h3>
+        <button class="modal-close" onclick="closeModal('modalPeriodo')"><i data-lucide="x" style="width:20px;height:20px"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Início</label>
+          <input type="date" class="form-control" id="periodoInicio" value="${inicio}">
+        </div>
+        <div class="form-group">
+          <label>Fim</label>
+          <input type="date" class="form-control" id="periodoFim" value="${fimDefault}">
+        </div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:8px" id="periodoDuracao"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalPeriodo')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarPeriodo">Salvar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  try { lucide.createIcons(); } catch(e) {}
+
+  document.getElementById('btnSalvarPeriodo').onclick = async () => {
+    const di = document.getElementById('periodoInicio').value;
+    const df = document.getElementById('periodoFim').value;
+    await supabase.from('planos_dieta').update({ data_inicio: di || null, data_fim: df || null }).eq('id', planoAtivo.id);
+    showToast('Período salvo');
+    closeModal('modalPeriodo');
+    await carregarPlano();
+  };
+
+  // Calcular duração em tempo real
+  const calcDuracao = () => {
+    const di = document.getElementById('periodoInicio')?.value;
+    const df = document.getElementById('periodoFim')?.value;
+    const el = document.getElementById('periodoDuracao');
+    if (di && df && el) {
+      const dias = Math.round((new Date(df) - new Date(di)) / 86400000);
+      const semanas = Math.floor(dias / 7);
+      el.textContent = dias > 0 ? `${dias} dias (${semanas} semanas)` : 'Data fim deve ser após início';
+    }
+  };
+  setTimeout(() => {
+    document.getElementById('periodoInicio')?.addEventListener('change', calcDuracao);
+    document.getElementById('periodoFim')?.addEventListener('change', calcDuracao);
+    calcDuracao();
+  }, 100);
 }
 
 async function calcularTMB() {
@@ -529,6 +605,11 @@ async function aplicarTemplateDieta(objetivo) {
   // Banner: confere e envia convite quando quiser
   const old = document.getElementById('bannerConvite');
   if (old) old.remove();
+
+  // Verificar se aluno tem token antes de mostrar botão WhatsApp
+  const { data: alunoConvite } = await supabase.from('alunos').select('convite_token, user_id').eq('id', alunoSelecionado.id).single();
+  const temAcesso = alunoConvite?.user_id || alunoConvite?.convite_token;
+
   const banner = document.createElement('div');
   banner.id = 'bannerConvite';
   banner.style.cssText = 'position:sticky;top:0;z-index:50;background:var(--success);color:#fff;padding:14px 20px;border-radius:var(--radius);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
@@ -536,7 +617,7 @@ async function aplicarTemplateDieta(objetivo) {
     <span style="font-weight:600">Dieta pronta! Confira abaixo e quando estiver ok:</span>
     <div style="display:flex;gap:8px">
       <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="document.getElementById('bannerConvite').remove()">Ficar aqui</button>
-      <button class="btn btn-sm" style="background:#fff;color:var(--success);font-weight:700" onclick="enviarConviteAluno()">Enviar convite WhatsApp →</button>
+      ${temAcesso ? `<button class="btn btn-sm" style="background:#fff;color:var(--success);font-weight:700" onclick="enviarConviteAluno()">Enviar convite WhatsApp →</button>` : ''}
     </div>`;
   const container = document.getElementById('planoContainer');
   container.parentNode.insertBefore(banner, container);
