@@ -89,6 +89,10 @@ document.addEventListener('auth-ready', async () => {
       const chip = diasContainer.querySelector(`[data-dia="${d}"]`);
       if (chip) chip.classList.add('active');
     });
+
+    // Marcar passo 1 como concluído
+    const fichaStatus = document.getElementById('fichaStatus');
+    if (fichaStatus) fichaStatus.innerHTML = '<span style="color:var(--success)">✓ Ficha preenchida</span>';
   }
 
   // Carregar resumo de treinos
@@ -217,6 +221,44 @@ async function enviarConviteWA() {
   const shortCode = token.split('-')[0];
   const link = `${location.origin}/c/${shortCode}`;
   enviarConviteWhatsApp(alunoAtual.nome, alunoAtual.telefone, link);
+}
+
+// ── Enviar ficha (anamnese) via WhatsApp ──
+async function enviarFichaWA() {
+  let token = alunoAtual.convite_token;
+  if (!token) {
+    token = (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const { error } = await supabase.from('alunos').update({ convite_token: token }).eq('id', alunoAtual.id);
+    if (error) { showToast('Erro ao gerar token', 'error'); return; }
+    alunoAtual.convite_token = token;
+  }
+  const shortCode = token.split('-')[0];
+  const link = `${location.origin}/f/${shortCode}`;
+
+  const user = window.currentUser;
+  const nomePersonal = (user?.nome || 'seu personal').split(' ')[0];
+  const primeiroNome = (alunoAtual.nome || '').split(' ')[0];
+
+  const msg = [
+    'Fala ' + primeiroNome + '! Aqui é o ' + nomePersonal + ', seu personal.',
+    '',
+    'Pra eu montar seu treino e dieta, preciso que você preencha uma ficha rápida com seus dados, saúde e medidas.',
+    '',
+    'Leva menos de 2 minutos:',
+    link,
+    '',
+    'Assim que você preencher, eu já começo a montar tudo personalizado pra você!'
+  ].join('\n');
+
+  const telefone = alunoAtual.telefone;
+  if (telefone) {
+    const num = telefone.replace(/\D/g, '');
+    const fone = num.startsWith('55') ? num : '55' + num;
+    window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    try { navigator.clipboard.writeText(msg); } catch(e) {}
+    showToast('Link copiado! Cole no WhatsApp do aluno.');
+  }
 }
 
 // ── Resetar senha do aluno ──
