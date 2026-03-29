@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291124">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291124"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03291127">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291127"></script>
   <style>
     .chat-list-item { display:flex; align-items:center; gap:12px; padding:14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .2s; }
     .chat-list-item:hover { background:var(--bg-card-hover); }
@@ -25,8 +25,8 @@
     .foto-preview .remove { position:absolute; top:0; right:8px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:.75rem; display:flex; align-items:center; justify-content:center; }
     .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; display:none; align-items:center; justify-content:center; cursor:pointer; }
     .lightbox.active { display:flex; }
-    .msg-tick { font-size:.7rem; letter-spacing:-2px; opacity:.7; }
-    .msg-tick.lida { color:#5ef; opacity:1; }
+    .msg-tick { font-size:.75rem; letter-spacing:-1px; opacity:.85; font-weight:700; }
+    .msg-tick.lida { color:#4dd9ff; opacity:1; }
     .lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
     .uploading { opacity:.5; pointer-events:none; }
     .unread-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; }
@@ -73,11 +73,11 @@
     <img id="lightboxImg" src="">
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291124"></script>
-  <script src="../js/supabase.js?v=03291124"></script>
-  <script src="../js/auth.js?v=03291124"></script>
-  <script src="../js/sidebar.js?v=03291124"></script>
-  <script src="../js/utils.js?v=03291124"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291127"></script>
+  <script src="../js/supabase.js?v=03291127"></script>
+  <script src="../js/auth.js?v=03291127"></script>
+  <script src="../js/sidebar.js?v=03291127"></script>
+  <script src="../js/utils.js?v=03291127"></script>
   <script>
     let alunoChat = null;
     let subscription = null;
@@ -291,26 +291,33 @@
 
       // Mostrar mensagem instantaneamente (optimistic UI)
       const tempId = 'temp-' + Date.now();
-      const msgTemp = {
+      appendMsg({
         id: tempId,
         remetente_id: window.currentUser.id,
         texto: texto || null,
         foto_url,
         criado_em: new Date().toISOString()
-      };
-      appendMsg(msgTemp);
+      });
 
       bar.classList.remove('uploading');
 
-      // Salvar no banco em background
-      const { error: msgErr } = await supabase.from('mensagens').insert({
+      // Salvar no banco
+      const { data: msgSalva, error: msgErr } = await supabase.from('mensagens').insert({
         personal_id: window.currentPersonal.id,
         aluno_id: alunoChat,
         remetente_id: window.currentUser.id,
         texto: texto || null,
         foto_url
-      });
-      if (msgErr) showToast('Erro ao enviar', 'error');
+      }).select().single();
+
+      if (msgErr) {
+        showToast('Erro ao enviar', 'error');
+      } else if (msgSalva) {
+        // Trocar msg temp pela real (com ID do banco e ticks corretos)
+        const tempEl = document.getElementById('msg-' + tempId);
+        if (tempEl) tempEl.remove();
+        appendMsg(msgSalva);
+      }
     }
   </script>
 </body>
