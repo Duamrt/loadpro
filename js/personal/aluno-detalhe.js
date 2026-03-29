@@ -162,18 +162,67 @@ document.addEventListener('auth-ready', async () => {
   }
 
   // Carregar resumo de avaliações
-  const { data: avaliacoes } = await supabase.from('avaliacoes').select('*').eq('aluno_id', alunoId).order('data', { ascending: false }).limit(3);
-  if (avaliacoes?.length) {
-    document.getElementById('resumoMedidas').innerHTML = avaliacoes.map(m => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-weight:500">${formatDate(m.data)}</div>
-          <div style="font-size:.8rem;color:var(--text-muted)">${m.peso ? m.peso + 'kg' : ''} ${m.bf_percent ? '· ' + m.bf_percent.toFixed(1) + '% gordura' : ''} ${m.altura ? '· ' + m.altura + 'cm' : ''}</div>
+  try {
+    const { data: avaliacoes } = await supabase.from('avaliacoes').select('*').eq('aluno_id', alunoId).order('data', { ascending: false }).limit(3);
+    if (avaliacoes?.length) {
+      const atual = avaliacoes[0];
+      const anterior = avaliacoes[1] || null;
+
+      function diffBadge(valAtual, valAnterior, unidade, invertido) {
+        if (!valAtual || !valAnterior) return '';
+        const diff = valAtual - valAnterior;
+        if (diff === 0) return '';
+        const positivo = invertido ? diff < 0 : diff > 0;
+        const cor = positivo ? 'var(--success)' : 'var(--danger)';
+        const bg = positivo ? 'var(--success-light)' : 'var(--danger-light)';
+        const sinal = diff > 0 ? '+' : '';
+        return `<span style="font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:var(--radius-xs);background:${bg};color:${cor}">${sinal}${diff.toFixed(1)}${unidade}</span>`;
+      }
+
+      const circ = atual.circunferencias || {};
+      const circAnt = anterior?.circunferencias || {};
+
+      const medidas = [
+        { label: 'Peso', val: atual.peso, ant: anterior?.peso, un: 'kg', inv: true },
+        { label: '% Gordura', val: atual.bf_percent, ant: anterior?.bf_percent, un: '%', inv: true },
+        { label: 'IMC', val: atual.imc, ant: anterior?.imc, un: '', inv: true },
+        { label: 'Cintura', val: circ.cintura, ant: circAnt.cintura, un: 'cm', inv: true },
+        { label: 'Quadril', val: circ.quadril, ant: circAnt.quadril, un: 'cm', inv: true },
+        { label: 'Braço D', val: circ.braco_d, ant: circAnt.braco_d, un: 'cm', inv: false },
+        { label: 'Braço E', val: circ.braco_e, ant: circAnt.braco_e, un: 'cm', inv: false },
+        { label: 'Coxa D', val: circ.coxa_d, ant: circAnt.coxa_d, un: 'cm', inv: false },
+        { label: 'Coxa E', val: circ.coxa_e, ant: circAnt.coxa_e, un: 'cm', inv: false },
+        { label: 'Peitoral', val: circ.peitoral, ant: circAnt.peitoral, un: 'cm', inv: false },
+        { label: 'Panturrilha D', val: circ.panturrilha_d, ant: circAnt.panturrilha_d, un: 'cm', inv: false },
+      ].filter(m => m.val);
+
+      document.getElementById('resumoMedidas').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600">Última avaliação: ${formatDate(atual.data)}</div>
+            ${anterior ? `<div style="font-size:.8rem;color:var(--text-muted)">Comparando com ${formatDate(anterior.data)}</div>` : ''}
+          </div>
+          ${atual.metodo_bf ? `<span class="badge badge-primary">${atual.metodo_bf.toUpperCase()}</span>` : ''}
         </div>
-        ${m.imc ? `<span class="badge badge-primary">IMC ${m.imc.toFixed(1)}</span>` : ''}
-      </div>
-    `).join('');
-  } else {
+        ${medidas.map(m => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:.85rem;color:var(--text-muted)">${m.label}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-family:'Fraunces',serif;font-size:1rem;font-weight:600">${typeof m.val === 'number' ? m.val.toFixed(1) : m.val}${m.un}</span>
+              ${diffBadge(m.val, m.ant, m.un, m.inv)}
+            </div>
+          </div>
+        `).join('')}
+        ${avaliacoes.length > 1 ? `
+          <div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:.8rem;color:var(--text-muted)">${avaliacoes.length} avaliações registradas</span>
+          </div>
+        ` : ''}
+      `;
+    } else {
+      document.getElementById('resumoMedidas').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhuma avaliação registrada</p>';
+    }
+  } catch(e) {
     document.getElementById('resumoMedidas').innerHTML = '<p style="color:var(--text-muted);font-size:.9rem">Nenhuma avaliação registrada</p>';
   }
 
