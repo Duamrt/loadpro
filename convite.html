@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03282034">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03282034"></script>
+  <link rel="stylesheet" href="css/style.css?v=03290455">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290455"></script>
 </head>
 <body>
   <div class="auth-page">
@@ -46,17 +46,26 @@
           </form>
         </div>
 
+        <div id="conviteJaUsado" style="display:none;text-align:center">
+          <i data-lucide="check-circle" style="width:48px;height:48px;color:var(--success);margin-bottom:16px"></i>
+          <h3>Você já tem conta!</h3>
+          <p style="font-size:.9rem;margin-top:8px">Seu acesso já foi criado. Faça login com seu email e senha.</p>
+          <a href="login.html" class="btn btn-primary btn-lg" style="margin-top:20px;display:inline-flex;align-items:center;gap:8px">
+            <i data-lucide="log-in"></i> Fazer login
+          </a>
+        </div>
+
         <div id="conviteInvalido" style="display:none;text-align:center">
           <i data-lucide="alert-circle" style="width:48px;height:48px;color:var(--danger);margin-bottom:16px"></i>
           <h3>Convite inválido</h3>
-          <p style="font-size:.9rem;margin-top:8px">Este link de convite não é válido ou já foi usado.</p>
+          <p style="font-size:.9rem;margin-top:8px">Este link de convite não é válido. Peça um novo convite ao seu personal.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03282034"></script>
-  <script src="js/supabase.js?v=03282034"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290455"></script>
+  <script src="js/supabase.js?v=03290455"></script>
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
@@ -67,12 +76,10 @@
       // Buscar convite via RPC (SECURITY DEFINER, sem problema de RLS)
       const { data: aluno, error: rpcError } = await supabase.rpc('buscar_convite', { p_token: token });
 
-      // Debug temporário — remover depois
-      console.log('TOKEN:', token);
-      console.log('RPC RESULT:', aluno);
-      console.log('RPC ERROR:', rpcError);
+      if (!aluno) { mostrarInvalido(); return; }
 
-      if (!aluno || aluno.user_id) { mostrarInvalido(); return; }
+      // Convite já aceito — redirecionar pra login
+      if (aluno.user_id) { mostrarJaUsado(); return; }
 
       document.getElementById('personalNome').textContent = aluno.personal_nome || 'Seu Personal';
 
@@ -96,13 +103,28 @@
           const email = emailAluno;
           if (!email) throw new Error('Email não cadastrado. Peça ao seu personal.');
 
-          // Criar auth user
-          const { data: authData, error: authErr } = await supabase.auth.signUp({
+          const senha = document.getElementById('senha').value;
+
+          // Criar auth user (ou logar se já existe de tentativa anterior)
+          let authData;
+          const { data: signUpData, error: authErr } = await supabase.auth.signUp({
             email,
-            password: document.getElementById('senha').value,
+            password: senha,
             options: { data: { nome: aluno.nome || 'Aluno', tipo: 'aluno' } }
           });
-          if (authErr) throw authErr;
+
+          if (authErr) {
+            // Se email já existe, tentar login com a senha informada
+            if (authErr.message.includes('already registered') || authErr.message.includes('already been registered')) {
+              const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password: senha });
+              if (signInErr) throw new Error('Email já cadastrado. Tente fazer login ou use outra senha.');
+              authData = signInData;
+            } else {
+              throw authErr;
+            }
+          } else {
+            authData = signUpData;
+          }
 
           // RPC atomica: cria user + vincula aluno (SECURITY DEFINER, sem RLS)
           const { data: result, error: rpcErr } = await supabase.rpc('aceitar_convite', {
@@ -122,6 +144,12 @@
         lucide.createIcons();
       });
     })();
+
+    function mostrarJaUsado() {
+      document.getElementById('conviteValido').style.display = 'none';
+      document.getElementById('conviteJaUsado').style.display = 'block';
+      lucide.createIcons();
+    }
 
     function mostrarInvalido() {
       document.getElementById('conviteValido').style.display = 'none';
