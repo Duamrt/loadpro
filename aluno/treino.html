@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291001">
+  <link rel="stylesheet" href="../css/style.css?v=03291115">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291001"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291115"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -84,10 +84,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291001"></script>
-  <script src="../js/supabase.js?v=03291001"></script>
-  <script src="../js/auth.js?v=03291001"></script>
-  <script src="../js/utils.js?v=03291001"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291115"></script>
+  <script src="../js/supabase.js?v=03291115"></script>
+  <script src="../js/auth.js?v=03291115"></script>
+  <script src="../js/utils.js?v=03291115"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -216,8 +216,8 @@
                 <div class="serie-row" id="serie-${gIdx}">
                   <button class="serie-tipo serie-tipo-1" id="tipo-${gIdx}" onclick="ciclaTipo(${gIdx})" title="Tipo de série">1</button>
                   <div class="serie-anterior">${antLabel}</div>
-                  <input type="number" class="form-control serie-input" value="${s.carga}" onchange="seriesState[${gIdx}].carga=+this.value" placeholder="kg" inputmode="decimal">
-                  <input type="number" class="form-control serie-input" value="${s.reps}" onchange="seriesState[${gIdx}].reps=+this.value" placeholder="reps" inputmode="numeric">
+                  <input type="number" class="form-control serie-input" value="${s.carga}" oninput="seriesState[${gIdx}].carga=parseFloat(this.value)||0" placeholder="kg" inputmode="decimal">
+                  <input type="number" class="form-control serie-input" value="${s.reps}" oninput="seriesState[${gIdx}].reps=parseInt(this.value)||0" placeholder="reps" inputmode="numeric">
                   <button class="pse-btn" id="pse-${gIdx}" onclick="selecionaPSE(${gIdx})" title="Esforço percebido">—</button>
                   <div class="serie-check" id="check-${gIdx}" onclick="completarSerie(${gIdx})">
                     <i data-lucide="check" style="width:16px;height:16px;color:#fff"></i>
@@ -247,12 +247,12 @@
       if (s.done) return;
       s.done = true;
 
-      // Atualizar carga/reps do input (pode ter mudado)
+      // Atualizar carga/reps do input (sempre ler antes de salvar)
       const row = document.getElementById(`serie-${idx}`);
-      const inputs = row?.querySelectorAll('.serie-input');
+      const inputs = row?.querySelectorAll('input.serie-input');
       if (inputs?.length >= 2) {
-        s.carga = +inputs[0].value || 0;
-        s.reps = +inputs[1].value || 0;
+        s.carga = parseFloat(inputs[0].value) || 0;
+        s.reps = parseInt(inputs[1].value) || 0;
       }
 
       const check = document.getElementById(`check-${idx}`);
