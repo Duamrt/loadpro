@@ -172,9 +172,12 @@ function renderPlano() {
         </div>
       `).join('')}
 
-      <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div style="font-size:.9rem;color:var(--text-muted)">Total: <strong style="color:var(--text)">${totalKcal} kcal</strong> de ${planoAtivo.meta_kcal || '—'}</div>
-        <button class="btn btn-sm btn-secondary" onclick="addRefeicao()"><i data-lucide="plus"></i> Refeição</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-success" onclick="avisarAlunoAtualizacao('dieta')"><i data-lucide="send"></i> Avisar aluno</button>
+          <button class="btn btn-sm btn-secondary" onclick="addRefeicao()"><i data-lucide="plus"></i> Refeição</button>
+        </div>
       </div>
     </div>
   `;
