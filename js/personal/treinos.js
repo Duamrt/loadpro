@@ -368,12 +368,15 @@ async function salvarRotina() {
   closeModal('modalRotina');
   showToast(rotinaId ? 'Rotina atualizada!' : 'Rotina criada!');
   await carregarRotinas();
+  await syncAgenda(alunoId);
 }
 
 async function toggleRotina(id, ativa) {
   await supabase.from('rotinas').update({ ativa }).eq('id', id);
   showToast(ativa ? 'Rotina ativada' : 'Rotina desativada');
   await carregarRotinas();
+  const alunoId = document.getElementById('seletorAluno').value;
+  if (alunoId) await syncAgenda(alunoId);
 }
 
 async function duplicarRotina(id) {
@@ -416,6 +419,7 @@ async function limparTreinos() {
   await supabase.from('rotinas').delete().eq('aluno_id', alunoId);
   showToast('Treinos apagados');
   await carregarRotinas();
+  await syncAgenda(alunoId);
 }
 
 async function abrirTemplates() {
@@ -471,6 +475,7 @@ async function aplicarTemplate(template) {
 
   showToast(nomes[template] + ' aplicado!');
   await carregarRotinas();
+  await syncAgenda(alunoId);
 
   // Banner: confere e vai pra dieta quando quiser
   const banner = document.createElement('div');
@@ -484,4 +489,69 @@ async function aplicarTemplate(template) {
     </div>`;
   const container = document.getElementById('rotinasContainer');
   container.parentNode.insertBefore(banner, container);
+}
+
+// ── Sync Agenda: rotinas ativas → agenda automática ──
+async function syncAgenda(alunoId) {
+  const personalId = window.currentPersonal.id;
+
+  // 1. Buscar rotinas ativas deste aluno com dias definidos
+  const { data: rotinas } = await supabase
+    .from('rotinas')
+    .select('id, dias_semana')
+    .eq('aluno_id', alunoId)
+    .eq('personal_id', personalId)
+    .eq('ativa', true);
+
+  // 2. Coletar todos os dias que devem ter agenda
+  const diasAtivos = new Set();
+  (rotinas || []).forEach(r => {
+    (r.dias_semana || []).forEach(d => diasAtivos.add(d));
+  });
+
+  // 3. Buscar agenda existente deste aluno
+  const { data: agendaExistente } = await supabase
+    .from('agenda')
+    .select('id, dia_semana, horario')
+    .eq('personal_id', personalId)
+    .eq('aluno_id', alunoId)
+    .eq('ativo', true);
+
+  const diasComAgenda = new Set((agendaExistente || []).map(a => a.dia_semana));
+
+  // 4. Criar agenda pra dias novos (horário padrão do personal ou 07:00)
+  const diasNovos = [...diasAtivos].filter(d => !diasComAgenda.has(d));
+  if (diasNovos.length) {
+    // Pegar horário mais comum do personal como referência
+    const { data: todosHorarios } = await supabase
+      .from('agenda')
+      .select('horario')
+      .eq('personal_id', personalId)
+      .eq('ativo', true)
+      .limit(10);
+
+    let horarioPadrao = '07:00';
+    if (todosHorarios?.length) {
+      // Usar o horário mais frequente
+      const freq = {};
+      todosHorarios.forEach(h => { freq[h.horario] = (freq[h.horario] || 0) + 1; });
+      horarioPadrao = Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+    }
+
+    const novos = diasNovos.map(d => ({
+      personal_id: personalId,
+      aluno_id: alunoId,
+      dia_semana: d,
+      horario: horarioPadrao,
+      ativo: true
+    }));
+
+    await supabase.from('agenda').insert(novos);
+  }
+
+  // 5. Remover dias que não tem mais rotina ativa
+  const diasRemover = (agendaExistente || []).filter(a => !diasAtivos.has(a.dia_semana));
+  if (diasRemover.length) {
+    await supabase.from('agenda').delete().in('id', diasRemover.map(a => a.id));
+  }
 }

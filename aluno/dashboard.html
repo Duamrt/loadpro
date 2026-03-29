@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03290738">
+  <link rel="stylesheet" href="../css/style.css?v=03290801">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290738"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290801"></script>
 </head>
 <body>
   <div style="padding:16px" class="aluno-main">
@@ -77,10 +77,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290738"></script>
-  <script src="../js/supabase.js?v=03290738"></script>
-  <script src="../js/auth.js?v=03290738"></script>
-  <script src="../js/utils.js?v=03290738"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290801"></script>
+  <script src="../js/supabase.js?v=03290801"></script>
+  <script src="../js/auth.js?v=03290801"></script>
+  <script src="../js/utils.js?v=03290801"></script>
   <script>
     document.addEventListener('auth-ready', async () => {
       const user = window.currentUser;
@@ -103,11 +103,25 @@
         .eq('ativa', true)
         .contains('dias_semana', [diaSemana]);
 
+      // Buscar horário da agenda pra hoje
+      const { data: agendaHoje } = await supabase
+        .from('agenda')
+        .select('horario')
+        .eq('aluno_id', aluno.id)
+        .eq('dia_semana', diaSemana)
+        .eq('ativo', true)
+        .limit(1);
+
+      const horarioTreino = agendaHoje?.[0]?.horario?.substring(0, 5);
+
       if (rotinas?.length) {
         const r = rotinas[0];
         const exs = (r.rotina_exercicios || []).sort((a, b) => a.ordem - b.ordem);
         document.getElementById('treinoHoje').innerHTML = `
-          <div style="font-weight:600;font-size:1.1rem;margin-bottom:8px">${esc(r.nome)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-weight:600;font-size:1.1rem">${esc(r.nome)}</div>
+            ${horarioTreino ? `<span style="font-size:.9rem;font-weight:600;color:var(--primary)"><i data-lucide="clock" style="width:14px;height:14px;vertical-align:-2px"></i> ${horarioTreino}</span>` : ''}
+          </div>
           <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">${exs.length} exercícios</div>
           <a href="treino.html?rotina=${r.id}" class="btn btn-primary btn-block"><i data-lucide="play"></i> Iniciar Treino</a>
         `;
