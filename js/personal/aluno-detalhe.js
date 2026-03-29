@@ -418,6 +418,7 @@ function renderChat(msgs) {
 
 function appendMsg(m) {
   const container = document.getElementById('chatMessages');
+  if (document.getElementById('msg-' + m.id)) return;
   container.insertAdjacentHTML('beforeend', msgHTML(m, window.currentUser.id));
   container.scrollTop = container.scrollHeight;
 }
@@ -431,7 +432,7 @@ function msgHTML(m, myUserId) {
   }
   if (m.texto) conteudo += esc(m.texto);
   return `
-    <div style="display:flex;justify-content:${isMine ? 'flex-end' : 'flex-start'};margin-bottom:8px">
+    <div id="msg-${m.id}" style="display:flex;justify-content:${isMine ? 'flex-end' : 'flex-start'};margin-bottom:8px">
       <div style="max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;
         background:${isMine ? 'var(--primary)' : 'var(--bg-card-hover)'};
         color:${isMine ? '#fff' : 'var(--text)'}">
@@ -455,6 +456,14 @@ async function enviarMsg() {
   const texto = input.value.trim();
   if (!texto) return;
   input.value = '';
+
+  // Mostrar instantaneamente
+  appendMsg({
+    id: 'temp-' + Date.now(),
+    remetente_id: window.currentUser.id,
+    texto,
+    criado_em: new Date().toISOString()
+  });
 
   await supabase.from('mensagens').insert({
     personal_id: window.currentPersonal.id,
