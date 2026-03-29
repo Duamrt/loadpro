@@ -122,7 +122,11 @@ document.addEventListener('auth-ready', async function() {
     var opt = select.options[select.selectedIndex];
     alunoSexo = opt.dataset.sexo || 'masculino';
     alunoNascimento = opt.dataset.nasc || null;
-    carregarAvaliacoes();
+    if (select.value) {
+      carregarAvaliacoes();
+    } else {
+      mostrarResumoGeral(alunos);
+    }
   });
 
   // URL param
@@ -135,15 +139,80 @@ document.addEventListener('auth-ready', async function() {
       alunoNascimento = opt.dataset.nasc || null;
     }
     await carregarAvaliacoes();
-    // Se veio da ficha do aluno, abrir modal de nova avaliação direto
     if (params.get('nova') === '1') {
       novaAvaliacao();
     }
+  } else {
+    await mostrarResumoGeral(alunos);
   }
 
   // Listeners de calculo em tempo real
   setupAutoCalc();
 });
+
+// ═══ RESUMO GERAL (sem aluno selecionado) ═══
+
+async function mostrarResumoGeral(alunos) {
+  var container = document.getElementById('timelineContainer');
+  if (!alunos.length) {
+    container.innerHTML = '<div class="empty-state"><i data-lucide="clipboard-check"></i><h3>Nenhum aluno cadastrado</h3><p>Cadastre alunos primeiro para fazer avaliações</p></div>';
+    try { lucide.createIcons(); } catch(e) {}
+    return;
+  }
+
+  // Buscar última avaliação de cada aluno
+  var alunoIds = alunos.map(function(a) { return a.id; });
+  var resp = await supabase
+    .from('avaliacoes')
+    .select('aluno_id, data, peso, bf_percent, imc')
+    .in('aluno_id', alunoIds)
+    .order('data', { ascending: false });
+
+  var avaliacoes = resp.data || [];
+
+  // Agrupar: última avaliação por aluno
+  var ultimaMap = {};
+  avaliacoes.forEach(function(av) {
+    if (!ultimaMap[av.aluno_id]) ultimaMap[av.aluno_id] = av;
+  });
+
+  var html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  alunos.forEach(function(a) {
+    var ultima = ultimaMap[a.id];
+    var initials = (a.nome || 'U').split(' ').map(function(n) { return n[0]; }).join('').substring(0, 2).toUpperCase();
+    var cores = ['var(--primary)', 'var(--gold)', 'var(--success)', 'var(--danger)', 'var(--text-muted)'];
+    var cor = cores[Math.abs(a.nome.charCodeAt(0)) % cores.length];
+
+    html += '<div class="card" style="padding:16px;cursor:pointer;border-left:3px solid ' + cor + '" onclick="document.getElementById(\'seletorAluno\').value=\'' + a.id + '\';document.getElementById(\'seletorAluno\').dispatchEvent(new Event(\'change\'))">';
+    html += '<div style="display:flex;align-items:center;gap:14px">';
+    html += '<div class="avatar" style="background:' + cor + ';color:#fff;border-radius:var(--radius-sm)">' + initials + '</div>';
+    html += '<div style="flex:1">';
+    html += '<div style="font-weight:600">' + esc(a.nome) + '</div>';
+
+    if (ultima) {
+      html += '<div style="font-size:.8rem;color:var(--text-muted)">Última: ' + formatDate(ultima.data);
+      if (ultima.peso) html += ' · ' + ultima.peso + 'kg';
+      if (ultima.bf_percent) html += ' · ' + ultima.bf_percent.toFixed(1) + '% gordura';
+      html += '</div>';
+    } else {
+      html += '<div style="font-size:.8rem;color:var(--text-muted)">Sem avaliação registrada</div>';
+    }
+
+    html += '</div>';
+
+    if (ultima && ultima.imc) {
+      html += '<span class="badge badge-primary">IMC ' + ultima.imc.toFixed(1) + '</span>';
+    } else {
+      html += '<span class="badge badge-warning" style="font-size:.7rem">Pendente</span>';
+    }
+
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  container.innerHTML = html;
+  try { lucide.createIcons(); } catch(e) {}
+}
 
 // ═══ CARREGAR AVALIACOES ═══
 
