@@ -553,6 +553,39 @@ async function enviarConviteAluno() {
   document.getElementById('bannerConvite')?.remove();
 }
 
+// ── Avisar aluno de atualização (dieta/treino) ──
+async function avisarAlunoAtualizacao(tipo) {
+  if (!alunoSelecionado?.id) return;
+  const { data: al } = await supabase.from('alunos').select('nome, telefone').eq('id', alunoSelecionado.id).single();
+  if (!al) return;
+
+  const personal = window.currentPersonal;
+  const nomePersonal = (window.currentUser?.nome || '').split(' ')[0] || 'seu personal';
+  const primeiroNome = (al.nome || '').split(' ')[0];
+  const link = 'https://loadpro.com.br/aluno/dashboard.html';
+
+  const tipoTexto = tipo === 'dieta' ? 'plano alimentar' : 'treino';
+  const msg = [
+    `Fala ${primeiroNome}! Aqui é o ${nomePersonal}.`,
+    '',
+    `Atualizei seu ${tipoTexto} no app! Entra lá pra conferir as mudanças.`,
+    '',
+    link,
+    '',
+    `Qualquer dúvida me chama aqui. Bora! 💪`
+  ].join('\n');
+
+  if (al.telefone) {
+    const num = al.telefone.replace(/\D/g, '');
+    const fone = num.startsWith('55') ? num : '55' + num;
+    window.open('https://wa.me/' + fone + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    try { await navigator.clipboard.writeText(msg); } catch(e) {}
+    showToast('Mensagem copiada! Cole no WhatsApp do aluno.');
+  }
+  document.getElementById('bannerConvite')?.remove();
+}
+
 // ── Template de Dieta ──
 async function abrirTemplateDieta() {
   if (!alunoSelecionado?.id) { showToast('Selecione um aluno primeiro', 'error'); return; }
@@ -606,18 +639,24 @@ async function aplicarTemplateDieta(objetivo) {
   const old = document.getElementById('bannerConvite');
   if (old) old.remove();
 
-  // Verificar se aluno tem token antes de mostrar botão WhatsApp
-  const { data: alunoConvite } = await supabase.from('alunos').select('convite_token, user_id').eq('id', alunoSelecionado.id).single();
-  const temAcesso = alunoConvite?.user_id || alunoConvite?.convite_token;
+  // Verificar se aluno já tem acesso ou precisa de convite
+  const { data: alunoConvite } = await supabase.from('alunos').select('convite_token, user_id, telefone').eq('id', alunoSelecionado.id).single();
+  const jaTemAcesso = !!alunoConvite?.user_id;
+  const temToken = !!alunoConvite?.convite_token;
 
   const banner = document.createElement('div');
   banner.id = 'bannerConvite';
   banner.style.cssText = 'position:sticky;top:0;z-index:50;background:var(--success);color:#fff;padding:14px 20px;border-radius:var(--radius);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
   banner.innerHTML = `
-    <span style="font-weight:600">Dieta pronta! Confira abaixo e quando estiver ok:</span>
+    <span style="font-weight:600">${jaTemAcesso ? 'Dieta atualizada!' : 'Dieta pronta! Confira abaixo e quando estiver ok:'}</span>
     <div style="display:flex;gap:8px">
       <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="document.getElementById('bannerConvite').remove()">Ficar aqui</button>
-      ${temAcesso ? `<button class="btn btn-sm" style="background:#fff;color:var(--success);font-weight:700" onclick="enviarConviteAluno()">Enviar convite WhatsApp →</button>` : ''}
+      ${jaTemAcesso
+        ? `<button class="btn btn-sm" style="background:#fff;color:var(--success);font-weight:700" onclick="avisarAlunoAtualizacao('dieta')">Avisar aluno via WhatsApp →</button>`
+        : temToken
+          ? `<button class="btn btn-sm" style="background:#fff;color:var(--success);font-weight:700" onclick="enviarConviteAluno()">Enviar convite WhatsApp →</button>`
+          : ''
+      }
     </div>`;
   const container = document.getElementById('planoContainer');
   container.parentNode.insertBefore(banner, container);
