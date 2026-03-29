@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291310">
+  <link rel="stylesheet" href="../css/style.css?v=03291313">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291310"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291313"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -84,10 +84,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291310"></script>
-  <script src="../js/supabase.js?v=03291310"></script>
-  <script src="../js/auth.js?v=03291310"></script>
-  <script src="../js/utils.js?v=03291310"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291313"></script>
+  <script src="../js/supabase.js?v=03291313"></script>
+  <script src="../js/auth.js?v=03291313"></script>
+  <script src="../js/utils.js?v=03291313"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -309,8 +309,11 @@
           .order('carga', { ascending: false })
           .limit(1);
 
-        const cargaAnterior = prAnterior?.[0]?.carga || 0;
-        const volAnterior = (prAnterior?.[0]?.carga || 0) * (prAnterior?.[0]?.reps || 0);
+        // Só verifica PR se tem histórico anterior
+        if (!prAnterior?.length) { /* primeiro treino, sem PR */ }
+        else {
+        const cargaAnterior = prAnterior[0].carga || 0;
+        const volAnterior = (prAnterior[0].carga || 0) * (prAnterior[0].reps || 0);
 
         let prTipo = null;
         if (carga > cargaAnterior) prTipo = 'carga';
@@ -333,6 +336,7 @@
             : `${volume}kg vol — novo recorde de volume!`;
           mostrarPRCelebration(label);
         }
+        } // fecha else do "tem histórico"
       }
 
       // Iniciar timer de descanso
