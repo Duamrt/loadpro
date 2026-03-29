@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03290455">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290455"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03290459">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290459"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body>
@@ -58,7 +58,7 @@
             </div>
             <div class="form-group">
               <label>Email</label>
-              <input type="email" class="form-control" id="dEmail" disabled>
+              <input type="email" class="form-control" id="dEmail">
             </div>
             <div class="form-group">
               <label>WhatsApp</label>
@@ -109,6 +109,41 @@
             <button class="btn btn-primary" onclick="salvarDados()"><i data-lucide="save"></i> Salvar</button>
             <button class="btn btn-success" onclick="enviarConviteWA()"><i data-lucide="message-circle"></i> Enviar WhatsApp</button>
             <button class="btn btn-danger" onclick="excluirAluno()" style="margin-left:auto"><i data-lucide="trash-2"></i> Excluir</button>
+          </div>
+        </div>
+
+        <!-- Acesso do aluno -->
+        <div class="card" style="margin-top:16px" id="cardAcesso">
+          <h3 style="margin-bottom:16px"><i data-lucide="key-round" style="width:18px;height:18px;vertical-align:-3px"></i> Acesso do aluno</h3>
+          <div id="acessoPendente" style="display:none">
+            <div class="alert alert-warning" style="display:flex;align-items:center;gap:12px">
+              <i data-lucide="clock" style="width:20px;height:20px;flex-shrink:0"></i>
+              <div>
+                <strong>Convite pendente</strong> — o aluno ainda não criou a senha.
+                <br><span style="font-size:.85rem">Envie o convite por WhatsApp para ele criar o acesso.</span>
+              </div>
+            </div>
+          </div>
+          <div id="acessoAtivo" style="display:none">
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label>Email de login</label>
+                <input type="email" class="form-control" id="acessoEmail" disabled style="background:var(--bg-card-hover)">
+              </div>
+              <div class="form-group">
+                <label>Nova senha</label>
+                <div style="display:flex;gap:8px">
+                  <input type="text" class="form-control" id="acessoSenha" placeholder="Digite a nova senha" minlength="6">
+                  <button class="btn btn-warning btn-sm" onclick="resetarSenhaAluno()" id="btnResetSenha" style="white-space:nowrap">
+                    <i data-lucide="refresh-cw" style="width:14px;height:14px"></i> Redefinir
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:.8rem;color:var(--text-muted);margin-top:4px">
+              <i data-lucide="info" style="width:12px;height:12px;vertical-align:-2px"></i>
+              A senha antiga não pode ser recuperada. Digite uma nova e avise o aluno.
+            </p>
           </div>
         </div>
       </div>
@@ -225,11 +260,11 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290455"></script>
-  <script src="../js/supabase.js?v=03290455"></script>
-  <script src="../js/auth.js?v=03290455"></script>
-  <script src="../js/sidebar.js?v=03290455"></script>
-  <script src="../js/utils.js?v=03290455"></script>
-  <script src="../js/personal/aluno-detalhe.js?v=03290455"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290459"></script>
+  <script src="../js/supabase.js?v=03290459"></script>
+  <script src="../js/auth.js?v=03290459"></script>
+  <script src="../js/sidebar.js?v=03290459"></script>
+  <script src="../js/utils.js?v=03290459"></script>
+  <script src="../js/personal/aluno-detalhe.js?v=03290459"></script>
 </body>
 </html>

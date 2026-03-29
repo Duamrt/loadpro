@@ -53,8 +53,16 @@ document.addEventListener('auth-ready', async () => {
 
   // Preencher dados pessoais
   document.getElementById('dNome').value = aluno.nome;
-  document.getElementById('dEmail').value = aluno.user_id ? '(vinculado)' : 'Convite pendente';
+  document.getElementById('dEmail').value = aluno.email || '';
   document.getElementById('dTelefone').value = aluno.telefone || '';
+
+  // Seção de acesso
+  if (aluno.user_id) {
+    document.getElementById('acessoAtivo').style.display = 'block';
+    document.getElementById('acessoEmail').value = aluno.email || '';
+  } else {
+    document.getElementById('acessoPendente').style.display = 'block';
+  }
   document.getElementById('dNascimento').value = aluno.data_nascimento || '';
   document.getElementById('dSexo').value = aluno.sexo || '';
   document.getElementById('dObjetivo').value = aluno.objetivo || '';
@@ -132,6 +140,7 @@ document.addEventListener('auth-ready', async () => {
 async function salvarDados() {
   const { error } = await supabase.from('alunos').update({
     nome: document.getElementById('dNome').value.trim(),
+    email: document.getElementById('dEmail').value.trim() || null,
     telefone: document.getElementById('dTelefone').value.trim() || null,
     data_nascimento: document.getElementById('dNascimento').value || null,
     sexo: document.getElementById('dSexo').value || null,
@@ -208,6 +217,36 @@ async function enviarConviteWA() {
   const shortCode = token.split('-')[0];
   const link = `${location.origin}/c/${shortCode}`;
   enviarConviteWhatsApp(alunoAtual.nome, alunoAtual.telefone, link);
+}
+
+// ── Resetar senha do aluno ──
+async function resetarSenhaAluno() {
+  const senha = document.getElementById('acessoSenha').value.trim();
+  if (!senha || senha.length < 6) { showToast('Senha precisa ter no mínimo 6 caracteres', 'error'); return; }
+
+  const btn = document.getElementById('btnResetSenha');
+  btn.disabled = true;
+
+  const { data, error } = await supabase.rpc('resetar_senha_aluno', {
+    p_aluno_id: alunoAtual.id,
+    p_nova_senha: senha
+  });
+
+  if (error) {
+    showToast('Erro: ' + error.message, 'error');
+    btn.disabled = false;
+    return;
+  }
+
+  if (data?.error) {
+    showToast(data.error, 'error');
+    btn.disabled = false;
+    return;
+  }
+
+  showToast('Senha redefinida! Avise o aluno.');
+  document.getElementById('acessoSenha').value = '';
+  btn.disabled = false;
 }
 
 // ── Chat ──
