@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291325">
+  <link rel="stylesheet" href="../css/style.css?v=03291327">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291325"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291327"></script>
 <script>if(localStorage.getItem("loadpro-theme")==="dark")document.documentElement.setAttribute("data-theme","dark");</script>
 </head>
 <body>
@@ -53,6 +53,14 @@
       </div>
     </div>
 
+    <!-- Histórico de treinos -->
+    <div class="card" style="margin-bottom:16px">
+      <h4 style="margin-bottom:12px"><i data-lucide="history" style="width:18px;height:18px;color:var(--warning);vertical-align:-3px"></i> Últimos Treinos</h4>
+      <div id="historicoTreinos">
+        <p style="font-size:.9rem;color:var(--text-muted)">Nenhum treino registrado</p>
+      </div>
+    </div>
+
     <!-- Água -->
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -79,10 +87,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291325"></script>
-  <script src="../js/supabase.js?v=03291325"></script>
-  <script src="../js/auth.js?v=03291325"></script>
-  <script src="../js/utils.js?v=03291325"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291327"></script>
+  <script src="../js/supabase.js?v=03291327"></script>
+  <script src="../js/auth.js?v=03291327"></script>
+  <script src="../js/utils.js?v=03291327"></script>
   <script>
     document.addEventListener('auth-ready', async () => {
       const user = window.currentUser;
@@ -158,6 +166,43 @@
 
       if (agua) updateAgua(agua.consumido_ml, agua.meta_ml || metaAgua);
       else updateAgua(0, metaAgua);
+
+      // Histórico de treinos (últimos 5)
+      const { data: historico } = await supabase
+        .from('treino_logs')
+        .select('id, data, duracao_min, completo, rotinas(nome)')
+        .eq('aluno_id', aluno.id)
+        .order('data', { ascending: false })
+        .limit(5);
+
+      if (historico?.length) {
+        // Contar séries por treino
+        const logIds = historico.map(h => h.id);
+        const { data: seriesCount } = await supabase
+          .from('treino_series')
+          .select('treino_log_id')
+          .in('treino_log_id', logIds);
+
+        const countMap = {};
+        (seriesCount || []).forEach(s => {
+          countMap[s.treino_log_id] = (countMap[s.treino_log_id] || 0) + 1;
+        });
+
+        document.getElementById('historicoTreinos').innerHTML = historico.map(h => {
+          const nomeRotina = h.rotinas?.nome || 'Treino';
+          const series = countMap[h.id] || 0;
+          const duracao = h.duracao_min ? h.duracao_min + 'min' : '';
+          return `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-weight:600;font-size:.9rem">${esc(nomeRotina)}</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">${formatDate(h.data)} ${duracao ? '· ' + duracao : ''} · ${series} séries</div>
+              </div>
+              ${h.completo ? '<span class="badge badge-success">Completo</span>' : '<span class="badge badge-warning">Parcial</span>'}
+            </div>
+          `;
+        }).join('');
+      }
 
       // Dieta checklist
       const { data: plano } = await supabase
