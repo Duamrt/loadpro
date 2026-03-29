@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291336">
+  <link rel="stylesheet" href="../css/style.css?v=03291338">
   <link rel="manifest" href="../manifest.json">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291336"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291338"></script>
   <style>
     .serie-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
     .serie-input { width:70px; padding:8px; text-align:center; -moz-appearance:textfield; }
@@ -84,10 +84,10 @@
     <a href="perfil.html"><i data-lucide="user"></i>Perfil</a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291336"></script>
-  <script src="../js/supabase.js?v=03291336"></script>
-  <script src="../js/auth.js?v=03291336"></script>
-  <script src="../js/utils.js?v=03291336"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291338"></script>
+  <script src="../js/supabase.js?v=03291338"></script>
+  <script src="../js/auth.js?v=03291338"></script>
+  <script src="../js/utils.js?v=03291338"></script>
   <script>
     let rotinaAtual = null;
     let treinoLogId = null;
@@ -211,7 +211,14 @@
         });
       }
 
-      // Timer inicia quando completar a primeira série
+      // Timer visual inicia ao abrir treino
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const sec = String(elapsed % 60).padStart(2, '0');
+        document.getElementById('timerSmall').textContent = `${min}:${sec}`;
+      }, 1000);
 
       // Renderizar exercícios
       const exercicios = (rotina.rotina_exercicios || []).sort((a, b) => a.ordem - b.ordem);
@@ -335,13 +342,6 @@
           data: new Date().toISOString().split('T')[0]
         }).select().single();
         treinoLogId = log.id;
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-          const elapsed = Math.floor((Date.now() - startTime) / 1000);
-          const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
-          const sec = String(elapsed % 60).padStart(2, '0');
-          document.getElementById('timerSmall').textContent = `${min}:${sec}`;
-        }, 1000);
       }
 
       // Salvar série no banco (tipo e pse opcionais)
