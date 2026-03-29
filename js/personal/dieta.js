@@ -3,6 +3,7 @@
 let planoAtivo = null;
 let alunoSelecionado = null;
 let calcResult = null;
+let todosAlunosDieta = [];
 
 document.addEventListener('auth-ready', async () => {
   const personal = window.currentPersonal;
@@ -11,12 +12,22 @@ document.addEventListener('auth-ready', async () => {
     .from('alunos').select('id, nome, sexo, data_nascimento, objetivo')
     .eq('personal_id', personal.id).in('status', ['ativo','pendente']).order('nome');
 
+  todosAlunosDieta = alunos || [];
   const select = document.getElementById('seletorAluno');
-  (alunos || []).forEach(a => {
+  todosAlunosDieta.forEach(a => {
     select.innerHTML += `<option value="${a.id}" data-sexo="${a.sexo}" data-nasc="${a.data_nascimento}" data-obj="${esc(a.objetivo)}">${esc(a.nome)}</option>`;
   });
 
+  let valorAnterior = '';
   select.addEventListener('change', async () => {
+    if (planoAtivo && valorAnterior) {
+      if (!confirm('Trocar de aluno? Os dados do aluno atual não serão perdidos.')) {
+        select.value = valorAnterior;
+        return;
+      }
+    }
+    valorAnterior = select.value;
+
     const opt = select.options[select.selectedIndex];
     alunoSelecionado = {
       id: select.value,
@@ -26,16 +37,70 @@ document.addEventListener('auth-ready', async () => {
     };
     if (select.value) {
       document.getElementById('calcCard').style.display = 'block';
-      // Auto-selecionar objetivo
       const objMap = { 'Emagrecimento': 'deficit', 'Hipertrofia': 'superavit', 'Condicionamento': 'manutencao' };
       if (objMap[alunoSelecionado.objetivo]) document.getElementById('objDieta').value = objMap[alunoSelecionado.objetivo];
       await carregarPlano();
+    } else {
+      planoAtivo = null;
+      mostrarResumoDieta();
     }
   });
 
   const params = new URLSearchParams(location.search);
-  if (params.get('aluno')) { select.value = params.get('aluno'); select.dispatchEvent(new Event('change')); }
+  if (params.get('aluno')) {
+    select.value = params.get('aluno');
+    valorAnterior = select.value;
+    select.dispatchEvent(new Event('change'));
+  } else {
+    mostrarResumoDieta();
+  }
 });
+
+async function mostrarResumoDieta() {
+  const container = document.getElementById('planoContainer');
+  const empty = document.getElementById('emptyState');
+  empty.style.display = 'none';
+
+  if (!todosAlunosDieta.length) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  // Buscar planos ativos
+  const { data: planos } = await supabase
+    .from('planos_dieta')
+    .select('aluno_id, nome, meta_kcal, ativo')
+    .eq('personal_id', window.currentPersonal.id)
+    .eq('ativo', true);
+
+  const planoMap = {};
+  (planos || []).forEach(p => { planoMap[p.aluno_id] = p; });
+
+  container.innerHTML = `
+    <div style="margin-bottom:16px;color:var(--text-secondary);font-size:.9rem">Selecione um aluno pra ver ou criar o plano alimentar:</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+      ${todosAlunosDieta.map(a => {
+        const p = planoMap[a.id];
+        return `
+          <div class="card card-clickable" style="padding:16px;cursor:pointer" onclick="document.getElementById('seletorAluno').value='${a.id}';document.getElementById('seletorAluno').dispatchEvent(new Event('change'))">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="avatar">${getInitials(a.nome)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.nome)}</div>
+                <div style="font-size:.8rem;margin-top:2px">
+                  ${p
+                    ? `<span style="color:var(--success)">${p.meta_kcal || '—'} kcal/dia</span>`
+                    : '<span style="color:var(--text-muted)">Sem dieta</span>'}
+                </div>
+              </div>
+              ${p ? '<i data-lucide="check-circle" style="width:16px;height:16px;color:var(--success)"></i>' : '<i data-lucide="plus-circle" style="width:16px;height:16px;color:var(--text-muted)"></i>'}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+  lucide.createIcons();
+}
 
 async function carregarPlano() {
   if (!alunoSelecionado?.id) return;
@@ -57,9 +122,6 @@ function renderPlano() {
   const empty = document.getElementById('emptyState');
   const btnLimpar = document.getElementById('btnLimparDieta');
   if (btnLimpar) btnLimpar.style.display = planoAtivo ? 'inline-flex' : 'none';
-  // Travar seletor enquanto tem plano
-  const select = document.getElementById('seletorAluno');
-  if (select) select.disabled = !!planoAtivo;
 
   if (!planoAtivo) {
     container.innerHTML = '';
