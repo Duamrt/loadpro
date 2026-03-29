@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03291127">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291127"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03291131">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291131"></script>
   <style>
     .chat-list-item { display:flex; align-items:center; gap:12px; padding:14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .2s; }
     .chat-list-item:hover { background:var(--bg-card-hover); }
@@ -73,11 +73,11 @@
     <img id="lightboxImg" src="">
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291127"></script>
-  <script src="../js/supabase.js?v=03291127"></script>
-  <script src="../js/auth.js?v=03291127"></script>
-  <script src="../js/sidebar.js?v=03291127"></script>
-  <script src="../js/utils.js?v=03291127"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03291131"></script>
+  <script src="../js/supabase.js?v=03291131"></script>
+  <script src="../js/auth.js?v=03291131"></script>
+  <script src="../js/sidebar.js?v=03291131"></script>
+  <script src="../js/utils.js?v=03291131"></script>
   <script>
     let alunoChat = null;
     let subscription = null;
@@ -192,19 +192,24 @@
 
       // Realtime — novas msgs + atualização de leitura
       if (subscription) subscription.unsubscribe();
+      // Realtime + polling fallback
+      let realtimeOk = false;
+      let lastMsgTime = msgs?.length ? msgs[msgs.length - 1].criado_em : new Date().toISOString();
+
       subscription = supabase.channel('chat-' + alunoId)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${alunoId}` }, payload => {
+          realtimeOk = true;
           if (!document.getElementById('msg-' + payload.new.id)) {
             appendMsg(payload.new);
+            lastMsgTime = payload.new.criado_em;
           }
-          // Marcar como lida se nao e minha + notificação
           if (payload.new.remetente_id !== window.currentUser.id) {
             supabase.from('mensagens').update({ lida: true }).eq('id', payload.new.id);
             notificarMsg(nome, payload.new.texto);
           }
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${alunoId}` }, payload => {
-          // Atualizar ticks quando msg for lida
+          realtimeOk = true;
           if (payload.new.lida && payload.new.remetente_id === window.currentUser.id) {
             const el = document.getElementById('msg-' + payload.new.id);
             if (el) {
@@ -214,6 +219,29 @@
           }
         })
         .subscribe();
+
+      // Polling fallback a cada 3s (caso realtime falhe)
+      if (window._chatPoll) clearInterval(window._chatPoll);
+      window._chatPoll = setInterval(async () => {
+        if (realtimeOk) return; // realtime funcionando, não precisa polling
+        const { data: novas } = await supabase
+          .from('mensagens').select('*')
+          .eq('aluno_id', alunoId)
+          .gt('criado_em', lastMsgTime)
+          .order('criado_em', { ascending: true });
+        if (novas?.length) {
+          novas.forEach(m => {
+            if (!document.getElementById('msg-' + m.id)) {
+              appendMsg(m);
+              if (m.remetente_id !== window.currentUser.id) {
+                supabase.from('mensagens').update({ lida: true }).eq('id', m.id);
+                notificarMsg(nome, m.texto);
+              }
+            }
+            lastMsgTime = m.criado_em;
+          });
+        }
+      }, 3000);
     }
 
     function renderMsgs(msgs) {
