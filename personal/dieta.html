@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="../css/style.css?v=03290511">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290511"></script>
+  <link rel="stylesheet" href="../css/style.css?v=03290552">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03290552"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -118,9 +118,21 @@
             <input type="time" class="form-control" id="refHorario">
           </div>
         </div>
+        <!-- Busca de alimentos FatSecret -->
         <div class="form-group">
-          <label>Descrição / alimentos</label>
-          <textarea class="form-control" id="refDescricao" rows="4" placeholder="Liste os alimentos e quantidades..."></textarea>
+          <label><i data-lucide="search" style="width:13px;height:13px;vertical-align:-2px"></i> Buscar alimento</label>
+          <div style="position:relative">
+            <input type="text" class="form-control" id="buscaAlimento" placeholder="Digite: frango, arroz, batata doce..." autocomplete="off">
+            <div id="buscaResultados" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);max-height:250px;overflow-y:auto;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.3)"></div>
+          </div>
+        </div>
+
+        <!-- Lista de alimentos adicionados -->
+        <div id="alimentosAdicionados" style="margin-bottom:12px"></div>
+
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea class="form-control" id="refDescricao" rows="2" placeholder="Observações opcionais..."></textarea>
         </div>
         <div class="grid grid-4">
           <div class="form-group"><label>Calorias</label><input type="number" class="form-control" id="refKcal"></div>
@@ -128,6 +140,10 @@
           <div class="form-group"><label>Carbo (g)</label><input type="number" class="form-control" id="refCarb"></div>
           <div class="form-group"><label>Gordura (g)</label><input type="number" class="form-control" id="refGord"></div>
         </div>
+        <p style="font-size:.75rem;color:var(--text-muted);margin-top:-8px">
+          <i data-lucide="info" style="width:11px;height:11px;vertical-align:-2px"></i>
+          Valores preenchidos pela busca (fonte: FatSecret / USDA). Pode ajustar manualmente.
+        </p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('modalRefeicao')">Cancelar</button>
@@ -182,11 +198,11 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290511"></script>
-  <script src="../js/supabase.js?v=03290511"></script>
-  <script src="../js/auth.js?v=03290511"></script>
-  <script src="../js/sidebar.js?v=03290511"></script>
-  <script src="../js/utils.js?v=03290511"></script>
-  <script src="../js/personal/dieta.js?v=03290511"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js?v=03290552"></script>
+  <script src="../js/supabase.js?v=03290552"></script>
+  <script src="../js/auth.js?v=03290552"></script>
+  <script src="../js/sidebar.js?v=03290552"></script>
+  <script src="../js/utils.js?v=03290552"></script>
+  <script src="../js/personal/dieta.js?v=03290552"></script>
 </body>
 </html>

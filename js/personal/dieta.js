@@ -259,6 +259,8 @@ async function novoPlano() {
   await carregarPlano();
 }
 
+let alimentosRefeicao = [];
+
 function addRefeicao() {
   if (!planoAtivo) return;
   document.getElementById('refId').value = '';
@@ -271,7 +273,124 @@ function addRefeicao() {
   document.getElementById('refCarb').value = '';
   document.getElementById('refGord').value = '';
   document.getElementById('refModalTitle').textContent = 'Nova Refeição';
+  alimentosRefeicao = [];
+  renderAlimentosRefeicao();
+  document.getElementById('buscaAlimento').value = '';
   openModal('modalRefeicao');
+}
+
+// ── Busca FatSecret ──
+const EDGE_URL = SUPABASE_URL + '/functions/v1/buscar-alimento';
+let buscaTimeout = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('buscaAlimento');
+  const resultados = document.getElementById('buscaResultados');
+  if (!input) return;
+
+  input.addEventListener('input', () => {
+    clearTimeout(buscaTimeout);
+    const q = input.value.trim();
+    if (q.length < 2) { resultados.style.display = 'none'; return; }
+
+    buscaTimeout = setTimeout(async () => {
+      resultados.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:.85rem">Buscando...</div>';
+      resultados.style.display = 'block';
+
+      try {
+        const resp = await fetch(EDGE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+          body: JSON.stringify({ q })
+        });
+        const dados = await resp.json();
+
+        if (!dados.length) {
+          resultados.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:.85rem">Nenhum resultado</div>';
+          return;
+        }
+
+        resultados.innerHTML = dados.map((a, i) => `
+          <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s"
+               onmouseover="this.style.background='var(--bg-card-hover)'" onmouseout="this.style.background=''"
+               onclick='selecionarAlimento(${JSON.stringify(a).replace(/'/g, "&#39;")})'>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:600;font-size:.9rem">${a.nome}</span>
+              <span style="font-size:.8rem;color:var(--primary);font-weight:700">${a.kcal} kcal</span>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
+              ${a.porcao} · P: ${a.proteina}g · C: ${a.carbo}g · G: ${a.gordura}g
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        resultados.innerHTML = '<div style="padding:12px;color:var(--danger);font-size:.85rem">Erro na busca</div>';
+      }
+    }, 400);
+  });
+
+  // Fechar resultados ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#buscaAlimento') && !e.target.closest('#buscaResultados')) {
+      resultados.style.display = 'none';
+    }
+  });
+});
+
+function selecionarAlimento(alimento) {
+  alimentosRefeicao.push({ ...alimento, qtd: 1 });
+  renderAlimentosRefeicao();
+  recalcularTotais();
+  document.getElementById('buscaAlimento').value = '';
+  document.getElementById('buscaResultados').style.display = 'none';
+}
+
+function removerAlimentoRef(idx) {
+  alimentosRefeicao.splice(idx, 1);
+  renderAlimentosRefeicao();
+  recalcularTotais();
+}
+
+function atualizarQtdAlimento(idx, qtd) {
+  alimentosRefeicao[idx].qtd = qtd;
+  recalcularTotais();
+}
+
+function renderAlimentosRefeicao() {
+  const container = document.getElementById('alimentosAdicionados');
+  if (!alimentosRefeicao.length) { container.innerHTML = ''; return; }
+
+  container.innerHTML = alimentosRefeicao.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-card-hover);border-radius:var(--radius-sm);margin-bottom:6px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.85rem;font-weight:500">${a.nome}</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">${a.porcao} · ${a.kcal} kcal · P:${a.proteina}g C:${a.carbo}g G:${a.gordura}g</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <label style="font-size:.7rem;color:var(--text-muted)">×</label>
+        <input type="number" value="${a.qtd}" min="0.5" step="0.5" style="width:50px;padding:4px 6px;font-size:.8rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg-card);color:var(--text)"
+               onchange="atualizarQtdAlimento(${i}, +this.value)">
+      </div>
+      <button onclick="removerAlimentoRef(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:4px">
+        <i data-lucide="x" style="width:14px;height:14px"></i>
+      </button>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+function recalcularTotais() {
+  let kcal = 0, prot = 0, carb = 0, gord = 0;
+  alimentosRefeicao.forEach(a => {
+    kcal += a.kcal * a.qtd;
+    prot += a.proteina * a.qtd;
+    carb += a.carbo * a.qtd;
+    gord += a.gordura * a.qtd;
+  });
+  document.getElementById('refKcal').value = Math.round(kcal);
+  document.getElementById('refProt').value = Math.round(prot);
+  document.getElementById('refCarb').value = Math.round(carb);
+  document.getElementById('refGord').value = Math.round(gord);
 }
 
 function editarRefeicao(id) {
