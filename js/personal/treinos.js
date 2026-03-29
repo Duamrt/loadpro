@@ -3,6 +3,7 @@
 let exerciciosDisponiveis = [];
 let exerciciosAdicionados = [];
 let rotinasAluno = [];
+let todosAlunosTreino = [];
 
 document.addEventListener('auth-ready', async () => {
   const personal = window.currentPersonal;
@@ -14,8 +15,9 @@ document.addEventListener('auth-ready', async () => {
     .in('status', ['ativo','pendente'])
     .order('nome');
 
+  todosAlunosTreino = alunos || [];
   const select = document.getElementById('seletorAluno');
-  (alunos || []).forEach(a => {
+  todosAlunosTreino.forEach(a => {
     select.innerHTML += `<option value="${a.id}">${esc(a.nome)}</option>`;
   });
 
@@ -23,7 +25,17 @@ document.addEventListener('auth-ready', async () => {
   const params = new URLSearchParams(location.search);
   if (params.get('aluno')) select.value = params.get('aluno');
 
-  select.addEventListener('change', carregarRotinas);
+  let valorAnterior = select.value;
+  select.addEventListener('change', () => {
+    if (rotinasAluno.length > 0 && valorAnterior) {
+      if (!confirm('Trocar de aluno? Os dados do aluno atual não serão perdidos.')) {
+        select.value = valorAnterior;
+        return;
+      }
+    }
+    valorAnterior = select.value;
+    carregarRotinas();
+  });
 
   // Carregar exercícios disponíveis
   const { data: exs } = await supabase
@@ -43,12 +55,66 @@ document.addEventListener('auth-ready', async () => {
     `<div class="chip" data-dia="${d.key}" onclick="this.classList.toggle('active')">${d.label}</div>`
   ).join('');
 
-  if (select.value) carregarRotinas();
+  if (select.value) {
+    carregarRotinas();
+  } else {
+    mostrarResumoAlunos();
+  }
 });
+
+async function mostrarResumoAlunos() {
+  const container = document.getElementById('rotinasContainer');
+  const empty = document.getElementById('emptyState');
+  empty.style.display = 'none';
+
+  if (!todosAlunosTreino.length) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  // Buscar contagem de rotinas por aluno
+  const { data: rotinas } = await supabase
+    .from('rotinas')
+    .select('aluno_id, ativa')
+    .eq('personal_id', window.currentPersonal.id);
+
+  const contagem = {};
+  (rotinas || []).forEach(r => {
+    if (!contagem[r.aluno_id]) contagem[r.aluno_id] = { total: 0, ativas: 0 };
+    contagem[r.aluno_id].total++;
+    if (r.ativa) contagem[r.aluno_id].ativas++;
+  });
+
+  container.innerHTML = `
+    <div style="margin-bottom:16px;color:var(--text-secondary);font-size:.9rem">Selecione um aluno pra ver ou criar rotinas de treino:</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+      ${todosAlunosTreino.map(a => {
+        const c = contagem[a.id];
+        const temTreino = c && c.total > 0;
+        return `
+          <div class="card card-clickable" style="padding:16px;cursor:pointer" onclick="document.getElementById('seletorAluno').value='${a.id}';document.getElementById('seletorAluno').dispatchEvent(new Event('change'))">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="avatar">${getInitials(a.nome)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.nome)}</div>
+                <div style="font-size:.8rem;margin-top:2px">
+                  ${temTreino
+                    ? `<span style="color:var(--success)">${c.ativas} rotina${c.ativas !== 1 ? 's' : ''} ativa${c.ativas !== 1 ? 's' : ''}</span>`
+                    : '<span style="color:var(--text-muted)">Sem treino</span>'}
+                </div>
+              </div>
+              ${temTreino ? '<i data-lucide="check-circle" style="width:16px;height:16px;color:var(--success)"></i>' : '<i data-lucide="plus-circle" style="width:16px;height:16px;color:var(--text-muted)"></i>'}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+  lucide.createIcons();
+}
 
 async function carregarRotinas() {
   const alunoId = document.getElementById('seletorAluno').value;
-  if (!alunoId) { rotinasAluno = []; renderRotinas(); return; }
+  if (!alunoId) { rotinasAluno = []; renderRotinas(); mostrarResumoAlunos(); return; }
 
   const { data } = await supabase
     .from('rotinas')
@@ -65,9 +131,6 @@ function renderRotinas() {
   const empty = document.getElementById('emptyState');
   const btnLimpar = document.getElementById('btnLimpar');
   if (btnLimpar) btnLimpar.style.display = rotinasAluno.length ? 'inline-flex' : 'none';
-  // Travar seletor enquanto tem rotinas
-  const select = document.getElementById('seletorAluno');
-  if (select) select.disabled = rotinasAluno.length > 0;
 
   if (!rotinasAluno.length) {
     container.innerHTML = '';
