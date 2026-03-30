@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LoadPro — Gestão Profissional para Personal Trainers</title>
-  <meta name="description" content="Plataforma completa para personal trainers: treinos, dieta, medidas, agenda e IA. Substitua Excel e WhatsApp por um sistema único.">
-  <meta property="og:title" content="LoadPro — Gestão Profissional para Personal Trainers">
-  <meta property="og:description" content="Treinos, dieta, medidas, agenda e IA em um só lugar.">
+  <title>LoadPro — Sistema para Personal Trainers</title>
+  <meta name="description" content="Pare de mandar treino por WhatsApp. Treinos, dieta, medidas, agenda e IA num só sistema. Seus alunos abrem no celular. Você gerencia tudo.">
+  <meta property="og:title" content="LoadPro — Sistema para Personal Trainers">
+  <meta property="og:description" content="Treinos, dieta, medidas, agenda e IA num só lugar. 7 dias grátis.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://loadpro.com.br">
-  <meta name="theme-color" content="#C4654A">
+  <meta name="theme-color" content="#1A1816">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LoadPro">
@@ -18,60 +18,134 @@
   <link rel="apple-touch-icon" href="img/icon-192.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03300450">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03300450"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Satoshi:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css?v=03300459">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03300459"></script>
   <script>if(localStorage.getItem('loadpro-theme')==='dark')document.documentElement.classList.add('dark');</script>
   <style>
     /* Scroll Reveal */
-    .reveal { opacity:0; transform:translateY(40px); transition:opacity .7s ease, transform .7s ease; }
-    .reveal.visible { opacity:1; transform:translateY(0); }
-    .reveal-left { opacity:0; transform:translateX(-40px); transition:opacity .7s ease, transform .7s ease; }
-    .reveal-left.visible { opacity:1; transform:translateX(0); }
-    .reveal-right { opacity:0; transform:translateX(40px); transition:opacity .7s ease, transform .7s ease; }
-    .reveal-right.visible { opacity:1; transform:translateX(0); }
-    .stagger-1{transition-delay:.1s}.stagger-2{transition-delay:.2s}.stagger-3{transition-delay:.3s}
-    .stagger-4{transition-delay:.35s}.stagger-5{transition-delay:.4s}.stagger-6{transition-delay:.45s}
+    .reveal{opacity:0;transform:translateY(40px);transition:opacity .7s ease,transform .7s ease}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+    .reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .7s ease,transform .7s ease}
+    .reveal-left.visible{opacity:1;transform:translateX(0)}
+    .reveal-right{opacity:0;transform:translateX(40px);transition:opacity .7s ease,transform .7s ease}
+    .reveal-right.visible{opacity:1;transform:translateX(0)}
+    .stagger-1{transition-delay:.1s}.stagger-2{transition-delay:.2s}.stagger-3{transition-delay:.25s}
+    .stagger-4{transition-delay:.3s}.stagger-5{transition-delay:.35s}.stagger-6{transition-delay:.4s}
 
-    /* Hero 3D canvas */
-    #hero-3d { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:550px; height:550px; z-index:0; pointer-events:none; }
-    .hero { position:relative; overflow:hidden; }
-    .hero-content { position:relative; z-index:2; }
-
-    @media(max-width:768px) {
-      #hero-3d { width:320px; height:320px; opacity:0.5; }
+    /* === HERO DARK === */
+    .hero-dark {
+      background:linear-gradient(180deg,#1A1816 0%,#251F1B 50%,#1A1816 100%);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:100px 24px 60px;
+      position:relative;
+      overflow:hidden;
     }
+    .hero-dark::before {
+      content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:500px;height:500px;border-radius:50%;
+      background:radial-gradient(circle,rgba(196,101,74,0.08) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .hero-dark h1 {
+      font-family:'Fraunces',serif;font-size:clamp(32px,5.5vw,56px);font-weight:800;
+      line-height:1.1;color:#F0EBE3;margin-bottom:20px;max-width:700px;
+      opacity:0;transform:translateY(30px);animation:heroIn .8s ease forwards .3s;
+    }
+    .hero-dark h1 span { color:var(--primary); }
+    .hero-dark .hero-sub {
+      font-size:17px;color:#9C948A;line-height:1.7;max-width:540px;margin:0 auto 32px;
+      opacity:0;transform:translateY(20px);animation:heroIn .8s ease forwards .5s;
+    }
+    .hero-dark .hero-cta {
+      display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+      opacity:0;transform:translateY(20px);animation:heroIn .8s ease forwards .7s;
+    }
+    .hero-dark .hero-cta .btn-primary {
+      background:#C4654A;color:#fff;padding:16px 32px;font-size:16px;font-weight:700;
+      border-radius:12px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+      transition:transform .2s,box-shadow .2s;border:none;
+    }
+    .hero-dark .hero-cta .btn-primary:hover { transform:translateY(-2px);box-shadow:0 8px 28px rgba(196,101,74,0.35); }
+    .hero-dark .hero-cta .btn-ghost {
+      background:transparent;color:#C8C0B4;padding:16px 32px;font-size:16px;font-weight:600;
+      border:1px solid #3D3530;border-radius:12px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+      transition:border-color .2s,color .2s;
+    }
+    .hero-dark .hero-cta .btn-ghost:hover { border-color:#C4654A;color:#D4795E; }
+    .hero-dark .hero-note {
+      display:block;margin-top:20px;font-size:13px;color:#5C5549;
+      opacity:0;animation:heroIn .8s ease forwards .9s;
+    }
+    .hero-dark .hero-proof {
+      display:flex;gap:32px;justify-content:center;margin-top:40px;flex-wrap:wrap;
+      opacity:0;animation:heroIn .8s ease forwards 1.1s;
+    }
+    .hero-dark .hero-proof .proof-item { text-align:center; }
+    .hero-dark .hero-proof .proof-num {
+      font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#C4654A;display:block;
+    }
+    .hero-dark .hero-proof .proof-label { font-size:11px;color:#6B635A;text-transform:uppercase;letter-spacing:1.5px; }
+    @keyframes heroIn { to{opacity:1;transform:translateY(0)} }
 
-    /* Hero entrada */
-    .hero h1 { opacity:0; transform:translateY(30px); animation:heroIn .8s ease forwards .3s; }
-    .hero p { opacity:0; transform:translateY(20px); animation:heroIn .8s ease forwards .5s; }
-    .hero-cta { opacity:0; transform:translateY(20px); animation:heroIn .8s ease forwards .7s; }
-    .hero small { opacity:0; animation:heroIn .8s ease forwards .9s; }
-    @keyframes heroIn { to { opacity:1; transform:translateY(0); } }
+    /* Nav dark por padrão na landing */
+    .landing-nav { background:#1A1816;border-bottom:1px solid #2D2520;transform:translateY(-100%);animation:navSlide .5s ease forwards .1s; }
+    .landing-nav .logo span { color:#C4654A; }
+    .landing-nav a { color:#C8C0B4; }
+    @keyframes navSlide { to{transform:translateY(0)} }
 
-    /* Feature card glow */
-    .feature-card { transition: border-color .3s, box-shadow .3s, transform .3s; }
-    .feature-card:hover { transform:translateY(-4px); box-shadow:0 8px 32px rgba(196,101,74,0.12); border-color:var(--primary); }
+    /* === SEÇÕES ALTERNADAS === */
+    .section-light { background:#FDFCFA;padding:80px 20px; }
+    .section-warm { background:#F5F0E8;padding:80px 20px; }
+    .section-dark { background:#1A1816;padding:80px 20px;color:#F0EBE3; }
+    .section-dark p,.section-dark li { color:#9C948A; }
+    .section-dark h2 { color:#F0EBE3; }
+    .section-dark .btn-primary { background:#C4654A;color:#fff; }
 
-    /* Pricing card hover */
-    .pricing-card { transition: transform .3s, box-shadow .3s; }
-    .pricing-card:hover { transform:translateY(-6px); box-shadow:0 12px 40px rgba(0,0,0,0.15); }
+    /* Feature cards */
+    .feature-card { transition:border-color .3s,box-shadow .3s,transform .3s; }
+    .feature-card:hover { transform:translateY(-4px);box-shadow:0 8px 32px rgba(196,101,74,0.12);border-color:var(--primary); }
 
-    /* Step numbers pulse */
-    .step-circle { transition: transform .3s, box-shadow .3s; }
-    .step-circle:hover { transform:scale(1.1); box-shadow:0 0 20px rgba(196,101,74,0.3); }
+    /* Pricing */
+    .pricing-card { transition:transform .3s,box-shadow .3s; }
+    .pricing-card:hover { transform:translateY(-6px);box-shadow:0 12px 40px rgba(0,0,0,0.15); }
 
-    /* Nav slide */
-    .landing-nav { transform:translateY(-100%); animation:navSlide .5s ease forwards .1s; }
-    @keyframes navSlide { to { transform:translateY(0); } }
+    /* Step circles */
+    .step-circle { transition:transform .3s,box-shadow .3s;cursor:default; }
+    .step-circle:hover { transform:scale(1.1);box-shadow:0 0 20px rgba(196,101,74,0.3); }
 
-    /* CTA glow */
-    .cta-section { transition: background .3s; }
-    .cta-section .btn-primary { transition: transform .3s, box-shadow .3s; }
-    .cta-section .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(196,101,74,0.3); }
+    /* Depoimentos placeholder */
+    .testimonials { display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:40px auto 0; }
+    .testimonial-card {
+      background:var(--bg-card);border:1px solid var(--border,#E8E0D4);border-radius:12px;padding:24px;
+      text-align:left;
+    }
+    .testimonial-card .quote { font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;font-style:italic; }
+    .testimonial-card .author { display:flex;align-items:center;gap:10px; }
+    .testimonial-card .avatar { width:36px;height:36px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--primary); }
+    .testimonial-card .name { font-size:13px;font-weight:600;color:var(--text); }
+    .testimonial-card .role { font-size:11px;color:var(--text-muted); }
+
+    /* CTA final dark */
+    .cta-final {
+      background:linear-gradient(180deg,#1A1816,#251F1B);text-align:center;padding:80px 24px;
+    }
+    .cta-final h2 { font-family:'Fraunces',serif;font-size:clamp(24px,4vw,36px);font-weight:700;color:#F0EBE3;margin-bottom:12px; }
+    .cta-final p { font-size:16px;color:#8C8578;margin-bottom:32px; }
+    .cta-final .btn {
+      display:inline-flex;align-items:center;gap:8px;padding:16px 36px;background:#C4654A;
+      color:#fff;font-weight:700;font-size:16px;border-radius:14px;text-decoration:none;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .cta-final .btn:hover { transform:translateY(-2px);box-shadow:0 8px 28px rgba(196,101,74,0.35); }
 
     @media(max-width:768px) {
-      #hero-3d { opacity:0.4; }
+      .testimonials { grid-template-columns:1fr; }
+      .hero-dark .hero-proof { gap:20px; }
     }
   </style>
 </head>
@@ -80,79 +154,85 @@
   <!-- Nav -->
   <nav class="landing-nav">
     <div class="logo" style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;letter-spacing:-0.5px">
-      Load<span style="color:var(--primary)">Pro</span>
+      Load<span>Pro</span>
     </div>
     <div class="landing-nav-links" id="navLinks">
       <a href="#funcionalidades" onclick="document.getElementById('navLinks').classList.remove('open')">Funcionalidades</a>
       <a href="#planos" onclick="document.getElementById('navLinks').classList.remove('open')">Planos</a>
       <a href="login.html" class="btn btn-sm btn-secondary">Entrar</a>
-      <a href="cadastro.html" class="btn btn-sm btn-primary">Começar Grátis</a>
+      <a href="cadastro.html" class="btn btn-sm btn-primary">Testar Grátis</a>
     </div>
     <button class="landing-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
       <i data-lucide="menu"></i>
     </button>
   </nav>
 
-  <!-- Hero -->
-  <section class="hero">
-    <canvas id="hero-3d"></canvas>
-    <div class="hero-content">
-      <h1>Seus alunos evoluindo. <span>Sua gestão no controle.</span></h1>
-      <p>Treinos personalizados, dieta, medidas, agenda e inteligência artificial — tudo em um sistema feito pra quem vive de treinar gente.</p>
+  <!-- Hero Dark -->
+  <section class="hero-dark">
+    <div>
+      <h1>Pare de mandar treino<br><span>por WhatsApp.</span></h1>
+      <p class="hero-sub">Treino, dieta, medidas e agenda num só app. Seu aluno abre no celular. Você gerencia tudo.</p>
       <div class="hero-cta">
-        <a href="cadastro.html" class="btn btn-lg btn-primary">
-          <i data-lucide="rocket"></i> Começar 7 dias grátis
+        <a href="cadastro.html" class="btn-primary">
+          <i data-lucide="zap"></i> Testar grátis por 7 dias
         </a>
-        <a href="#funcionalidades" class="btn btn-lg btn-secondary">
-          <i data-lucide="play-circle"></i> Ver como funciona
+        <a href="#funcionalidades" class="btn-ghost">
+          <i data-lucide="play-circle"></i> Ver funcionalidades
         </a>
       </div>
-      <small style="display:block;margin-top:16px;color:var(--text-muted)">Sem cartão de crédito. Cancele quando quiser.</small>
+      <small class="hero-note">Sem cartão de crédito. Cancele quando quiser.</small>
+      <div class="hero-proof">
+        <div class="proof-item"><span class="proof-num">150+</span><span class="proof-label">Exercícios</span></div>
+        <div class="proof-item"><span class="proof-num">7</span><span class="proof-label">Dias grátis</span></div>
+        <div class="proof-item"><span class="proof-num">R$99</span><span class="proof-label">/mês</span></div>
+      </div>
     </div>
   </section>
 
   <!-- Funcionalidades -->
-  <section class="section" id="funcionalidades">
-    <div class="section-title reveal">
-      <h2>Tudo que você precisa em um só lugar</h2>
-      <p>Chega de ficha de papel, planilha e 500 mensagens no WhatsApp</p>
-    </div>
-    <div class="feature-grid">
-      <div class="card feature-card reveal stagger-1">
-        <i data-lucide="users"></i>
-        <h3>Gestão de Alunos</h3>
-        <p>Cadastro completo, anamnese, convite por email. Tudo organizado numa ficha profissional.</p>
+  <section class="section-light" id="funcionalidades">
+    <div style="max-width:1100px;margin:0 auto">
+      <div class="section-title reveal">
+        <h2>Tudo que você precisa em um só lugar</h2>
+        <p>Chega de ficha de papel, planilha e 500 mensagens no WhatsApp</p>
       </div>
-      <div class="card feature-card reveal stagger-2">
-        <i data-lucide="dumbbell"></i>
-        <h3>Montagem de Treino</h3>
-        <p>Biblioteca com 150+ exercícios, gifs, splits semanais. Monte rotinas em minutos.</p>
-      </div>
-      <div class="card feature-card reveal stagger-3">
-        <i data-lucide="utensils"></i>
-        <h3>Dieta e Nutrição</h3>
-        <p>Cálculo automático de TMB, macros e plano alimentar. Aluno marca refeições feitas.</p>
-      </div>
-      <div class="card feature-card reveal stagger-4">
-        <i data-lucide="ruler"></i>
-        <h3>Avaliação Física</h3>
-        <p>Medidas, fotos, gráficos de evolução. Compare avaliações lado a lado.</p>
-      </div>
-      <div class="card feature-card reveal stagger-5">
-        <i data-lucide="calendar"></i>
-        <h3>Agenda Inteligente</h3>
-        <p>Horários de cada aluno organizados. Calendário semanal visual do seu dia.</p>
-      </div>
-      <div class="card feature-card reveal stagger-6">
-        <i data-lucide="sparkles"></i>
-        <h3>IA Assistente</h3>
-        <p>Sugestão de treino, análise de progresso e relatórios gerados por inteligência artificial.</p>
+      <div class="feature-grid">
+        <div class="card feature-card reveal stagger-1">
+          <i data-lucide="users"></i>
+          <h3>Gestão de Alunos</h3>
+          <p>Cadastro completo, anamnese, convite por email. Tudo organizado numa ficha profissional.</p>
+        </div>
+        <div class="card feature-card reveal stagger-2">
+          <i data-lucide="dumbbell"></i>
+          <h3>Montagem de Treino</h3>
+          <p>Biblioteca com 150+ exercícios, gifs, splits semanais. Monte rotinas em minutos.</p>
+        </div>
+        <div class="card feature-card reveal stagger-3">
+          <i data-lucide="utensils"></i>
+          <h3>Dieta e Nutrição</h3>
+          <p>Cálculo automático de TMB, macros e plano alimentar. Aluno marca refeições feitas.</p>
+        </div>
+        <div class="card feature-card reveal stagger-4">
+          <i data-lucide="ruler"></i>
+          <h3>Avaliação Física</h3>
+          <p>Medidas, fotos, gráficos de evolução. Compare avaliações lado a lado.</p>
+        </div>
+        <div class="card feature-card reveal stagger-5">
+          <i data-lucide="calendar"></i>
+          <h3>Agenda Inteligente</h3>
+          <p>Horários de cada aluno organizados. Calendário semanal visual do seu dia.</p>
+        </div>
+        <div class="card feature-card reveal stagger-6">
+          <i data-lucide="sparkles"></i>
+          <h3>IA Assistente</h3>
+          <p>Sugestão de treino, análise de progresso e relatórios gerados por inteligência artificial.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Como funciona -->
-  <section class="section" style="background:var(--bg-card);border-radius:0;max-width:100%;padding:80px 20px;">
+  <section class="section-warm">
     <div style="max-width:900px;margin:0 auto">
       <div class="section-title reveal">
         <h2>Simples de usar</h2>
@@ -162,12 +242,12 @@
         <div class="reveal stagger-1">
           <div class="step-circle" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">1</div>
           <h4>Crie sua conta</h4>
-          <p style="font-size:.9rem;margin-top:8px">Cadastro em 30 segundos. 7 dias grátis pra testar tudo.</p>
+          <p style="font-size:.9rem;margin-top:8px">Cadastro em 30 segundos. 7 dias grátis.</p>
         </div>
         <div class="reveal stagger-2">
           <div class="step-circle" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">2</div>
           <h4>Convide seus alunos</h4>
-          <p style="font-size:.9rem;margin-top:8px">Cada aluno recebe um link por email e acessa grátis pelo celular.</p>
+          <p style="font-size:.9rem;margin-top:8px">Cada aluno recebe um link e acessa grátis pelo celular.</p>
         </div>
         <div class="reveal stagger-3">
           <div class="step-circle" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">3</div>
@@ -178,211 +258,130 @@
     </div>
   </section>
 
-  <!-- Diferencial vs concorrentes -->
-  <section class="section">
-    <div class="section-title reveal">
-      <h2>Por que LoadPro?</h2>
-      <p>O que falta nos outros, sobra aqui</p>
-    </div>
-    <div class="grid grid-2" style="max-width:800px;margin:0 auto">
-      <div class="card reveal-left" style="border-left:3px solid var(--danger)">
-        <h4 style="margin-bottom:12px;color:var(--text-muted)">Outros apps</h4>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem cobrança integrada</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem dieta / nutrição</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem IA</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem agenda de sessões</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Preço em dólar</li>
-        </ul>
+  <!-- Diferencial -->
+  <section class="section-light">
+    <div style="max-width:900px;margin:0 auto">
+      <div class="section-title reveal">
+        <h2>Por que LoadPro?</h2>
+        <p>O que falta nos outros, sobra aqui</p>
       </div>
-      <div class="card reveal-right" style="border-left:3px solid var(--success)">
-        <h4 style="margin-bottom:12px;color:var(--primary)">LoadPro</h4>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> PIX, boleto e cartão via Asaas</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> Plano alimentar + checklist</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> IA que gera treino e analisa</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> Agenda visual de sessões</li>
-          <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> Preço em real, feito no Brasil</li>
-        </ul>
+      <div class="grid grid-2" style="max-width:800px;margin:0 auto">
+        <div class="card reveal-left" style="border-left:3px solid var(--danger)">
+          <h4 style="margin-bottom:12px;color:var(--text-muted)">Outros apps</h4>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem cobrança integrada</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem dieta / nutrição</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem IA</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem agenda de sessões</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Preço em dólar</li>
+          </ul>
+        </div>
+        <div class="card reveal-right" style="border-left:3px solid var(--success)">
+          <h4 style="margin-bottom:12px;color:var(--primary)">LoadPro</h4>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> PIX, boleto e cartão via Asaas</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> Plano alimentar + checklist</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> IA que gera treino e analisa</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> Agenda visual de sessões</li>
+            <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> Preço em real, feito no Brasil</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Depoimentos (placeholder — atualizar com reais) -->
+  <section class="section-warm">
+    <div style="max-width:900px;margin:0 auto">
+      <div class="section-title reveal">
+        <h2>Quem usa, recomenda</h2>
+        <p>Personal trainers que saíram da planilha</p>
+      </div>
+      <div class="testimonials">
+        <div class="testimonial-card reveal stagger-1">
+          <div class="quote">"Parei de usar planilha no primeiro dia. Agora monto treino em 5 minutos e meu aluno já vê tudo no celular."</div>
+          <div class="author">
+            <div class="avatar">T</div>
+            <div><div class="name">Thiago R.</div><div class="role">Personal Trainer — SP</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal stagger-2">
+          <div class="quote">"O controle de dieta mudou meu trabalho. O aluno marca o que comeu e eu acompanho sem precisar perguntar."</div>
+          <div class="author">
+            <div class="avatar">R</div>
+            <div><div class="name">Rafael M.</div><div class="role">Personal Trainer — PE</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal stagger-3">
+          <div class="quote">"Finalmente um sistema em português, com preço justo e que funciona no celular. Meus alunos adoraram."</div>
+          <div class="author">
+            <div class="avatar">A</div>
+            <div><div class="name">Amanda S.</div><div class="role">Personal Trainer — RJ</div></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Planos -->
-  <section class="section" id="planos">
-    <div class="section-title reveal">
-      <h2>Planos que cabem no seu bolso</h2>
-      <p>Comece grátis por 7 dias. Sem surpresas.</p>
-    </div>
-    <div class="pricing-grid">
-      <div class="card pricing-card reveal-left">
-        <h3>Starter</h3>
-        <p class="limit">Até 10 alunos</p>
-        <div class="price">R$ 99<small>/mês</small></div>
-        <ul>
-          <li><i data-lucide="check"></i> Treinos ilimitados</li>
-          <li><i data-lucide="check"></i> Plano alimentar</li>
-          <li><i data-lucide="check"></i> Avaliação física</li>
-          <li><i data-lucide="check"></i> Chat com alunos</li>
-          <li><i data-lucide="check"></i> Agenda de sessões</li>
-          <li><i data-lucide="check"></i> Suplementação</li>
-        </ul>
-        <a href="cadastro.html" class="btn btn-block btn-secondary">Começar Grátis</a>
+  <section class="section-light" id="planos">
+    <div style="max-width:900px;margin:0 auto">
+      <div class="section-title reveal">
+        <h2>Planos que cabem no seu bolso</h2>
+        <p>Comece grátis por 7 dias. Sem surpresas.</p>
       </div>
-      <div class="card pricing-card featured reveal-right">
-        <h3>Pro</h3>
-        <p class="limit">Até 20 alunos</p>
-        <div class="price">R$ 179<small>/mês</small></div>
-        <ul>
-          <li><i data-lucide="check"></i> Tudo do Starter</li>
-          <li><i data-lucide="check"></i> IA assistente</li>
-          <li><i data-lucide="check"></i> Relatórios avançados</li>
-          <li><i data-lucide="check"></i> Fotos de progresso</li>
-          <li><i data-lucide="check"></i> Exportar PDF</li>
-          <li><i data-lucide="check"></i> Suporte prioritário</li>
-        </ul>
-        <a href="cadastro.html?plano=pro" class="btn btn-block btn-primary">Começar Grátis</a>
+      <div class="pricing-grid">
+        <div class="card pricing-card reveal-left">
+          <h3>Starter</h3>
+          <p class="limit">Até 10 alunos</p>
+          <div class="price">R$ 99<small>/mês</small></div>
+          <ul>
+            <li><i data-lucide="check"></i> Treinos ilimitados</li>
+            <li><i data-lucide="check"></i> Plano alimentar</li>
+            <li><i data-lucide="check"></i> Avaliação física</li>
+            <li><i data-lucide="check"></i> Chat com alunos</li>
+            <li><i data-lucide="check"></i> Agenda de sessões</li>
+            <li><i data-lucide="check"></i> Fotos de progresso</li>
+          </ul>
+          <a href="cadastro.html" class="btn btn-block btn-secondary">Começar com Starter</a>
+        </div>
+        <div class="card pricing-card featured reveal-right">
+          <h3>Pro</h3>
+          <p class="limit">Até 20 alunos</p>
+          <div class="price">R$ 179<small>/mês</small></div>
+          <ul>
+            <li><i data-lucide="check"></i> Tudo do Starter</li>
+            <li><i data-lucide="check"></i> IA assistente</li>
+            <li><i data-lucide="check"></i> Relatórios avançados</li>
+            <li><i data-lucide="check"></i> PDF com sua logo</li>
+            <li><i data-lucide="check"></i> Link público personalizado</li>
+            <li><i data-lucide="check"></i> Suporte prioritário</li>
+          </ul>
+          <a href="cadastro.html?plano=pro" class="btn btn-block btn-primary">Escolher Pro — mais popular</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA Final -->
-  <section class="cta-section reveal">
-    <h2>Comece a profissionalizar seu atendimento</h2>
-    <p>Seus alunos merecem mais do que uma planilha. E você merece mais controle.</p>
-    <a href="cadastro.html" class="btn btn-lg btn-primary">
-      <i data-lucide="rocket"></i> Criar minha conta grátis
+  <!-- CTA Final Dark -->
+  <section class="cta-final reveal">
+    <h2>Seus alunos merecem mais que uma planilha</h2>
+    <p>Monte sua primeira ficha de treino em menos de 5 minutos. Grátis por 7 dias.</p>
+    <a href="cadastro.html" class="btn">
+      <i data-lucide="zap"></i> Montar minha primeira ficha
     </a>
   </section>
 
   <!-- Footer -->
-  <footer class="landing-footer reveal">
+  <footer class="landing-footer">
     <p>&copy; 2026 LoadPro. Todos os direitos reservados.</p>
   </footer>
 
   <script>lucide.createIcons();</script>
 
-  <!-- Three.js — Orbe Vivo (cores LoadPro) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js?v=03300450"></script>
-  <script>
-  (function() {
-    var canvas = document.getElementById('hero-3d');
-    if (!canvas || window.innerWidth < 400) return;
-
-    var w = 550, h = 550;
-    if (window.innerWidth < 768) { w = 320; h = 320; }
-
-    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-    renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-    camera.position.z = 3.5;
-
-    // Orbe wireframe principal
-    var orbGeo = new THREE.IcosahedronGeometry(1.3, 5);
-    var orbMat = new THREE.MeshBasicMaterial({
-      color: '#C4654A', wireframe: true, transparent: true, opacity: 0.2
-    });
-    var orb = new THREE.Mesh(orbGeo, orbMat);
-    scene.add(orb);
-
-    // Inner glow
-    var innerGeo = new THREE.IcosahedronGeometry(1.28, 3);
-    var innerMat = new THREE.MeshBasicMaterial({
-      color: '#5C2A1A', transparent: true, opacity: 0.1
-    });
-    var inner = new THREE.Mesh(innerGeo, innerMat);
-    scene.add(inner);
-
-    // Partículas na superfície
-    var count = 400;
-    var pGeo = new THREE.BufferGeometry();
-    var pPos = new Float32Array(count * 3);
-    var pCols = new Float32Array(count * 3);
-    var ca = new THREE.Color('#D4795E'); // terracota claro
-    var cb = new THREE.Color('#5A8F6E'); // verde
-
-    for (var i = 0; i < count; i++) {
-      var theta = Math.random() * Math.PI * 2;
-      var phi = Math.acos(2 * Math.random() - 1);
-      var r = 1.35;
-      pPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-      pPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-      pPos[i*3+2] = r * Math.cos(phi);
-      var c = Math.random() > 0.4 ? ca : cb;
-      pCols[i*3] = c.r; pCols[i*3+1] = c.g; pCols[i*3+2] = c.b;
-    }
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-    pGeo.setAttribute('color', new THREE.BufferAttribute(pCols, 3));
-    var pMat = new THREE.PointsMaterial({
-      size: 0.025, vertexColors: true, transparent: true,
-      opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false
-    });
-    var particles = new THREE.Points(pGeo, pMat);
-    scene.add(particles);
-
-    // Salvar posições originais pra deformação
-    var origVerts = new Float32Array(orbGeo.attributes.position.array);
-
-    // Mouse + scroll
-    var mouseX = 0, mouseY = 0, scrollY = 0;
-    window.addEventListener('mousemove', function(e) {
-      mouseX = e.clientX / window.innerWidth - 0.5;
-      mouseY = e.clientY / window.innerHeight - 0.5;
-    }, { passive: true });
-    window.addEventListener('scroll', function() { scrollY = window.scrollY; }, { passive: true });
-
-    function animate() {
-      requestAnimationFrame(animate);
-      var t = Date.now() * 0.001;
-
-      // Deformar organicamente
-      var v = orbGeo.attributes.position.array;
-      for (var i = 0; i < v.length; i += 3) {
-        var ox = origVerts[i], oy = origVerts[i+1], oz = origVerts[i+2];
-        var noise = Math.sin(ox*2.5+t) * Math.cos(oy*2.5+t*0.7) * Math.sin(oz*2+t*0.5);
-        var sc = 1 + noise * 0.13;
-        v[i] = ox * sc; v[i+1] = oy * sc; v[i+2] = oz * sc;
-      }
-      orbGeo.attributes.position.needsUpdate = true;
-
-      // Pulso de opacidade
-      orbMat.opacity = 0.15 + Math.sin(t * 3) * 0.07;
-
-      // Rotação
-      orb.rotation.y += 0.003;
-      orb.rotation.x += 0.001;
-      inner.rotation.y = orb.rotation.y;
-      inner.rotation.x = orb.rotation.x;
-      particles.rotation.y = orb.rotation.y * 0.7;
-      particles.rotation.x = orb.rotation.x * 0.7;
-
-      // Mouse parallax
-      camera.position.x += (mouseX * 1.2 - camera.position.x) * 0.02;
-      camera.position.y += (-mouseY * 0.8 - camera.position.y) * 0.02;
-      camera.lookAt(0, 0, 0);
-
-      // Fade ao scrollar
-      var heroH = canvas.closest('.hero').offsetHeight;
-      canvas.style.opacity = Math.max(0, 1 - scrollY / heroH);
-
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    window.addEventListener('resize', function() {
-      var nw = window.innerWidth < 768 ? 320 : 550;
-      renderer.setSize(nw, nw);
-    });
-  })();
-  </script>
-
   <!-- Scroll Reveal + SW -->
   <script>
   (function() {
-    // Scroll Reveal
     var els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
     if (!('IntersectionObserver' in window)) {
       els.forEach(function(el) { el.classList.add('visible'); });
@@ -390,26 +389,22 @@
     }
     var obs = new IntersectionObserver(function(entries) {
       entries.forEach(function(e) {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          obs.unobserve(e.target);
-        }
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
     els.forEach(function(el) { obs.observe(el); });
 
-    // Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then(function(reg) {
         reg.addEventListener('updatefound', function() {
           var nw = reg.installing;
           nw.addEventListener('statechange', function() {
             if (nw.state === 'activated') {
-              var banner = document.createElement('div');
-              banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;z-index:99999;font-family:Satoshi,sans-serif;box-shadow:0 4px 20px rgba(196,101,74,.4)';
-              banner.textContent = 'Atualização disponível — toque para atualizar';
-              banner.onclick = function() { location.reload(); };
-              document.body.appendChild(banner);
+              var b = document.createElement('div');
+              b.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#C4654A;color:#fff;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;z-index:99999;font-family:Satoshi,sans-serif;box-shadow:0 4px 20px rgba(196,101,74,.4)';
+              b.textContent = 'Atualização disponível — toque para atualizar';
+              b.onclick = function() { location.reload(); };
+              document.body.appendChild(b);
             }
           });
         });
