@@ -19,8 +19,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03300436">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03300436"></script>
+  <link rel="stylesheet" href="css/style.css?v=03300450">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03300450"></script>
   <script>if(localStorage.getItem('loadpro-theme')==='dark')document.documentElement.classList.add('dark');</script>
   <style>
     /* Scroll Reveal */
@@ -34,9 +34,13 @@
     .stagger-4{transition-delay:.35s}.stagger-5{transition-delay:.4s}.stagger-6{transition-delay:.45s}
 
     /* Hero 3D canvas */
-    #hero-3d { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+    #hero-3d { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:550px; height:550px; z-index:0; pointer-events:none; }
     .hero { position:relative; overflow:hidden; }
     .hero-content { position:relative; z-index:2; }
+
+    @media(max-width:768px) {
+      #hero-3d { width:320px; height:320px; opacity:0.5; }
+    }
 
     /* Hero entrada */
     .hero h1 { opacity:0; transform:translateY(30px); animation:heroIn .8s ease forwards .3s; }
@@ -258,118 +262,119 @@
 
   <script>lucide.createIcons();</script>
 
-  <!-- Three.js — Esfera 3D de partículas no hero -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js?v=03300436"></script>
+  <!-- Three.js — Orbe Vivo (cores LoadPro) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js?v=03300450"></script>
   <script>
   (function() {
     var canvas = document.getElementById('hero-3d');
-    if (!canvas || window.innerWidth < 480) return; // Skip em telas muito pequenas
+    if (!canvas || window.innerWidth < 400) return;
+
+    var w = 550, h = 550;
+    if (window.innerWidth < 768) { w = 320; h = 320; }
 
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-    renderer.setSize(canvas.parentElement.offsetWidth, canvas.parentElement.offsetHeight);
+    renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(60, canvas.parentElement.offsetWidth / canvas.parentElement.offsetHeight, 0.1, 100);
-    camera.position.z = 4;
+    var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.z = 3.5;
 
-    // Partículas em forma de esfera (DNA/corpo humano)
-    var count = 800;
-    var geo = new THREE.BufferGeometry();
-    var positions = new Float32Array(count * 3);
-    var colors = new Float32Array(count * 3);
+    // Orbe wireframe principal
+    var orbGeo = new THREE.IcosahedronGeometry(1.3, 5);
+    var orbMat = new THREE.MeshBasicMaterial({
+      color: '#C4654A', wireframe: true, transparent: true, opacity: 0.2
+    });
+    var orb = new THREE.Mesh(orbGeo, orbMat);
+    scene.add(orb);
 
-    // Cores terracota/warm
-    var color1 = new THREE.Color('#C4654A'); // primary
-    var color2 = new THREE.Color('#D4795E'); // primary hover
-    var color3 = new THREE.Color('#5A8F6E'); // success
+    // Inner glow
+    var innerGeo = new THREE.IcosahedronGeometry(1.28, 3);
+    var innerMat = new THREE.MeshBasicMaterial({
+      color: '#5C2A1A', transparent: true, opacity: 0.1
+    });
+    var inner = new THREE.Mesh(innerGeo, innerMat);
+    scene.add(inner);
+
+    // Partículas na superfície
+    var count = 400;
+    var pGeo = new THREE.BufferGeometry();
+    var pPos = new Float32Array(count * 3);
+    var pCols = new Float32Array(count * 3);
+    var ca = new THREE.Color('#D4795E'); // terracota claro
+    var cb = new THREE.Color('#5A8F6E'); // verde
 
     for (var i = 0; i < count; i++) {
-      // Distribuição esférica com variação
       var theta = Math.random() * Math.PI * 2;
       var phi = Math.acos(2 * Math.random() - 1);
-      var r = 1.5 + (Math.random() - 0.5) * 0.3;
-
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = r * Math.cos(phi);
-
-      // Mix de cores
-      var c = Math.random();
-      var col = c < 0.5 ? color1 : c < 0.8 ? color2 : color3;
-      colors[i * 3] = col.r;
-      colors[i * 3 + 1] = col.g;
-      colors[i * 3 + 2] = col.b;
+      var r = 1.35;
+      pPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+      pPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+      pPos[i*3+2] = r * Math.cos(phi);
+      var c = Math.random() > 0.4 ? ca : cb;
+      pCols[i*3] = c.r; pCols[i*3+1] = c.g; pCols[i*3+2] = c.b;
     }
-
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    var mat = new THREE.PointsMaterial({
-      size: 0.03,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.7,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(pCols, 3));
+    var pMat = new THREE.PointsMaterial({
+      size: 0.025, vertexColors: true, transparent: true,
+      opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false
     });
+    var particles = new THREE.Points(pGeo, pMat);
+    scene.add(particles);
 
-    var sphere = new THREE.Points(geo, mat);
-    scene.add(sphere);
+    // Salvar posições originais pra deformação
+    var origVerts = new Float32Array(orbGeo.attributes.position.array);
 
-    // Anel orbital
-    var ringGeo = new THREE.RingGeometry(1.8, 1.85, 64);
-    var ringMat = new THREE.MeshBasicMaterial({ color: '#C4654A', transparent: true, opacity: 0.15, side: THREE.DoubleSide });
-    var ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.rotation.x = Math.PI / 3;
-    scene.add(ring);
-
-    var ring2 = ring.clone();
-    ring2.rotation.x = -Math.PI / 4;
-    ring2.rotation.y = Math.PI / 6;
-    scene.add(ring2);
-
-    // Mouse parallax
-    var mouseX = 0, mouseY = 0;
-    document.addEventListener('mousemove', function(e) {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 0.5;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.5;
+    // Mouse + scroll
+    var mouseX = 0, mouseY = 0, scrollY = 0;
+    window.addEventListener('mousemove', function(e) {
+      mouseX = e.clientX / window.innerWidth - 0.5;
+      mouseY = e.clientY / window.innerHeight - 0.5;
     }, { passive: true });
-
-    // Scroll parallax
-    var scrollY = 0;
     window.addEventListener('scroll', function() { scrollY = window.scrollY; }, { passive: true });
 
     function animate() {
       requestAnimationFrame(animate);
+      var t = Date.now() * 0.001;
 
-      // Rotação suave
-      sphere.rotation.y += 0.003;
-      sphere.rotation.x += 0.001;
-      ring.rotation.z += 0.002;
-      ring2.rotation.z -= 0.001;
+      // Deformar organicamente
+      var v = orbGeo.attributes.position.array;
+      for (var i = 0; i < v.length; i += 3) {
+        var ox = origVerts[i], oy = origVerts[i+1], oz = origVerts[i+2];
+        var noise = Math.sin(ox*2.5+t) * Math.cos(oy*2.5+t*0.7) * Math.sin(oz*2+t*0.5);
+        var sc = 1 + noise * 0.13;
+        v[i] = ox * sc; v[i+1] = oy * sc; v[i+2] = oz * sc;
+      }
+      orbGeo.attributes.position.needsUpdate = true;
+
+      // Pulso de opacidade
+      orbMat.opacity = 0.15 + Math.sin(t * 3) * 0.07;
+
+      // Rotação
+      orb.rotation.y += 0.003;
+      orb.rotation.x += 0.001;
+      inner.rotation.y = orb.rotation.y;
+      inner.rotation.x = orb.rotation.x;
+      particles.rotation.y = orb.rotation.y * 0.7;
+      particles.rotation.x = orb.rotation.x * 0.7;
 
       // Mouse parallax
-      camera.position.x += (mouseX - camera.position.x) * 0.05;
-      camera.position.y += (-mouseY - camera.position.y) * 0.05;
-      camera.lookAt(scene.position);
+      camera.position.x += (mouseX * 1.2 - camera.position.x) * 0.02;
+      camera.position.y += (-mouseY * 0.8 - camera.position.y) * 0.02;
+      camera.lookAt(0, 0, 0);
 
-      // Fade out ao scrollar
-      var heroH = canvas.parentElement.offsetHeight;
-      var opacity = Math.max(0, 1 - scrollY / heroH);
-      canvas.style.opacity = opacity;
+      // Fade ao scrollar
+      var heroH = canvas.closest('.hero').offsetHeight;
+      canvas.style.opacity = Math.max(0, 1 - scrollY / heroH);
 
       renderer.render(scene, camera);
     }
     animate();
 
-    // Resize
     window.addEventListener('resize', function() {
-      var w = canvas.parentElement.offsetWidth;
-      var h = canvas.parentElement.offsetHeight;
-      renderer.setSize(w, h);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      var nw = window.innerWidth < 768 ? 320 : 550;
+      renderer.setSize(nw, nw);
     });
   })();
   </script>
