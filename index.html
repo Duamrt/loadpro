@@ -10,12 +10,66 @@
   <meta property="og:description" content="Treinos, dieta, medidas, agenda e IA em um só lugar.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://loadpro.com.br">
-  <meta name="theme-color" content="#F5F0E8">
+  <meta name="theme-color" content="#C4654A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LoadPro">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/icon-192.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Satoshi:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=03291338">
-  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03291338"></script>
+  <link rel="stylesheet" href="css/style.css?v=03300436">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js?v=03300436"></script>
+  <script>if(localStorage.getItem('loadpro-theme')==='dark')document.documentElement.classList.add('dark');</script>
+  <style>
+    /* Scroll Reveal */
+    .reveal { opacity:0; transform:translateY(40px); transition:opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .reveal-left { opacity:0; transform:translateX(-40px); transition:opacity .7s ease, transform .7s ease; }
+    .reveal-left.visible { opacity:1; transform:translateX(0); }
+    .reveal-right { opacity:0; transform:translateX(40px); transition:opacity .7s ease, transform .7s ease; }
+    .reveal-right.visible { opacity:1; transform:translateX(0); }
+    .stagger-1{transition-delay:.1s}.stagger-2{transition-delay:.2s}.stagger-3{transition-delay:.3s}
+    .stagger-4{transition-delay:.35s}.stagger-5{transition-delay:.4s}.stagger-6{transition-delay:.45s}
+
+    /* Hero 3D canvas */
+    #hero-3d { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+    .hero { position:relative; overflow:hidden; }
+    .hero-content { position:relative; z-index:2; }
+
+    /* Hero entrada */
+    .hero h1 { opacity:0; transform:translateY(30px); animation:heroIn .8s ease forwards .3s; }
+    .hero p { opacity:0; transform:translateY(20px); animation:heroIn .8s ease forwards .5s; }
+    .hero-cta { opacity:0; transform:translateY(20px); animation:heroIn .8s ease forwards .7s; }
+    .hero small { opacity:0; animation:heroIn .8s ease forwards .9s; }
+    @keyframes heroIn { to { opacity:1; transform:translateY(0); } }
+
+    /* Feature card glow */
+    .feature-card { transition: border-color .3s, box-shadow .3s, transform .3s; }
+    .feature-card:hover { transform:translateY(-4px); box-shadow:0 8px 32px rgba(196,101,74,0.12); border-color:var(--primary); }
+
+    /* Pricing card hover */
+    .pricing-card { transition: transform .3s, box-shadow .3s; }
+    .pricing-card:hover { transform:translateY(-6px); box-shadow:0 12px 40px rgba(0,0,0,0.15); }
+
+    /* Step numbers pulse */
+    .step-circle { transition: transform .3s, box-shadow .3s; }
+    .step-circle:hover { transform:scale(1.1); box-shadow:0 0 20px rgba(196,101,74,0.3); }
+
+    /* Nav slide */
+    .landing-nav { transform:translateY(-100%); animation:navSlide .5s ease forwards .1s; }
+    @keyframes navSlide { to { transform:translateY(0); } }
+
+    /* CTA glow */
+    .cta-section { transition: background .3s; }
+    .cta-section .btn-primary { transition: transform .3s, box-shadow .3s; }
+    .cta-section .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(196,101,74,0.3); }
+
+    @media(max-width:768px) {
+      #hero-3d { opacity:0.4; }
+    }
+  </style>
 </head>
 <body class="landing-body">
 
@@ -37,6 +91,7 @@
 
   <!-- Hero -->
   <section class="hero">
+    <canvas id="hero-3d"></canvas>
     <div class="hero-content">
       <h1>Seus alunos evoluindo. <span>Sua gestão no controle.</span></h1>
       <p>Treinos personalizados, dieta, medidas, agenda e inteligência artificial — tudo em um sistema feito pra quem vive de treinar gente.</p>
@@ -54,37 +109,37 @@
 
   <!-- Funcionalidades -->
   <section class="section" id="funcionalidades">
-    <div class="section-title">
+    <div class="section-title reveal">
       <h2>Tudo que você precisa em um só lugar</h2>
       <p>Chega de ficha de papel, planilha e 500 mensagens no WhatsApp</p>
     </div>
     <div class="feature-grid">
-      <div class="card feature-card">
+      <div class="card feature-card reveal stagger-1">
         <i data-lucide="users"></i>
         <h3>Gestão de Alunos</h3>
         <p>Cadastro completo, anamnese, convite por email. Tudo organizado numa ficha profissional.</p>
       </div>
-      <div class="card feature-card">
+      <div class="card feature-card reveal stagger-2">
         <i data-lucide="dumbbell"></i>
         <h3>Montagem de Treino</h3>
         <p>Biblioteca com 150+ exercícios, gifs, splits semanais. Monte rotinas em minutos.</p>
       </div>
-      <div class="card feature-card">
+      <div class="card feature-card reveal stagger-3">
         <i data-lucide="utensils"></i>
         <h3>Dieta e Nutrição</h3>
         <p>Cálculo automático de TMB, macros e plano alimentar. Aluno marca refeições feitas.</p>
       </div>
-      <div class="card feature-card">
+      <div class="card feature-card reveal stagger-4">
         <i data-lucide="ruler"></i>
         <h3>Avaliação Física</h3>
         <p>Medidas, fotos, gráficos de evolução. Compare avaliações lado a lado.</p>
       </div>
-      <div class="card feature-card">
+      <div class="card feature-card reveal stagger-5">
         <i data-lucide="calendar"></i>
         <h3>Agenda Inteligente</h3>
         <p>Horários de cada aluno organizados. Calendário semanal visual do seu dia.</p>
       </div>
-      <div class="card feature-card">
+      <div class="card feature-card reveal stagger-6">
         <i data-lucide="sparkles"></i>
         <h3>IA Assistente</h3>
         <p>Sugestão de treino, análise de progresso e relatórios gerados por inteligência artificial.</p>
@@ -95,23 +150,23 @@
   <!-- Como funciona -->
   <section class="section" style="background:var(--bg-card);border-radius:0;max-width:100%;padding:80px 20px;">
     <div style="max-width:900px;margin:0 auto">
-      <div class="section-title">
+      <div class="section-title reveal">
         <h2>Simples de usar</h2>
         <p>Em 3 passos você já está operando</p>
       </div>
       <div class="grid grid-3" style="text-align:center">
-        <div>
-          <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">1</div>
+        <div class="reveal stagger-1">
+          <div class="step-circle" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">1</div>
           <h4>Crie sua conta</h4>
           <p style="font-size:.9rem;margin-top:8px">Cadastro em 30 segundos. 7 dias grátis pra testar tudo.</p>
         </div>
-        <div>
-          <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">2</div>
+        <div class="reveal stagger-2">
+          <div class="step-circle" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">2</div>
           <h4>Convide seus alunos</h4>
           <p style="font-size:.9rem;margin-top:8px">Cada aluno recebe um link por email e acessa grátis pelo celular.</p>
         </div>
-        <div>
-          <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">3</div>
+        <div class="reveal stagger-3">
+          <div class="step-circle" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;font-weight:800;color:var(--primary)">3</div>
           <h4>Monte treinos e dietas</h4>
           <p style="font-size:.9rem;margin-top:8px">Use a biblioteca ou peça ajuda da IA. O aluno já vê tudo no app.</p>
         </div>
@@ -121,12 +176,12 @@
 
   <!-- Diferencial vs concorrentes -->
   <section class="section">
-    <div class="section-title">
+    <div class="section-title reveal">
       <h2>Por que LoadPro?</h2>
       <p>O que falta nos outros, sobra aqui</p>
     </div>
     <div class="grid grid-2" style="max-width:800px;margin:0 auto">
-      <div class="card" style="border-left:3px solid var(--danger)">
+      <div class="card reveal-left" style="border-left:3px solid var(--danger)">
         <h4 style="margin-bottom:12px;color:var(--text-muted)">Outros apps</h4>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
           <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Sem cobrança integrada</li>
@@ -136,7 +191,7 @@
           <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="x" style="width:16px;height:16px;color:var(--danger)"></i> Preço em dólar</li>
         </ul>
       </div>
-      <div class="card" style="border-left:3px solid var(--success)">
+      <div class="card reveal-right" style="border-left:3px solid var(--success)">
         <h4 style="margin-bottom:12px;color:var(--primary)">LoadPro</h4>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
           <li style="display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-secondary)"><i data-lucide="check" style="width:16px;height:16px;color:var(--success)"></i> PIX, boleto e cartão via Asaas</li>
@@ -151,12 +206,12 @@
 
   <!-- Planos -->
   <section class="section" id="planos">
-    <div class="section-title">
+    <div class="section-title reveal">
       <h2>Planos que cabem no seu bolso</h2>
       <p>Comece grátis por 7 dias. Sem surpresas.</p>
     </div>
     <div class="pricing-grid">
-      <div class="card pricing-card">
+      <div class="card pricing-card reveal-left">
         <h3>Starter</h3>
         <p class="limit">Até 10 alunos</p>
         <div class="price">R$ 99<small>/mês</small></div>
@@ -170,7 +225,7 @@
         </ul>
         <a href="cadastro.html" class="btn btn-block btn-secondary">Começar Grátis</a>
       </div>
-      <div class="card pricing-card featured">
+      <div class="card pricing-card featured reveal-right">
         <h3>Pro</h3>
         <p class="limit">Até 20 alunos</p>
         <div class="price">R$ 179<small>/mês</small></div>
@@ -188,7 +243,7 @@
   </section>
 
   <!-- CTA Final -->
-  <section class="cta-section">
+  <section class="cta-section reveal">
     <h2>Comece a profissionalizar seu atendimento</h2>
     <p>Seus alunos merecem mais do que uma planilha. E você merece mais controle.</p>
     <a href="cadastro.html" class="btn btn-lg btn-primary">
@@ -197,10 +252,165 @@
   </section>
 
   <!-- Footer -->
-  <footer class="landing-footer">
+  <footer class="landing-footer reveal">
     <p>&copy; 2026 LoadPro. Todos os direitos reservados.</p>
   </footer>
 
   <script>lucide.createIcons();</script>
+
+  <!-- Three.js — Esfera 3D de partículas no hero -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js?v=03300436"></script>
+  <script>
+  (function() {
+    var canvas = document.getElementById('hero-3d');
+    if (!canvas || window.innerWidth < 480) return; // Skip em telas muito pequenas
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setSize(canvas.parentElement.offsetWidth, canvas.parentElement.offsetHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(60, canvas.parentElement.offsetWidth / canvas.parentElement.offsetHeight, 0.1, 100);
+    camera.position.z = 4;
+
+    // Partículas em forma de esfera (DNA/corpo humano)
+    var count = 800;
+    var geo = new THREE.BufferGeometry();
+    var positions = new Float32Array(count * 3);
+    var colors = new Float32Array(count * 3);
+
+    // Cores terracota/warm
+    var color1 = new THREE.Color('#C4654A'); // primary
+    var color2 = new THREE.Color('#D4795E'); // primary hover
+    var color3 = new THREE.Color('#5A8F6E'); // success
+
+    for (var i = 0; i < count; i++) {
+      // Distribuição esférica com variação
+      var theta = Math.random() * Math.PI * 2;
+      var phi = Math.acos(2 * Math.random() - 1);
+      var r = 1.5 + (Math.random() - 0.5) * 0.3;
+
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+
+      // Mix de cores
+      var c = Math.random();
+      var col = c < 0.5 ? color1 : c < 0.8 ? color2 : color3;
+      colors[i * 3] = col.r;
+      colors[i * 3 + 1] = col.g;
+      colors[i * 3 + 2] = col.b;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    var mat = new THREE.PointsMaterial({
+      size: 0.03,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    var sphere = new THREE.Points(geo, mat);
+    scene.add(sphere);
+
+    // Anel orbital
+    var ringGeo = new THREE.RingGeometry(1.8, 1.85, 64);
+    var ringMat = new THREE.MeshBasicMaterial({ color: '#C4654A', transparent: true, opacity: 0.15, side: THREE.DoubleSide });
+    var ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 3;
+    scene.add(ring);
+
+    var ring2 = ring.clone();
+    ring2.rotation.x = -Math.PI / 4;
+    ring2.rotation.y = Math.PI / 6;
+    scene.add(ring2);
+
+    // Mouse parallax
+    var mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', function(e) {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 0.5;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.5;
+    }, { passive: true });
+
+    // Scroll parallax
+    var scrollY = 0;
+    window.addEventListener('scroll', function() { scrollY = window.scrollY; }, { passive: true });
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotação suave
+      sphere.rotation.y += 0.003;
+      sphere.rotation.x += 0.001;
+      ring.rotation.z += 0.002;
+      ring2.rotation.z -= 0.001;
+
+      // Mouse parallax
+      camera.position.x += (mouseX - camera.position.x) * 0.05;
+      camera.position.y += (-mouseY - camera.position.y) * 0.05;
+      camera.lookAt(scene.position);
+
+      // Fade out ao scrollar
+      var heroH = canvas.parentElement.offsetHeight;
+      var opacity = Math.max(0, 1 - scrollY / heroH);
+      canvas.style.opacity = opacity;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize
+    window.addEventListener('resize', function() {
+      var w = canvas.parentElement.offsetWidth;
+      var h = canvas.parentElement.offsetHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    });
+  })();
+  </script>
+
+  <!-- Scroll Reveal + SW -->
+  <script>
+  (function() {
+    // Scroll Reveal
+    var els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function(el) { el.classList.add('visible'); });
+      return;
+    }
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function(el) { obs.observe(el); });
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(function(reg) {
+        reg.addEventListener('updatefound', function() {
+          var nw = reg.installing;
+          nw.addEventListener('statechange', function() {
+            if (nw.state === 'activated') {
+              var banner = document.createElement('div');
+              banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;z-index:99999;font-family:Satoshi,sans-serif;box-shadow:0 4px 20px rgba(196,101,74,.4)';
+              banner.textContent = 'Atualização disponível — toque para atualizar';
+              banner.onclick = function() { location.reload(); };
+              document.body.appendChild(banner);
+            }
+          });
+        });
+      });
+    }
+  })();
+  </script>
 </body>
 </html>
