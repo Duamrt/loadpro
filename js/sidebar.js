@@ -15,7 +15,7 @@ function initSidebar() {
     const nome = window.adminViewingName || 'Personal';
     adminBar.innerHTML = `
       <span>Acessando: ${esc(nome)}</span>
-      <button onclick="voltarAdmin()" style="background:#fff;color:#ea580c;border:none;padding:6px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.8rem">Voltar ao Admin</button>
+      <button onclick="voltarAdmin()" style="background:#fff;color:#ea580c;border:none;padding:6px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.8rem">Voltar ao Master</button>
     `;
     document.body.insertBefore(adminBar, document.body.firstChild);
   }
