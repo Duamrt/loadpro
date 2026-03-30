@@ -1,6 +1,6 @@
 // LoadPro — Service Worker com auto-atualização
 // Network-first para JS/CSS/HTML, cache como fallback offline
-const CACHE_NAME = 'loadpro-v20260330085752';
+const CACHE_NAME = 'loadpro-v20260330090002';
 const APP_SHELL = [
   '/',
   '/index.html',
