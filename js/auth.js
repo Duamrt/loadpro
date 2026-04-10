@@ -1,5 +1,6 @@
 // LoadPro — Auth Guard
 // Inclui em todas as páginas protegidas (personal/* e aluno/*)
+(function(){const v=(document.currentScript?.src||'').match(/\?v=(\d+)/)?.[1]||'?';console.log('%c LoadPro %c v'+v+' ','background:#7c2d12;color:#fb923c;font-weight:700;padding:3px 7px;border-radius:3px 0 0 3px','background:#fb923c;color:#7c2d12;font-weight:700;padding:3px 7px;border-radius:0 3px 3px 0');})();
 
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
