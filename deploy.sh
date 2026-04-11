@@ -19,9 +19,10 @@ for f in *.html personal/*.html aluno/*.html; do
   sed -i -E "s/\.css(\?v=[0-9a-zA-Z]+)?\"/.css?v=$SHORT_V\"/g" "$f"
 done
 
-# 2. Atualizar CACHE_NAME no SW
-echo "[2/4] Atualizando Service Worker..."
+# 2. Atualizar CACHE_NAME no SW + versao no console
+echo "[2/4] Atualizando Service Worker e versao..."
 [ -f sw.js ] && sed -i -E "s/const CACHE_NAME = 'loadpro-v[0-9]+';/const CACHE_NAME = 'loadpro-v$VERSION';/" sw.js
+sed -i -E "s/const _LP_VER = 'loadpro-[0-9]+';/const _LP_VER = 'loadpro-$SHORT_V';/" js/auth.js
 
 # 3. Git commit
 echo "[3/4] Commitando..."
@@ -45,3 +46,15 @@ fi
 echo ""
 echo "=== LoadPro atualizado e no ar! ==="
 echo "Versao: $SHORT_V"
+
+# Fechar itens no DM Stack automaticamente pelo commit message
+DMS_KW="${2:-}"
+if [ -z "$DMS_KW" ]; then
+  DMS_KW=$(echo "$MSG" | tr '[:upper:]' '[:lower:]' | \
+    grep -oE '[a-záàâãéèêíïóôõöúüç-]{5,}' | \
+    grep -vE '^(cache|busting|deploy|versao|fixes|update|remove|corrige|corrigir|adiciona|adicionar|atualiza|atualizar|insere|inserir)$' | \
+    head -1)
+fi
+if [ -n "$DMS_KW" ]; then
+  bash "$HOME/dms-resolve.sh" "$DMS_KW" "LOADPRO"
+fi
