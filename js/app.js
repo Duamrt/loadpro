@@ -34,6 +34,15 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function initialScreen() {
+    try {
+      var screen = new URLSearchParams(window.location.search).get('screen');
+      return ['dashboard', 'today', 'workout', 'diet', 'progress'].indexOf(screen) >= 0 ? screen : 'dashboard';
+    } catch (e) {
+      return 'dashboard';
+    }
+  }
+
   function startModules() {
     if (window.LP.hydration) window.LP.hydration.start();
     if (window.LP.weight) window.LP.weight.start();
@@ -67,7 +76,7 @@
         try { localStorage.setItem('lp_email', email); } catch (e2) {}
         window.LP.user = res.data.user;
         showApp(true);
-        navigate('dashboard');
+        navigate(initialScreen());
         startModules();
       } catch (err) {
         loginError.textContent = 'Erro de conexão. Tente de novo.';
@@ -93,7 +102,7 @@
     showApp(!!session);
     if (session) {
       window.LP.user = session.user;
-      navigate('dashboard');
+      navigate(initialScreen());
       startModules();
     }
   })();
