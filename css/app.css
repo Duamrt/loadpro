@@ -351,6 +351,68 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.75; fill:
   letter-spacing: .04em;
 }
 .weight-input-row button:disabled { opacity: .62; cursor: wait; }
+.alerts-panel {
+  border: 1px solid rgba(var(--accent-rgb), .28);
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), .06), transparent),
+    rgba(255,255,255,.018);
+  padding: 10px;
+}
+.alerts-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.alerts-head strong {
+  display: block;
+  margin-top: 5px;
+  font: 850 18px/.95 var(--mono);
+}
+.alerts-head button {
+  min-width: 104px;
+  padding: 0 12px;
+  font: 820 11px/1 var(--mono);
+  text-transform: uppercase;
+}
+.alerts-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: end;
+}
+.alerts-grid label {
+  display: grid;
+  gap: 6px;
+}
+.alerts-grid select {
+  min-height: 40px;
+  padding: 0 9px;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  background: #0c0c0d;
+  font: 800 12px/1 var(--mono);
+}
+.alerts-check {
+  min-height: 40px;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  align-items: center;
+  justify-content: start;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  background: #101010;
+  color: var(--ink);
+  font: 820 12px/1 var(--mono);
+}
+.alerts-check input {
+  accent-color: var(--accent);
+}
+.alerts-panel p {
+  margin: 10px 0 0;
+  font: 740 11px/1.4 var(--mono);
+}
 
 .workout-grid {
   display: grid;

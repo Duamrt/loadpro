@@ -39,6 +39,7 @@
     if (window.LP.weight) window.LP.weight.start();
     if (window.LP.workout) window.LP.workout.start();
     if (window.LP.diet) window.LP.diet.start();
+    if (window.LP.notifications) window.LP.notifications.start();
   }
 
   var navButtons = document.querySelectorAll('[data-screen]');

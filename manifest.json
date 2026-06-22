@@ -1,0 +1,33 @@
+{
+  "name": "LoadPro",
+  "short_name": "LoadPro",
+  "description": "Painel pessoal de treino, dieta, agua e evolucao.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#09090a",
+  "theme_color": "#09090a",
+  "icons": [
+    {
+      "src": "/icons/loadpro-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hoje",
+      "short_name": "Hoje",
+      "url": "/?screen=today",
+      "description": "Abrir controle do dia"
+    },
+    {
+      "name": "Treino",
+      "short_name": "Treino",
+      "url": "/?screen=workout",
+      "description": "Abrir treino"
+    }
+  ]
+}
